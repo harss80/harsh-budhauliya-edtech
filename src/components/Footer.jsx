@@ -47,7 +47,7 @@ const Footer = () => {
                             </li>
                             <li style={{ display: 'flex', gap: '12px', alignItems: 'center', color: 'var(--text-muted)' }}>
                                 <Phone size={18} color="var(--primary-light)" />
-                                +91 98765 43210
+                                +91 84482 23888
                             </li>
                             <li style={{ display: 'flex', gap: '12px', alignItems: 'center', color: 'var(--text-muted)' }}>
                                 <MapPin size={18} color="var(--primary-light)" />
@@ -67,7 +67,7 @@ const Footer = () => {
                     </div>
                 </div>
             </div>
-        </footer>
+        </footer >
     );
 };
 

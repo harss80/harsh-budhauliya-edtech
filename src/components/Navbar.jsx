@@ -21,10 +21,10 @@ const Navbar = () => {
     }, []);
 
     const navLinks = [
-        { name: 'FACULTIES', path: '/#programs' },
+        { name: 'STUDY MATERIAL', path: '/study-material' },
         { name: 'DASHBOARD', path: '/test' },
-        { name: 'LIVE ANALYSIS', path: '/#community' },
-        { name: 'RANKINGS', path: '/#success' },
+        { name: 'HISTORY', path: '/test-history' },
+        { name: 'BLOG', path: '/blog' },
     ];
 
     return (
@@ -55,7 +55,7 @@ const Navbar = () => {
                         {user ? (
                             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                                 <span style={{ fontSize: '0.85rem', color: 'white', fontWeight: '600' }}>Hi, {user.name.split(' ')[0]}</span>
-                                <Link to="/test" className="nav-btn" style={{ background: 'var(--primary)', padding: '8px 20px', fontSize: '0.8rem' }}>RESUME TEST</Link>
+                                <Link to="/test" className="nav-btn" style={{ background: 'var(--primary)', padding: '8px 20px', fontSize: '0.8rem' }}>MY DASHBOARD</Link>
                             </div>
                         ) : (
                             <>
