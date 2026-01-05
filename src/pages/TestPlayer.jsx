@@ -25,20 +25,91 @@ const TestPlayer = () => {
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 1024);
 
     // Mock Questions
-    const [questions] = useState(() =>
-        Array.from({ length: TOTAL_QUESTIONS }, (_, i) => ({
-            id: i + 1,
-            subject: i < 17 ? 'Physics' : i < 34 ? 'Chemistry' : 'Mathematics',
-            text: `Question ${i + 1}: This is a simulated question text for ${testId || 'Mock Test'}. Calculate the required value given the conditions.`,
-            options: [
-                { id: 'A', text: `Option A value ${i * 2 + 1}` },
-                { id: 'B', text: `Option B value ${i * 3 + 2}` },
-                { id: 'C', text: `Option C value ${i * 4 + 3}` },
-                { id: 'D', text: `Option D value ${i * 5 + 4}` }
+    // Mock Questions with HARD Difficulty & Chapter Variety
+    const [questions] = useState(() => {
+        const subjects = ['Physics', 'Chemistry', 'Mathematics'];
+
+        const chapters = {
+            'Physics': [
+                'Rotational Dynamics', 'Electrostatics', 'Magnetism & Matter', 'Thermodynamics',
+                'Wave Optics', 'Alternating Current', 'Gravitation', 'Fluid Mechanics'
             ],
-            correctAnswer: 'B'
-        }))
-    );
+            'Chemistry': [
+                'Coordination Compounds', 'Thermodynamics', 'Equilibrium', 'Electrochemistry',
+                'Organic Reaction Mechanisms', 'P-Block Elements', 'Chemical Bonding', 'Solutions'
+            ],
+            'Mathematics': [
+                'Calculus (Integration)', 'Probability', 'Complex Numbers', '3D Geometry',
+                'Matrices & Determinants', 'Conic Sections', 'Differential Equations', 'Vector Algebra'
+            ]
+        };
+
+        const generateHardQuestion = (subject, index) => {
+            const chapter = chapters[subject][index % chapters[subject].length];
+
+            if (subject === 'Physics') {
+                return [
+                    `A rigid body of mass ${index * 2}kg is rotating about an axis z with angular velocity ω = ${(index + 2)}t² - 4t. Calculate the torque acting on it at t=3s, considering the moment of inertia varies as I = I₀(1 + αt).`,
+                    `In a Young's double slit experiment using light of wavelength ${400 + index * 10}nm, if the screen is moved away with velocity v=${index} m/s, find the rate of change of fringe width.`,
+                    `Find the electric flux through a non-uniform surface defined by z = x² + y² in a field E = ${index * 10}xi + ${index * 5}yj + zk.`
+                ][index % 3];
+            } else if (subject === 'Chemistry') {
+                return [
+                    `Calculate the EMF of the cell at 298K: Pt | H₂(g, ${index}bar) | HCl(aq) || AgCl(s) | Ag, given Ksp of AgCl is 1.8x10⁻¹⁰.`,
+                    `Which of the following complex ions expects to have the highest CFSE value in an octahedral field? Consider pairing energy P = ${1500 + index * 100} cm⁻¹.`,
+                    `For the reaction A -> Products, the rate constant k is ${2.5 * index} x 10⁻³. Calculate the activation energy if the rate doubles when T increases from 300K to 310K.`
+                ][index % 3];
+            } else {
+                return [
+                    `Evaluate the integral ∫ (from 0 to π) of [x sin^${index + 2}(x) / (1 + cos^2(x))] dx.`,
+                    `Find the locus of the center of a circle which touches the circle x² + y² - ${2 * index}x = 0 externally and the line x = -${index}.`,
+                    `If z is a complex number such that |z - ${index}i| = |z + ${index}|, find the minimum value of |z|.`
+                ][index % 3];
+            }
+        };
+
+        return Array.from({ length: TOTAL_QUESTIONS }, (_, i) => {
+            const subject = i < 17 ? 'Physics' : i < 34 ? 'Chemistry' : 'Mathematics';
+            const chapter = chapters[subject][i % chapters[subject].length];
+            const qText = generateHardQuestion(subject, i);
+
+            return {
+                id: i + 1,
+                subject,
+                text: `[${subject} - ${chapter}] ${qText}`,
+                options: [
+                    { id: 'A', text: `Value ${Math.abs((Math.sin(i) * 100).toFixed(2))}` },
+                    { id: 'B', text: `Value ${Math.abs((Math.cos(i) * 100).toFixed(2))}` },
+                    { id: 'C', text: `Value ${Math.abs((Math.tan(i) * 10).toFixed(2))}` },
+                    { id: 'D', text: `None of these` }
+                ],
+                correctAnswer: ['A', 'B', 'C', 'D'][i % 4]
+            };
+        });
+    });
+
+    // Question Timer (60s per question)
+    const [questionTimer, setQuestionTimer] = useState(60);
+
+    // Reset question timer when current question changes
+    useEffect(() => {
+        setQuestionTimer(60);
+    }, [currentQuestion]);
+
+    // Question Timer Countdown & Auto-Skip
+    useEffect(() => {
+        const qTimer = setInterval(() => {
+            setQuestionTimer((prev) => {
+                if (prev <= 1) {
+                    // Time Up for this question -> Auto Next
+                    handleNext();
+                    return 60;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+        return () => clearInterval(qTimer);
+    }, [currentQuestion, questions.length]); // Depend on currentQuestion so handleNext uses correct index
 
     // Responsive Check
     useEffect(() => {
@@ -143,6 +214,12 @@ const TestPlayer = () => {
             }}>
                 <div style={{ display: 'flex', items: 'center', gap: '1rem' }}>
                     <h2 style={{ fontSize: '1.1rem', fontWeight: '700', color: 'white', margin: 0 }}>Full Syllabus Mock #04</h2>
+                    <div style={{
+                        background: '#27272a', padding: '4px 12px', borderRadius: '4px',
+                        display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem', color: questionTimer < 10 ? '#ef4444' : '#fbbf24'
+                    }}>
+                        <Clock size={14} /> Question Time: {questionTimer}s
+                    </div>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>

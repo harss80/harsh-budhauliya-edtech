@@ -38,7 +38,6 @@ const Home = () => {
             <HowItWorks />
             <LiveFeed />
             <FooterCTA />
-            <Popup />
         </div>
     );
 };

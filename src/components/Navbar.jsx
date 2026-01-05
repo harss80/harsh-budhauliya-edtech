@@ -59,7 +59,7 @@ const Navbar = () => {
                             </div>
                         ) : (
                             <>
-                                <Link to="/test" className="nav-login" style={{ fontSize: '0.8rem', letterSpacing: '0.05em' }}>PORTAL ACCESS</Link>
+                                <Link to="/login" className="nav-login" style={{ fontSize: '0.8rem', letterSpacing: '0.05em' }}>PORTAL ACCESS</Link>
                                 <Link to="/signup" className="nav-btn" style={{ background: 'var(--primary)', color: 'white', fontSize: '0.8rem', letterSpacing: '0.05em', border: '1px solid var(--primary-light)' }}>ADMISSIONS OPEN</Link>
                             </>
                         )}

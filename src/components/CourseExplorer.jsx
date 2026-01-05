@@ -139,22 +139,22 @@ const CourseExplorer = () => {
         { title: "Foundations", subjects: ['Classes 8-10', 'Olympiads', 'NTSE'], gradient: "linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%)" }
     ];
 
-    const handleStartDiagnostic = () => {
-        const hasLead = localStorage.getItem('digimentors_lead_captured');
-        if (hasLead) {
-            navigate('/test');
+    const handleStartDiagnostic = (courseTitle) => {
+        const user = localStorage.getItem('digimentors_current_user');
+        if (user) {
+            // Generate a slug from the title (e.g. "Medical" -> "medical-diagnostic")
+            const testId = `${courseTitle.toLowerCase().replace(/\s+/g, '-')}-diagnostic`;
+            navigate(`/attempt-test/${testId}`);
         } else {
-            setShowPopup(true);
+            // Redirect to login page
+            navigate('/login');
         }
     };
 
     const handleLeadSuccess = (data) => {
-        // Save to local storage to remember user
-        localStorage.setItem('digimentors_lead_captured', 'true');
-        localStorage.setItem('digimentors_user_profile', JSON.stringify(data));
-        console.log("Saving lead to Admin Panel:", data);
+        // Redundant with new Login flow, keeping for backward compat if needed, 
+        // but core logic is now in Login.jsx
         setShowPopup(false);
-        navigate('/test');
     };
 
     return (
@@ -178,7 +178,7 @@ const CourseExplorer = () => {
                             key={idx}
                             {...course}
                             number={`0${idx + 1}`}
-                            onStart={handleStartDiagnostic}
+                            onStart={() => handleStartDiagnostic(course.title)}
                         />
                     ))}
                 </div>
