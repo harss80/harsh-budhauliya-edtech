@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { questionPool } from '../data/questions';
+import { realQuestions as questionPool } from '../data/realQuestions';
 import { ArrowLeft, CheckCircle, RefreshCw, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -14,23 +14,28 @@ const Practice = () => {
     const [isAnswered, setIsAnswered] = useState(false);
 
     useEffect(() => {
-        // Filter questions based on exam (NEET or JEE) + Common questions (BOTH)
-        const filtered = questionPool.filter(q => q.type === 'BOTH' || q.type === exam);
-        // Shuffle and pick 10 for demo (or all)
-        const shuffled = filtered.sort(() => 0.5 - Math.random()).slice(0, 10);
+        // Filter questions based on exam (NEET or JEE)
+        const subjects = exam === 'NEET'
+            ? ['Physics', 'Chemistry', 'Biology']
+            : ['Physics', 'Chemistry', 'Mathematics'];
+
+        const filtered = questionPool.filter(q => subjects.includes(q.subject));
+
+        // Shuffle and pick 10 (or all)
+        const shuffled = [...filtered].sort(() => 0.5 - Math.random()).slice(0, 10);
         setQuestions(shuffled);
     }, [exam]);
 
-    const handleOptionClick = (index) => {
+    const handleOptionClick = (optionId) => {
         if (isAnswered) return;
-        setSelectedOption(index);
+        setSelectedOption(optionId);
     };
 
     const handleNext = () => {
         if (selectedOption === null) return;
 
         // Check answer
-        if (selectedOption === questions[currentQIndex].answer) {
+        if (selectedOption === questions[currentQIndex].correctAnswer) {
             setScore(score + 1);
         }
 
@@ -117,26 +122,26 @@ const Practice = () => {
                     </h2>
 
                     <div style={{ display: 'grid', gap: '1rem' }}>
-                        {currentQ.options.map((opt, idx) => (
+                        {currentQ.options.map((opt) => (
                             <button
-                                key={idx}
-                                onClick={() => handleOptionClick(idx)}
+                                key={opt.id}
+                                onClick={() => handleOptionClick(opt.id)}
                                 style={{
                                     textAlign: 'left',
                                     padding: '1.2rem',
                                     borderRadius: '12px',
-                                    border: selectedOption === idx ? '2px solid var(--primary-blue)' : '1px solid #e5e7eb',
-                                    background: selectedOption === idx ? '#eff6ff' : 'white',
+                                    border: selectedOption === opt.id ? '2px solid var(--primary-blue)' : '1px solid #e5e7eb',
+                                    background: selectedOption === opt.id ? '#eff6ff' : 'white',
                                     fontSize: '1.1rem',
                                     transition: 'all 0.2s',
                                     position: 'relative',
-                                    fontWeight: selectedOption === idx ? '500' : '400'
+                                    fontWeight: selectedOption === opt.id ? '500' : '400'
                                 }}
                             >
-                                <span style={{ display: 'inline-flex', width: '28px', height: '28px', background: selectedOption === idx ? 'var(--primary-blue)' : '#f3f4f6', color: selectedOption === idx ? 'white' : 'gray', borderRadius: '50%', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', marginRight: '1rem', fontWeight: '600' }}>
-                                    {String.fromCharCode(65 + idx)}
+                                <span style={{ display: 'inline-flex', width: '28px', height: '28px', background: selectedOption === opt.id ? 'var(--primary-blue)' : '#f3f4f6', color: selectedOption === opt.id ? 'white' : 'gray', borderRadius: '50%', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', marginRight: '1rem', fontWeight: '600' }}>
+                                    {opt.id}
                                 </span>
-                                {opt}
+                                {opt.text}
                             </button>
                         ))}
                     </div>

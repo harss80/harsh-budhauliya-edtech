@@ -8,32 +8,31 @@ import {
 const AdminDashboard = () => {
     const [activeTab, setActiveTab] = useState('students');
     const [leads, setLeads] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
-        // Load mock data + current local user
-        const mockLeads = [
-            { id: 1, name: "Rahul Sharma", email: "rahul@gmail.com", mobile: "9876543210", class: "Class 12", exam: "JEE", score: "85%", status: "Active" },
-            { id: 2, name: "Priya Singh", email: "priya@yahoo.com", mobile: "8765432109", class: "Dropper", exam: "NEET", score: "92%", status: "Active" },
-            { id: 3, name: "Amit Verma", email: "amit.v@outlook.com", mobile: "7654321098", class: "Class 11", exam: "JEE", score: "78%", status: "Inactive" },
-        ];
+        // Load Real Users from Local Storage
+        const storedUsers = JSON.parse(localStorage.getItem('digimentors_users') || '[]');
 
-        // Check for local user
-        const localUser = localStorage.getItem('digimentors_user_profile');
-        if (localUser) {
-            const parsed = JSON.parse(localUser);
-            mockLeads.unshift({
-                id: Date.now(),
-                name: parsed.name,
-                email: parsed.email,
-                mobile: parsed.mobile,
-                class: parsed.className,
-                exam: parsed.exam,
-                score: "N/A",
-                status: "Online Now"
-            });
-        }
-        setLeads(mockLeads);
+        // Map to table format
+        const realLeads = storedUsers.map((u, idx) => ({
+            id: idx,
+            name: u.name,
+            email: u.email,
+            mobile: "N/A", // Not collecting mobile in simplified login
+            class: u.educationDetails?.grade || "N/A",
+            exam: u.educationDetails?.targetExam || "N/A",
+            score: "Pending", // Would need complex linking
+            status: "Registered"
+        }));
+
+        setLeads(realLeads);
     }, []);
+
+    const filteredLeads = leads.filter(lead =>
+        lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        lead.email.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     const TabButton = ({ id, icon: Icon, label }) => (
         <button
@@ -100,6 +99,8 @@ const AdminDashboard = () => {
                             <input
                                 type="text"
                                 placeholder="Global Search..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
                                 style={{
                                     padding: '12px 12px 12px 44px',
                                     background: 'rgba(255,255,255,0.03)',
@@ -132,7 +133,7 @@ const AdminDashboard = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {leads.map((lead) => (
+                                    {filteredLeads.map((lead) => (
                                         <tr key={lead.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                                             <td style={{ padding: '20px', fontWeight: '600' }}>{lead.name}</td>
                                             <td style={{ padding: '20px', color: 'var(--text-muted)' }}>

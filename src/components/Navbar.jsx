@@ -21,10 +21,12 @@ const Navbar = () => {
     }, []);
 
     const navLinks = [
-        { name: 'STUDY MATERIAL', path: '/study-material' },
-        { name: 'DASHBOARD', path: '/test' },
-        { name: 'HISTORY', path: '/test-history' },
-        { name: 'BLOG', path: '/blog' },
+        { name: 'JEE', path: '/category/jee' },
+        { name: 'NEET', path: '/category/neet' },
+        { name: 'FOUNDATION', path: '/category/foundation' },
+        { name: 'LEADERBOARD', path: '/leaderboard' },
+        { name: 'MENTORS', path: '/mentorship' },
+        { name: 'CONTACT', path: '/contact' },
     ];
 
     return (
@@ -59,8 +61,8 @@ const Navbar = () => {
                             </div>
                         ) : (
                             <>
-                                <Link to="/login" className="nav-login" style={{ fontSize: '0.8rem', letterSpacing: '0.05em' }}>PORTAL ACCESS</Link>
-                                <Link to="/signup" className="nav-btn" style={{ background: 'var(--primary)', color: 'white', fontSize: '0.8rem', letterSpacing: '0.05em', border: '1px solid var(--primary-light)' }}>ADMISSIONS OPEN</Link>
+                                <Link to="/login" className="nav-login" style={{ fontSize: '0.8rem', letterSpacing: '0.05em' }}>LOGIN</Link>
+                                <Link to="/test" className="nav-btn" style={{ background: 'var(--primary)', color: 'white', fontSize: '0.8rem', letterSpacing: '0.05em', border: '1px solid var(--primary-light)' }}>DASHBOARD</Link>
                             </>
                         )}
                     </div>

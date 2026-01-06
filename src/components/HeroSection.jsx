@@ -99,6 +99,7 @@ const HeroSection = () => {
                         className="hero-buttons"
                     >
                         <button className="btn-reset"
+                            onClick={() => document.getElementById('programs')?.scrollIntoView({ behavior: 'smooth' })}
                             style={{
                                 padding: '16px 36px',
                                 background: 'white',
@@ -125,7 +126,9 @@ const HeroSection = () => {
                             Explore Programs <ArrowRight size={22} />
                         </button>
 
-                        <button className="btn-reset" style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'white', fontWeight: '600', padding: '12px 24px', borderRadius: '100px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', transition: 'all 0.3s ease', fontSize: '0.95rem', justifyContent: 'center' }}
+                        <button className="btn-reset"
+                            onClick={() => document.getElementById('methodology')?.scrollIntoView({ behavior: 'smooth' })}
+                            style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'white', fontWeight: '600', padding: '12px 24px', borderRadius: '100px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', transition: 'all 0.3s ease', fontSize: '0.95rem', justifyContent: 'center' }}
                             onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
                             onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
                         >

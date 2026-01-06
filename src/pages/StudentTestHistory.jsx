@@ -11,81 +11,12 @@ import { Link } from 'react-router-dom';
 const StudentTestHistory = () => {
     const [filter, setFilter] = useState('All');
 
-    // Mock Data simulating test history
-    const testHistory = [
-        {
-            id: 101,
-            name: "Full Syllabus Mock Test #03",
-            date: "Jan 04, 2026",
-            status: "Completed",
-            type: "Major Test",
-            totalQuestions: 90,
-            attempted: 85,
-            correct: 68,
-            wrong: 17,
-            score: 255,
-            maxScore: 360,
-            timeSpent: "2h 55m"
-        },
-        {
-            id: 102,
-            name: "Physics Part Test: Mechanics",
-            date: "Jan 02, 2026",
-            status: "Incomplete",
-            type: "Part Test",
-            totalQuestions: 45,
-            attempted: 22,
-            correct: null, // Not calculated yet
-            wrong: null,
-            score: null,
-            maxScore: 180,
-            timeSpent: "45m",
-            progress: 48 // % completed
-        },
-        {
-            id: 103,
-            name: "Chemistry: Organic Revamp",
-            date: "Dec 28, 2025",
-            status: "Completed",
-            type: "Chapter Test",
-            totalQuestions: 30,
-            attempted: 30,
-            correct: 28,
-            wrong: 2,
-            score: 110,
-            maxScore: 120,
-            timeSpent: "58m"
-        },
-        {
-            id: 104,
-            name: "Maths: Calculus Speed Test",
-            date: "Dec 25, 2025",
-            status: "Aborted", // "Adhe me chod diya"
-            type: "Speed Test",
-            totalQuestions: 50,
-            attempted: 5,
-            correct: null,
-            wrong: null,
-            score: null,
-            maxScore: 200,
-            timeSpent: "10m",
-            progress: 10
-        },
-        {
-            id: 105,
-            name: "Full Syllabus Mock Test #02",
-            date: "Dec 20, 2025",
-            status: "Completed",
-            type: "Major Test",
-            totalQuestions: 90,
-            attempted: 88,
-            correct: 70,
-            wrong: 18,
-            score: 262,
-            maxScore: 360,
-            timeSpent: "3h 00m"
-        }
-    ];
+    const [testHistory, setTestHistory] = useState([]);
+
+    useEffect(() => {
+        const history = JSON.parse(localStorage.getItem('digimentors_test_history') || '[]');
+        setTestHistory(history);
+    }, []);
 
     const filteredTests = filter === 'All'
         ? testHistory

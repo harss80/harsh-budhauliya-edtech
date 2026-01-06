@@ -12,6 +12,10 @@ import StudentTestHistory from './pages/StudentTestHistory';
 import StudyMaterial from './pages/StudyMaterial';
 import TestPlayer from './pages/TestPlayer';
 import Login from './pages/Login';
+import Leaderboard from './pages/Leaderboard';
+import Mentorship from './pages/Mentorship';
+import ExamCategory from './pages/ExamCategory';
+import Contact from './pages/Contact';
 import Footer from './components/Footer';
 
 // Component to handle global popup logic inside Router context
@@ -52,8 +56,11 @@ function App() {
       <div className="app-container" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
         <Navbar />
         <main style={{ flex: 1 }}>
+
+
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/category/:category" element={<ExamCategory />} />
             <Route path="/questions" element={<QuestionBank />} />
             <Route path="/practice/:exam/:subject" element={<Practice />} />
             <Route path="/test" element={<StudentDashboard />} />
@@ -64,6 +71,9 @@ function App() {
             <Route path="/attempt-test/:testId" element={<TestPlayer />} />
             <Route path="/login" element={<Login />} />
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="/mentorship" element={<Mentorship />} />
+            <Route path="/contact" element={<Contact />} />
           </Routes>
         </main>
         <Footer />

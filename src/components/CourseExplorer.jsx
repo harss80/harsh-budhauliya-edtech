@@ -121,7 +121,7 @@ const CourseCard = ({ title, subjects, number, gradient, onStart }) => {
                         e.currentTarget.style.background = 'var(--primary)';
                     }}
                 >
-                    Start Diagnostic <ArrowRight size={20} />
+                    Explore Program <ArrowRight size={20} />
                 </button>
             </div>
         </motion.div>
@@ -139,16 +139,12 @@ const CourseExplorer = () => {
         { title: "Foundations", subjects: ['Classes 8-10', 'Olympiads', 'NTSE'], gradient: "linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%)" }
     ];
 
-    const handleStartDiagnostic = (courseTitle) => {
-        const user = localStorage.getItem('digimentors_current_user');
-        if (user) {
-            // Generate a slug from the title (e.g. "Medical" -> "medical-diagnostic")
-            const testId = `${courseTitle.toLowerCase().replace(/\s+/g, '-')}-diagnostic`;
-            navigate(`/attempt-test/${testId}`);
-        } else {
-            // Redirect to login page
-            navigate('/login');
-        }
+    const handleExplore = (courseTitle) => {
+        let slug = 'jee';
+        if (courseTitle.includes('Medical')) slug = 'neet';
+        if (courseTitle.includes('Foundations')) slug = 'foundation';
+
+        navigate(`/category/${slug}`);
     };
 
     const handleLeadSuccess = (data) => {
@@ -178,7 +174,7 @@ const CourseExplorer = () => {
                             key={idx}
                             {...course}
                             number={`0${idx + 1}`}
-                            onStart={() => handleStartDiagnostic(course.title)}
+                            onStart={() => handleExplore(course.title)}
                         />
                     ))}
                 </div>

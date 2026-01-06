@@ -5,42 +5,89 @@ import {
     BookOpen, Target, Clock, Trophy,
     Calendar, PlayCircle, ChevronRight,
     Zap, Activity, Star, Layout, Bookmark,
-    BarChart2, Users, FileText
+    BarChart2, Users, FileText, Layers
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
+
 const StudentDashboard = () => {
-    // Simulation of user data - normally would come from context/api
+    // Real User Data
     const [user, setUser] = useState({
         name: "Student",
-        goal: null, // 'JEE', 'NEET', 'FOUNDATION'
-        rank: 12450,
-        streak: 5,
-        percentile: 88.5
+        goal: "General",
+        rank: "N/A",
+        streak: 0,
+        percentile: 0
     });
 
+    const [stats, setStats] = useState({
+        testsCompleted: 0,
+        avgAccuracy: 0,
+        questionsSolved: 0
+    });
+
+    const [testHistory, setTestHistory] = useState([]);
     const [selectedGoal, setSelectedGoal] = useState(null);
-    const [showGoalSelector, setShowGoalSelector] = useState(true);
+    const [showGoalSelector, setShowGoalSelector] = useState(false); // Default false, strictly check auth
+    const [myCourses, setMyCourses] = useState([]);
 
     useEffect(() => {
-        const storedUser = localStorage.getItem('digimentors_user_profile');
+        // Load User
+        const storedUser = localStorage.getItem('digimentors_current_user');
         if (storedUser) {
             const parsed = JSON.parse(storedUser);
-            setUser(prev => ({ ...prev, name: parsed.name }));
+            setUser(prev => ({
+                ...prev,
+                name: parsed.name,
+                goal: parsed.educationDetails?.targetExam || 'General'
+            }));
+            if (!parsed.educationDetails?.targetExam) {
+                setShowGoalSelector(true);
+            } else {
+                setSelectedGoal(parsed.educationDetails.targetExam);
+            }
+        } else {
+            // Redirect to login if not found? Or just show selector/demo?
+            // For now, let's keep demo mode if not logged in but encourage login
+            setShowGoalSelector(true);
         }
 
-        // Simulating checking if user has already selected a goal
-        const savedGoal = localStorage.getItem('digimentors_user_goal');
-        if (savedGoal) {
-            setSelectedGoal(savedGoal);
-            setShowGoalSelector(false);
+        // Load History & Calculate Stats
+        const history = JSON.parse(localStorage.getItem('digimentors_test_history') || '[]');
+        setTestHistory(history);
+
+        if (history.length > 0) {
+            const totalTests = history.length;
+            const totalQuestions = history.reduce((acc, curr) => acc + (curr.attempted || 0), 0);
+            const avgAcc = Math.round(history.reduce((acc, curr) => acc + (curr.accuracy || 0), 0) / totalTests);
+
+            setStats({
+                testsCompleted: totalTests,
+                questionsSolved: totalQuestions,
+                avgAccuracy: avgAcc
+            });
+
+            // Simulating Rank based on score (Real logic would need backend)
+            setUser(prev => ({ ...prev, percentile: avgAcc > 80 ? 98 : avgAcc > 50 ? 85 : 60 }));
         }
+
+        // Load Courses
+        const courses = JSON.parse(localStorage.getItem('digimentors_user_courses') || '[]');
+        setMyCourses(courses);
+
     }, []);
 
     const handleGoalSelect = (goal) => {
-        localStorage.setItem('digimentors_user_goal', goal);
+        // Update user profile in local storage if exists
+        const storedUser = localStorage.getItem('digimentors_current_user');
+        if (storedUser) {
+            const parsed = JSON.parse(storedUser);
+            parsed.educationDetails = { ...parsed.educationDetails, targetExam: goal };
+            localStorage.setItem('digimentors_current_user', JSON.stringify(parsed));
+            setUser(prev => ({ ...prev, goal: goal }));
+        }
         setSelectedGoal(goal);
-        setTimeout(() => setShowGoalSelector(false), 500); // Small delay for animation
+        setTimeout(() => setShowGoalSelector(false), 500);
     };
 
     const GoalSelector = () => (
@@ -92,9 +139,9 @@ const StudentDashboard = () => {
                         marginBottom: '2rem'
                     }}>
                         {[
-                            { id: 'JEE', title: 'JEE Mains & Adv', icon: Zap, color: '#f59e0b', desc: 'Engineering Entrance' },
+                            { id: 'JEE Main', title: 'JEE Mains & Adv', icon: Zap, color: '#f59e0b', desc: 'Engineering Entrance' },
                             { id: 'NEET', title: 'NEET Medical', icon: Activity, color: '#10b981', desc: 'Medical Entrance' },
-                            { id: 'FOUNDATION', title: 'Foundation', icon: BookOpen, color: '#6366f1', desc: 'Class 8-10 Base Building' }
+                            { id: 'Foundations', title: 'Foundation', icon: BookOpen, color: '#6366f1', desc: 'Class 8-10 Base Building' }
                         ].map((item, idx) => (
                             <motion.button
                                 key={item.id}
@@ -234,10 +281,36 @@ const StudentDashboard = () => {
 
                 {/* Stats Grid */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
-                    <StatCard icon={Target} label="Global Rank (Est.)" value={`#${user.rank}`} trend="+125 Positions" trendUp={true} color="#6366f1" />
-                    <StatCard icon={FileText} label="Tests Completed" value="14" trend="+3 this week" trendUp={true} color="#f59e0b" />
-                    <StatCard icon={Trophy} label="Avg. Accuracy" value={`${user.percentile}%`} trend="-1.2% Drop" trendUp={false} color="#ec4899" />
-                    <StatCard icon={Zap} label="Questions Solved" value={`${user.streak * 45}`} trend="Top 5%" trendUp={true} color="#10b981" />
+                    <StatCard icon={Target} label="Global Rank (Est.)" value={user.rank !== "N/A" ? `#${Math.floor(20000 - (user.percentile * 200))}` : "Unranked"} trend={user.rank !== "N/A" ? "+125 Positions" : null} trendUp={true} color="#6366f1" />
+                    <StatCard icon={FileText} label="Tests Completed" value={stats.testsCompleted} trend="All Time" trendUp={true} color="#f59e0b" />
+                    <StatCard icon={Trophy} label="Avg. Accuracy" value={`${stats.avgAccuracy}%`} trend={stats.avgAccuracy > 70 ? "Excellent" : "Keep Improving"} trendUp={stats.avgAccuracy > 70} color="#ec4899" />
+                    <StatCard icon={Zap} label="Questions Solved" value={stats.questionsSolved} trend="Total Solved" trendUp={true} color="#10b981" />
+                </div>
+
+                {/* Quick Access / All Resources */}
+                <div style={{ marginBottom: '3rem' }}>
+                    <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '1.5rem' }}>Quick Actions</h2>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '1.5rem' }}>
+                        {[
+                            { title: 'Question Bank', path: '/questions', icon: BookOpen, color: '#3b82f6' },
+                            { title: 'Test History', path: '/test-history', icon: Clock, color: '#f59e0b' },
+                            { title: 'Live Analysis', path: '/analysis', icon: BarChart2, color: '#10b981' },
+                            { title: 'Leaderboard', path: '/leaderboard', icon: Trophy, color: '#ec4899' },
+                            { title: 'Mentorship', path: '/mentorship', icon: Users, color: '#8b5cf6' },
+                            { title: 'Study Material', path: '/study-material', icon: Layers, color: '#6366f1' },
+                            { title: 'Blog & News', path: '/blog', icon: FileText, color: '#06b6d4' },
+                            { title: 'Contact Support', path: '/contact', icon: Layout, color: '#ef4444' }
+                        ].map((item) => (
+                            <Link key={item.title} to={item.path} style={{ textDecoration: 'none' }}>
+                                <div className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '1rem', height: '100%', transition: 'all 0.3s' }}>
+                                    <div style={{ padding: '12px', borderRadius: '12px', background: `${item.color}20`, color: item.color }}>
+                                        <item.icon size={24} />
+                                    </div>
+                                    <div style={{ fontSize: '0.95rem', fontWeight: '600', color: 'white' }}>{item.title}</div>
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
                 </div>
 
                 {/* Main Content Areas */}
@@ -254,14 +327,14 @@ const StudentDashboard = () => {
                             <div style={{ position: 'relative', width: '100%', height: '350px', background: 'linear-gradient(90deg, #1e1b4b, #312e81)' }}>
                                 <div style={{ padding: '2rem', position: 'relative', zIndex: 2 }}>
                                     <span style={{ background: '#f59e0b', color: 'black', padding: '4px 12px', borderRadius: '100px', fontSize: '0.75rem', fontWeight: '700', marginBottom: '1rem', display: 'inline-block' }}>LIVE NOW</span>
-                                    <h3 style={{ fontSize: '1.8rem', marginBottom: '0.5rem', fontWeight: '700' }}>Full Syllabus Mock #04</h3>
-                                    <p style={{ color: 'rgba(255,255,255,0.7)', marginBottom: '1.5rem' }}>Physics, Chem, Maths • 300 Marks • 3 Hours</p>
+                                    <h3 style={{ fontSize: '1.8rem', marginBottom: '0.5rem', fontWeight: '700' }}>{selectedGoal ? `${selectedGoal} Official Mock` : 'Full Syllabus Mock'}</h3>
+                                    <p style={{ color: 'rgba(255,255,255,0.7)', marginBottom: '1.5rem' }}>Physics, Chemistry, Maths/Bio • Real Pattern</p>
 
                                     <div style={{ width: '100%', maxWidth: '400px', height: '6px', background: 'rgba(255,255,255,0.2)', borderRadius: '100px', marginBottom: '1rem' }}>
                                         <div style={{ width: '0%', height: '100%', background: '#f59e0b', borderRadius: '100px' }}></div>
                                     </div>
 
-                                    <Link to="/attempt-test/full-syllabus-mock-04" className="btn-reset" style={{ padding: '12px 30px', background: 'white', color: 'black', borderRadius: '100px', fontWeight: '700', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
+                                    <Link to={`/attempt-test/${selectedGoal?.toLowerCase().replace(' ', '-') || 'full'}-mock-test`} className="btn-reset" style={{ padding: '12px 30px', background: 'white', color: 'black', borderRadius: '100px', fontWeight: '700', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
                                         Start Assessment <PlayCircle size={18} />
                                     </Link>
                                 </div>
@@ -271,21 +344,77 @@ const StudentDashboard = () => {
                         </div>
                     </div>
 
+                </div>
+
+                {/* My Courses Section */}
+                <div style={{ marginBottom: '3rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                        <h2 style={{ fontSize: '1.5rem', fontWeight: '700' }}>My Learning</h2>
+                        <Link to="/" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '0.9rem', fontWeight: '600' }}>Explore More</Link>
+                    </div>
+
+                    {myCourses.length === 0 ? (
+                        <div className="glass-card" style={{ padding: '3rem', textAlign: 'center' }}>
+                            <div style={{ background: 'rgba(255,255,255,0.05)', width: '60px', height: '60px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+                                <PlayCircle size={24} color="var(--text-muted)" />
+                            </div>
+                            <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>No Courses Yet</h3>
+                            <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>Start your learning journey with our premium video courses.</p>
+                            <Link to="/category/jee" className="btn-reset" style={{
+                                display: 'inline-block',
+                                padding: '10px 24px',
+                                background: 'white', color: 'black',
+                                borderRadius: '8px', fontWeight: '600'
+                            }}>
+                                Browse Courses
+                            </Link>
+                        </div>
+                    ) : (
+                        <div className="responsive-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
+                            {myCourses.map((course, idx) => (
+                                <div key={idx} className="glass-card" style={{ padding: '0', overflow: 'hidden' }}>
+                                    <div style={{ height: '140px', background: 'linear-gradient(135deg, #4f46e5 0%, #312e81 100%)', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <PlayCircle size={40} color="white" style={{ opacity: 0.9 }} />
+                                    </div>
+                                    <div style={{ padding: '1.25rem' }}>
+                                        <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--primary)', marginBottom: '4px', fontWeight: '700' }}>{course.category}</div>
+                                        <h3 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '1rem', lineHeight: '1.4' }}>{course.title}</h3>
+                                        <button className="btn-reset" style={{
+                                            width: '100%',
+                                            padding: '8px',
+                                            background: 'rgba(255,255,255,0.1)',
+                                            color: 'white',
+                                            borderRadius: '6px',
+                                            fontWeight: '600',
+                                            fontSize: '0.9rem'
+                                        }}>
+                                            Continue Learning
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                {/* Main Content Areas - Grid Continuation */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '2rem' }}>
+
                     {/* Pending Actions */}
                     <div style={{ gridColumn: 'span 1' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                            <h2 style={{ fontSize: '1.25rem', fontWeight: '700' }}>Pending Actions</h2>
+                            <h2 style={{ fontSize: '1.25rem', fontWeight: '700' }}>Recommended</h2>
                         </div>
                         <div className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                             <div style={{ padding: '1rem', background: 'rgba(99, 102, 241, 0.1)', borderRadius: '12px', border: '1px solid rgba(99, 102, 241, 0.2)' }}>
-                                <h4 style={{ fontWeight: '700', marginBottom: '4px', color: '#818cf8' }}>Attempt Part Test (Optics)</h4>
-                                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>Highly recommended based on current schedule.</p>
-                                <button onClick={() => window.location.href = '/attempt-test/optics-part-test'} className="btn-reset" style={{ width: '100%', padding: '8px', background: '#6366f1', color: 'white', borderRadius: '8px', fontWeight: '600', fontSize: '0.85rem' }}>Start 45-min Test</button>
+                                <h4 style={{ fontWeight: '700', marginBottom: '4px', color: '#818cf8' }}>Mechanics Masterclass</h4>
+                                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>Strengthen your core concepts.</p>
+                                <button onClick={() => window.location.href = '/attempt-test/mechanics-practice'} className="btn-reset" style={{ width: '100%', padding: '8px', background: '#6366f1', color: 'white', borderRadius: '8px', fontWeight: '600', fontSize: '0.85rem' }}>Start Practice</button>
                             </div>
                             <div style={{ padding: '1rem', background: 'rgba(16, 185, 129, 0.1)', borderRadius: '12px', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
-                                <h4 style={{ fontWeight: '700', marginBottom: '4px', color: '#34d399' }}>Re-attempt: Chemical Bonding</h4>
-                                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>Improve your previous score of 65%.</p>
-                                <button onClick={() => window.location.href = '/attempt-test/chem-bonding-revisit'} className="btn-reset" style={{ width: '100%', padding: '8px', background: 'transparent', border: '1px solid #34d399', color: '#34d399', borderRadius: '8px', fontWeight: '600', fontSize: '0.85rem' }}>Practice Errors</button>
+                                <h4 style={{ fontWeight: '700', marginBottom: '4px', color: '#34d399' }}>Organic Chemistry</h4>
+                                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>Reaction mechanisms and more.</p>
+                                <button onClick={() => window.location.href = '/attempt-test/organic-chemistry'} className="btn-reset" style={{ width: '100%', padding: '8px', background: 'transparent', border: '1px solid #34d399', color: '#34d399', borderRadius: '8px', fontWeight: '600', fontSize: '0.85rem' }}>Practice Now</button>
                             </div>
                         </div>
                     </div>
@@ -293,31 +422,19 @@ const StudentDashboard = () => {
                     {/* Test Schedule */}
                     <div style={{ gridColumn: 'span 1' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                            <h2 style={{ fontSize: '1.25rem', fontWeight: '700' }}>Test Schedule</h2>
+                            <h2 style={{ fontSize: '1.25rem', fontWeight: '700' }}>Schedule</h2>
                         </div>
                         <div className="glass-card" style={{ padding: '0', overflow: 'hidden' }}>
                             <div style={{ padding: '1.5rem' }}>
                                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', marginBottom: '1.5rem' }}>
                                     <div style={{ padding: '10px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', textAlign: 'center', minWidth: '60px' }}>
                                         <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>TOM'W</div>
-                                        <div style={{ fontWeight: '700', color: '#ef4444' }}>02:00</div>
+                                        <div style={{ fontWeight: '700', color: '#ef4444' }}>10:00</div>
                                     </div>
                                     <div>
-                                        <h4 style={{ fontWeight: '700', fontSize: '1rem' }}>Minor Test - 05</h4>
-                                        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Physical Chemistry • 100 Marks</p>
-                                        <button className="btn-reset" style={{ marginTop: '8px', padding: '6px 16px', background: 'rgba(255,255,255,0.1)', color: 'white', borderRadius: '100px', fontSize: '0.75rem', fontWeight: '700' }}>DETAILS</button>
-                                    </div>
-                                </div>
-                                <div style={{ width: '100%', height: '1px', background: 'rgba(255,255,255,0.1)', marginBottom: '1.5rem' }}></div>
-                                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
-                                    <div style={{ padding: '10px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', textAlign: 'center', minWidth: '60px' }}>
-                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>12 JAN</div>
-                                        <div style={{ fontWeight: '700', color: 'white' }}>SUN</div>
-                                    </div>
-                                    <div>
-                                        <h4 style={{ fontWeight: '700', fontSize: '1rem' }}>Major Series - Test 02</h4>
-                                        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Full Syllabus • 360 Marks</p>
-                                        <button className="btn-reset" style={{ marginTop: '8px', padding: '6px 16px', border: '1px solid rgba(255,255,255,0.2)', color: 'var(--text-muted)', borderRadius: '100px', fontSize: '0.75rem', fontWeight: '700' }}>CALENDAR</button>
+                                        <h4 style={{ fontWeight: '700', fontSize: '1rem' }}>Unit Test - 05</h4>
+                                        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Electromagnetism</p>
+                                        <button className="btn-reset" style={{ marginTop: '8px', padding: '6px 16px', background: 'rgba(255,255,255,0.1)', color: 'white', borderRadius: '100px', fontSize: '0.75rem', fontWeight: '700' }}>REGISTER</button>
                                     </div>
                                 </div>
                             </div>
@@ -330,9 +447,21 @@ const StudentDashboard = () => {
                             <h2 style={{ fontSize: '1.25rem', fontWeight: '700' }}>Recent Activity</h2>
                         </div>
                         <div className="glass-card" style={{ padding: '0', overflow: 'hidden' }}>
-                            <ActivityItem title="Diagnostic Test: Mechanics" subject="Physics • 35/45 Correct" time="2 hours ago" type="Test" />
-                            <ActivityItem title="Daily Practice Paper #42" subject="Maths • 10/10 Correct" time="Yesterday" type="Test" />
-                            <ActivityItem title="Part Test: Inorganic Chem" subject="Chemistry • 28/40 Correct" time="2 days ago" type="Test" />
+                            {testHistory.length === 0 ? (
+                                <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                                    No tests attempted yet. Start a diagnostic test to see your analytics here.
+                                </div>
+                            ) : (
+                                testHistory.slice(0, 5).map((test, idx) => (
+                                    <ActivityItem
+                                        key={idx}
+                                        title={test.name || "Test Attempt"}
+                                        subject={`${test.accuracy}% Accuracy • ${test.score}/${test.maxScore} Marks`}
+                                        time={test.date || "Just now"}
+                                        type="Test"
+                                    />
+                                ))
+                            )}
                         </div>
                     </div>
 
@@ -340,6 +469,7 @@ const StudentDashboard = () => {
             </div>
         </div>
     );
+
 };
 
 const SettingsIcon = ({ size }) => (
