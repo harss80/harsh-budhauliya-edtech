@@ -298,13 +298,13 @@ const TestPlayer = () => {
                         </div>
                     )}
                     <div style={{
-                        background: 'rgba(255,255,255,0.05)', padding: '5px 12px', borderRadius: '100px',
-                        display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem',
+                        background: 'rgba(255,255,255,0.05)', padding: '6px 14px', borderRadius: '100px',
+                        display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem',
                         border: '1px solid rgba(255,255,255,0.1)'
                     }}>
-                        <Clock size={14} color={questionTimer < 10 ? '#ef4444' : '#fbbf24'} />
-                        {!isMobile && <span style={{ color: 'var(--text-muted)' }}>Q-Time:</span>}
-                        <span style={{ fontWeight: '700', color: questionTimer < 10 ? '#ef4444' : 'white', minWidth: '20px' }}>{questionTimer}s</span>
+                        <Clock size={15} color={questionTimer < 10 ? '#ef4444' : '#fbbf24'} />
+                        {!isMobile && <span style={{ color: 'var(--text-muted)' }}>Question Time:</span>}
+                        <span style={{ fontWeight: '700', color: questionTimer < 10 ? '#ef4444' : 'white', minWidth: '24px', textAlign: 'center' }}>{questionTimer}s</span>
                     </div>
                 </div>
 
@@ -412,39 +412,40 @@ const TestPlayer = () => {
                                 </p>
 
                                 {/* Options */}
-                                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '1.25rem' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '1rem' }}>
                                     {questions[currentQuestion].options.map(opt => {
                                         const isSelected = answers[questions[currentQuestion].id] === opt.id;
                                         return (
                                             <motion.button
-                                                whileHover={{ scale: 1.01, backgroundColor: 'rgba(255,255,255,0.05)' }}
+                                                whileHover={{ scale: 1.01, backgroundColor: 'rgba(255,255,255,0.08)' }}
                                                 whileTap={{ scale: 0.99 }}
                                                 key={opt.id}
                                                 onClick={() => handleAnswer(opt.id)}
                                                 className="btn-reset"
                                                 style={{
-                                                    padding: '1.25rem', textAlign: 'left',
-                                                    background: isSelected ? 'rgba(59, 130, 246, 0.15)' : 'rgba(255,255,255,0.02)',
+                                                    padding: '1.5rem', textAlign: 'left',
+                                                    background: isSelected ? 'rgba(37, 99, 235, 0.15)' : 'rgba(255,255,255,0.03)',
                                                     border: isSelected ? '1px solid #3b82f6' : '1px solid rgba(255,255,255,0.1)',
                                                     borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '16px',
                                                     transition: 'all 0.2s', position: 'relative', overflow: 'hidden'
                                                 }}
                                             >
                                                 <div style={{
-                                                    width: '36px', height: '36px', borderRadius: '10px',
-                                                    background: isSelected ? '#3b82f6' : 'rgba(255,255,255,0.05)',
-                                                    color: isSelected ? 'white' : '#71717a',
+                                                    width: '40px', height: '40px', borderRadius: '12px',
+                                                    background: isSelected ? '#3b82f6' : 'rgba(255,255,255,0.08)',
+                                                    color: isSelected ? 'white' : '#a1a1aa',
                                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                    fontWeight: '700', fontSize: '1rem', flexShrink: 0,
-                                                    border: isSelected ? 'none' : '1px solid rgba(255,255,255,0.1)'
+                                                    fontWeight: '700', fontSize: '1.1rem', flexShrink: 0,
+                                                    border: isSelected ? 'none' : '1px solid rgba(255,255,255,0.1)',
+                                                    transition: 'all 0.2s'
                                                 }}
                                                 >
                                                     {opt.id}
                                                 </div>
-                                                <span style={{ color: isSelected ? 'white' : '#d4d4d8', fontWeight: isSelected ? '600' : '400', fontSize: '1.05rem' }}>{opt.text}</span>
+                                                <span style={{ color: isSelected ? 'white' : '#e4e4e7', fontWeight: isSelected ? '600' : '400', fontSize: '1.1rem', lineHeight: '1.5' }}>{opt.text}</span>
                                                 {isSelected && (
                                                     <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} style={{ marginLeft: 'auto' }}>
-                                                        <CheckCircle size={20} color="#3b82f6" fill="rgba(59, 130, 246, 0.2)" />
+                                                        <CheckCircle size={22} color="#3b82f6" fill="rgba(37, 99, 235, 0.2)" />
                                                     </motion.div>
                                                 )}
                                             </motion.button>
@@ -457,59 +458,71 @@ const TestPlayer = () => {
 
                     {/* Footer Nav */}
                     <div style={{
-                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                        display: 'grid',
+                        gridTemplateColumns: isMobile ? '1fr 1fr 1fr 1fr' : 'auto auto',
+                        gap: isMobile ? '8px' : '0',
+                        justifyContent: isMobile ? 'stretch' : 'space-between',
+                        alignItems: 'center',
                         marginTop: 'auto', paddingTop: '1rem',
                         borderTop: '1px solid rgba(255,255,255,0.05)'
                     }}>
-                        <div style={{ display: 'flex', gap: '1rem' }}>
+                        {/* Left Side Group (Mark & Clear) */}
+                        <div style={{ display: isMobile ? 'contents' : 'flex', gap: '1rem' }}>
                             <button onClick={toggleMarkForReview} className="btn-reset" title="Mark for Review" style={{
-                                display: 'flex', alignItems: 'center', gap: '8px',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                                 color: markedForReview.has(questions[currentQuestion].id) ? '#a855f7' : '#a1a1aa',
-                                fontWeight: '600', padding: '10px 16px', background: 'rgba(255,255,255,0.03)',
+                                fontWeight: '600', padding: isMobile ? '12px' : '10px 16px',
+                                background: 'rgba(255,255,255,0.03)',
                                 borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)',
-                                transition: 'all 0.2s'
+                                transition: 'all 0.2s', width: '100%'
                             }}>
                                 <Bookmark size={18} fill={markedForReview.has(questions[currentQuestion].id) ? '#a855f7' : 'none'} />
                                 <span className={isMobile ? 'hidden' : 'block'}>{markedForReview.has(questions[currentQuestion].id) ? 'Marked' : 'Mark for Review'}</span>
                             </button>
+
                             <button onClick={() => {
                                 const newAnswers = { ...answers };
                                 delete newAnswers[questions[currentQuestion].id];
                                 setAnswers(newAnswers);
                             }} className="btn-reset" title="Clear Response" style={{
-                                color: '#a1a1aa', fontWeight: '600', fontSize: '0.9rem', padding: '10px 16px',
-                                background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)'
+                                color: '#a1a1aa', fontWeight: '600', fontSize: '0.9rem',
+                                padding: isMobile ? '12px' : '10px 16px',
+                                background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%'
                             }}>
-                                <span className={isMobile ? 'block' : 'hidden'}><X size={18} /></span>
-                                <span className={isMobile ? 'hidden' : 'block'}>Clear Response</span>
+                                <X size={18} />
+                                <span className={isMobile ? 'hidden' : 'block'} style={{ marginLeft: '8px' }}>Clear Response</span>
                             </button>
                         </div>
 
-                        <div style={{ display: 'flex', gap: '1rem' }}>
+                        {/* Right Side Group (Prev & Next) */}
+                        <div style={{ display: isMobile ? 'contents' : 'flex', gap: '1rem' }}>
                             <button
                                 onClick={handlePrev} disabled={currentQuestion === 0}
                                 className="btn-reset"
                                 style={{
-                                    padding: isMobile ? '10px 16px' : '10px 24px', background: 'rgba(255,255,255,0.05)',
+                                    padding: isMobile ? '12px' : '10px 24px', background: 'rgba(255,255,255,0.05)',
                                     color: 'white', borderRadius: '12px', opacity: currentQuestion === 0 ? 0.5 : 1,
-                                    fontWeight: '600', fontSize: '0.9rem', border: '1px solid rgba(255,255,255,0.1)'
+                                    fontWeight: '600', fontSize: '0.9rem', border: '1px solid rgba(255,255,255,0.1)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%'
                                 }}
                             >
-                                <span className={isMobile ? 'hidden' : 'block'}>Previous</span>
-                                <span className={isMobile ? 'block' : 'hidden'}><ChevronLeft size={20} /></span>
+                                <ChevronLeft size={20} />
+                                <span className={isMobile ? 'hidden' : 'block'} style={{ marginLeft: '8px' }}>Previous</span>
                             </button>
+
                             <button
                                 onClick={handleNext}
                                 className="btn-reset"
                                 style={{
-                                    padding: isMobile ? '10px 20px' : '10px 32px',
+                                    padding: isMobile ? '12px 10px' : '10px 32px',
                                     background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
                                     color: 'white', borderRadius: '12px', fontWeight: '700', fontSize: '0.95rem',
-                                    display: 'flex', alignItems: 'center', gap: '8px',
-                                    boxShadow: '0 4px 12px rgba(37, 99, 235, 0.4)'
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                                    boxShadow: '0 4px 12px rgba(37, 99, 235, 0.4)', width: '100%'
                                 }}
                             >
-                                <span>Save & Next</span> <ChevronRight size={18} className={isMobile ? 'hidden' : 'block'} />
+                                <span style={{ whiteSpace: 'nowrap' }}>{isMobile ? 'Next' : 'Save & Next'}</span> <ChevronRight size={18} />
                             </button>
                         </div>
                     </div>

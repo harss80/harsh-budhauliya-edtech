@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
     BarChart2, PieChart, Activity, Clock,
-    Target, AlertCircle, ChevronDown, Download, Share2
+    Target, AlertCircle, ChevronDown, Download, Share2, Menu, X
 } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { realQuestions } from '../data/realQuestions';
@@ -30,6 +30,13 @@ const LiveAnalysis = () => {
         timeSpent: "00:00"
     };
 
+    // Responsive State
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth <= 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
     // Use detailed subject analysis if available, else empty or mock
     const subjectData = result?.subjectAnalysis || [];
 
@@ -57,17 +64,17 @@ const LiveAnalysis = () => {
             <div className="container">
 
                 {/* Header */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2.5rem', flexWrap: 'wrap', gap: '20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'stretch' : 'flex-start', flexDirection: isMobile ? 'column' : 'row', marginBottom: '2.5rem', flexWrap: 'wrap', gap: '20px' }}>
                     <div>
                         <div className="academic-badge" style={{ marginBottom: '1rem', background: '#22c55e', color: 'black', fontWeight: '800' }}>LIVE RESULT</div>
-                        <h1 style={{ fontSize: '2.5rem', fontWeight: '800', marginBottom: '0.5rem' }}>Full Syllabus Mock #04</h1>
+                        <h1 style={{ fontSize: isMobile ? '2rem' : '2.5rem', fontWeight: '800', marginBottom: '0.5rem' }}>Full Syllabus Mock #04</h1>
                         <p style={{ color: 'var(--text-muted)' }}>Attempted on {new Date().toLocaleDateString()}</p>
                     </div>
-                    <div style={{ display: 'flex', gap: '1rem' }}>
-                        <button className="glass-card btn-reset" style={{ padding: '12px 20px', display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', gap: '1rem', flexDirection: isMobile ? 'column' : 'row' }}>
+                        <button className="glass-card btn-reset" style={{ padding: '12px 20px', display: 'flex', gap: '8px', alignItems: 'center', justifyContent: 'center', width: isMobile ? '100%' : 'auto' }}>
                             <Share2 size={18} /> Share Result
                         </button>
-                        <button className="btn-reset" style={{ padding: '12px 24px', background: 'var(--primary)', color: 'white', borderRadius: '8px', fontWeight: '600', display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <button className="btn-reset" style={{ padding: '12px 24px', background: 'var(--primary)', color: 'white', borderRadius: '8px', fontWeight: '600', display: 'flex', gap: '8px', alignItems: 'center', justifyContent: 'center', width: isMobile ? '100%' : 'auto' }}>
                             <Download size={18} /> Download Report
                         </button>
                     </div>
@@ -243,7 +250,7 @@ const LiveAnalysis = () => {
                         {result?.questionData ? (
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem', maxWidth: '800px', margin: '0 auto', textAlign: 'left' }}>
                                 {result.questionData.map((q, idx) => (
-                                    <div key={q.id || idx} style={{ padding: '1.5rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                    <div key={q.id || idx} style={{ padding: isMobile ? '1rem' : '1.5rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
                                         <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
                                             <span style={{ fontWeight: '700', color: 'var(--primary)' }}>Q{idx + 1}.</span>
                                             <div>{q.text}</div>
@@ -262,7 +269,11 @@ const LiveAnalysis = () => {
                                         <button
                                             onClick={() => setExpandedSolutionId(expandedSolutionId === (q.id || idx) ? null : (q.id || idx))}
                                             className="btn-reset"
-                                            style={{ marginTop: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
+                                            style={{
+                                                marginTop: '1rem', fontSize: '0.9rem', color: expandedSolutionId === (q.id || idx) ? '#60a5fa' : 'var(--text-muted)',
+                                                display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer',
+                                                padding: '8px 12px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', width: 'fit-content'
+                                            }}
                                         >
                                             {expandedSolutionId === (q.id || idx) ? 'Hide Solution' : 'View Solution'}
                                             <ChevronDown size={14} style={{ transform: expandedSolutionId === (q.id || idx) ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />
