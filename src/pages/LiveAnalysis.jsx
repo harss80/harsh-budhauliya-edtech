@@ -6,35 +6,35 @@ import {
     Target, AlertCircle, ChevronDown, Download, Share2
 } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
+import { realQuestions } from '../data/realQuestions';
 
 const LiveAnalysis = () => {
     const location = useLocation();
     const result = location.state?.result;
 
-    // Use passed result if available, otherwise fallback to mock
+    // Use passed result if available
     const overviewData = result ? {
         totalScore: result.score,
         maxScore: result.maxScore,
-        rank: result.score > 200 ? 142 : 1245,
+        rank: result.score > 200 ? 142 : 1245, // Mock rank for now
         totalStudents: 15420,
         accuracy: result.accuracy,
         timeSpent: result.timeSpent
     } : {
-        totalScore: 180,
-        maxScore: 300,
-        rank: 452,
-        totalStudents: 15420,
-        accuracy: 78,
-        timeSpent: "2h 45m"
+        // Fallback Mock
+        totalScore: 0,
+        maxScore: 0,
+        rank: 0,
+        totalStudents: 0,
+        accuracy: 0,
+        timeSpent: "00:00"
     };
 
-    const subjectData = [
-        { subject: "Physics", score: Math.round(overviewData.totalScore * 0.35), max: 100, accuracy: 82, time: "55m", color: "#f59e0b" },
-        { subject: "Chemistry", score: Math.round(overviewData.totalScore * 0.45), max: 100, accuracy: 88, time: "45m", color: "#10b981" },
-        { subject: "Mathematics", score: Math.round(overviewData.totalScore * 0.20), max: 100, accuracy: 60, time: "65m", color: "#6366f1" }
-    ];
+    // Use detailed subject analysis if available, else empty or mock
+    const subjectData = result?.subjectAnalysis || [];
 
     const [activeTab, setActiveTab] = useState('overview');
+    const [expandedSolutionId, setExpandedSolutionId] = useState(null);
 
     const TabButton = ({ id, label }) => (
         <button
@@ -158,35 +158,134 @@ const LiveAnalysis = () => {
                     </motion.div>
                 )}
 
-                {/* Solutions Tab (Placeholder) */}
+                {/* Subject Analysis Tab */}
+                {activeTab === 'subject' && (
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-card" style={{ padding: '2rem' }}>
+                        <h3 style={{ marginBottom: '2rem', fontWeight: '700' }}>Detailed Subject Performance</h3>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
+                            {subjectData.map((sub) => (
+                                <div key={sub.subject} style={{ padding: '1.5rem', background: 'rgba(255,255,255,0.03)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                                        <span style={{ fontWeight: '700', fontSize: '1.2rem', color: sub.color }}>{sub.subject}</span>
+                                        <span style={{ fontWeight: '700', background: 'rgba(255,255,255,0.1)', padding: '4px 12px', borderRadius: '100px', fontSize: '0.9rem' }}>{sub.score}/{sub.max}</span>
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+                                            <span>Accuracy</span>
+                                            <span style={{ color: 'white' }}>{sub.accuracy}%</span>
+                                        </div>
+                                        <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.1)', borderRadius: '100px', overflow: 'hidden' }}>
+                                            <div style={{ width: `${sub.accuracy}%`, height: '100%', background: sub.color, borderRadius: '100px' }}></div>
+                                        </div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+                                            <span>Time Spent</span>
+                                            <span style={{ color: 'white' }}>{sub.time}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </motion.div>
+                )}
+
+                {/* Time Management Tab */}
+                {activeTab === 'time' && (
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-card" style={{ padding: '2rem' }}>
+                        <h3 style={{ marginBottom: '2rem', fontWeight: '700' }}>Time Management Analysis</h3>
+                        <div style={{ overflowX: 'auto' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+                                <thead>
+                                    <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-muted)', textAlign: 'left' }}>
+                                        <th style={{ padding: '12px' }}>Question</th>
+                                        <th style={{ padding: '12px' }}>Status</th>
+                                        <th style={{ padding: '12px' }}>Time Taken</th>
+                                        <th style={{ padding: '12px' }}>Result</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {result?.questionData?.map((q, idx) => (
+                                        <tr key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                            <td style={{ padding: '12px', fontWeight: '600' }}>Q{idx + 1}</td>
+                                            <td style={{ padding: '12px' }}>
+                                                <span style={{
+                                                    padding: '4px 10px', borderRadius: '100px', fontSize: '0.8rem', fontWeight: '600',
+                                                    background: q.isAttempted ? 'rgba(59, 130, 246, 0.1)' : 'rgba(255,255,255,0.05)',
+                                                    color: q.isAttempted ? '#60a5fa' : 'var(--text-muted)'
+                                                }}>
+                                                    {q.isAttempted ? 'Attempted' : 'Skipped'}
+                                                </span>
+                                            </td>
+                                            <td style={{ padding: '12px' }}>
+                                                <span style={{ color: q.timeTaken > 120 ? '#ef4444' : q.timeTaken > 60 ? '#f59e0b' : '#10b981', fontWeight: '600' }}>
+                                                    {q.timeTaken}s
+                                                </span>
+                                            </td>
+                                            <td style={{ padding: '12px' }}>
+                                                {q.isAttempted ? (
+                                                    q.isCorrect ? <span style={{ color: '#22c55e' }}>Correct (+4)</span> : <span style={{ color: '#ef4444' }}>Wrong (-1)</span>
+                                                ) : <span style={{ color: 'var(--text-muted)' }}>-</span>}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </motion.div>
+                )}
+
+                {/* Solutions Tab */}
                 {activeTab === 'solutions' && (
                     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-card" style={{ padding: '3rem', textAlign: 'center' }}>
                         <div style={{ marginBottom: '2rem' }}>
                             <h2 style={{ marginBottom: '1rem' }}>Question Paper & Solutions</h2>
                             <p style={{ color: 'var(--text-muted)' }}>Filter by subject or question type to view detailing step-by-step solutions.</p>
                         </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem', maxWidth: '800px', margin: '0 auto', textAlign: 'left' }}>
-                            {[1, 2, 3, 4, 5].map(q => (
-                                <div key={q} style={{ padding: '1.5rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                    <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
-                                        <span style={{ fontWeight: '700', color: 'var(--primary)' }}>Q{q}.</span>
-                                        <p>A particle moves along a straight line such that its displacement at any time t is given by s = t³ - 6t² + 3t + 4 meters.</p>
+                        {result?.questionData ? (
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem', maxWidth: '800px', margin: '0 auto', textAlign: 'left' }}>
+                                {result.questionData.map((q, idx) => (
+                                    <div key={q.id || idx} style={{ padding: '1.5rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                        <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
+                                            <span style={{ fontWeight: '700', color: 'var(--primary)' }}>Q{idx + 1}.</span>
+                                            <div>{q.text}</div>
+                                        </div>
+                                        <div style={{ display: 'flex', gap: '1rem', fontSize: '0.9rem', flexWrap: 'wrap' }}>
+                                            <span style={{ color: '#22c55e', fontWeight: '600' }}>
+                                                Correct: {q.options.find(o => o.id === q.correctAnswer)?.text || q.correctAnswer}
+                                            </span>
+                                            <span style={{ color: 'var(--text-muted)' }}>|</span>
+                                            <span style={{ color: q.isCorrect ? '#22c55e' : q.isAttempted ? '#ef4444' : 'var(--text-muted)', fontWeight: '600' }}>
+                                                Your Answer: {q.isAttempted ? (q.options.find(o => o.id === q.userAnswer)?.text || q.userAnswer) : 'Not Attempted'}
+                                            </span>
+                                            <span style={{ color: 'var(--text-muted)' }}>|</span>
+                                            <span style={{ color: 'var(--text-muted)' }}>Time: {q.timeTaken}s</span>
+                                        </div>
+                                        <button
+                                            onClick={() => setExpandedSolutionId(expandedSolutionId === (q.id || idx) ? null : (q.id || idx))}
+                                            className="btn-reset"
+                                            style={{ marginTop: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
+                                        >
+                                            {expandedSolutionId === (q.id || idx) ? 'Hide Solution' : 'View Solution'}
+                                            <ChevronDown size={14} style={{ transform: expandedSolutionId === (q.id || idx) ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />
+                                        </button>
+
+                                        {expandedSolutionId === (q.id || idx) && (
+                                            <div style={{ padding: '10px 0' }}>
+                                                <div style={{ marginTop: '1rem', padding: '1.5rem', background: 'rgba(0,0,0,0.2)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)', fontSize: '0.95rem', lineHeight: '1.7', color: '#e4e4e7' }}>
+                                                    <strong style={{ display: 'block', marginBottom: '0.8rem', color: '#a5b4fc', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Step-by-Step Explanation</strong>
+                                                    {q.explanation || realQuestions.find(rq => rq.id === q.originalId)?.explanation || 'Detailed solution not available for this question.'}
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
-                                    <div style={{ display: 'flex', gap: '1rem', fontSize: '0.9rem' }}>
-                                        <span style={{ color: '#22c55e', fontWeight: '600' }}>Correct Answer: 12 m/s</span>
-                                        <span style={{ color: 'var(--text-muted)' }}>|</span>
-                                        <span style={{ color: '#ef4444', fontWeight: '600' }}>Your Answer: 10 m/s</span>
-                                    </div>
-                                    <button className="btn-reset" style={{ marginTop: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                        View Solution <ChevronDown size={14} />
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div style={{ color: 'var(--text-muted)' }}>No detailed question data available.</div>
+                        )}
                     </motion.div>
                 )}
             </div>
-        </div>
+        </div >
     );
 };
 

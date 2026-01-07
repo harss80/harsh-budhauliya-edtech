@@ -32,6 +32,7 @@ const TestPlayer = () => {
     // State
     const [currentQuestion, setCurrentQuestion] = useState(0);
     const [timeLeft, setTimeLeft] = useState(DURATION_MINUTES * 60);
+    const [timePerQuestion, setTimePerQuestion] = useState({});
     const [answers, setAnswers] = useState({});
     const [visited, setVisited] = useState(new Set([0]));
     const [markedForReview, setMarkedForReview] = useState(new Set());
@@ -40,10 +41,28 @@ const TestPlayer = () => {
 
     // Load and Shuffle Questions
     const [questions] = useState(() => {
-        // Filter by subject
-        let filtered = questionPool.filter(q => relevantSubjects.includes(q.subject));
+        let filtered = [];
 
-        // If not enough questions, use all
+        if (testId === 'custom-generated') {
+            const config = JSON.parse(localStorage.getItem('custom_test_config') || '{}');
+            if (config.chapters && config.chapters.length > 0) {
+                // Filter by selected chapters
+                filtered = questionPool.filter(q => config.chapters.includes(q.chapter));
+
+                // If specific class selected, filter by that too (optional, but good for safety)
+                if (config.class && config.class.length > 0) {
+                    filtered = filtered.filter(q => config.class.includes(q.class));
+                }
+            } else {
+                // Fallback if config missing
+                filtered = questionPool;
+            }
+        } else {
+            // Standard Exam Logic
+            filtered = questionPool.filter(q => relevantSubjects.includes(q.subject));
+        }
+
+        // If not enough questions, use all (fallback)
         if (filtered.length === 0) filtered = questionPool;
 
         // Shuffle (Fisher-Yates)
@@ -53,20 +72,28 @@ const TestPlayer = () => {
         }
 
         // Limit to TOTAL_QUESTIONS or available
-        const selected = filtered.slice(0, TOTAL_QUESTIONS);
+        // logic: if custom, use all filtered questions up to max (or config limit)
+        // For standard, limit to 30.
+        const limit = testId === 'custom-generated' ? filtered.length : TOTAL_QUESTIONS;
+        const selected = filtered.slice(0, limit);
 
-        // Map to expected format if needed (realQuestions already match mostly, but let's ensure)
+        // Map to expected format if needed
         return selected.map((q, i) => ({
             id: i + 1, // Display ID
             originalId: q.id,
             subject: q.subject,
             text: q.question,
             options: q.options,
-            correctAnswer: q.correctAnswer
+            correctAnswer: q.correctAnswer,
+            explanation: q.explanation,
+            chapter: q.chapter,
+            class: q.class
         }));
     });
 
-    const testTitle = isMedical ? 'Medical Diagnostic Test' : isEngineering ? 'JEE Diagnostic Test' : 'Comprehensive Assessment';
+    const testTitle = testId === 'custom-generated'
+        ? 'Custom Practice Session'
+        : (isMedical ? 'Medical Diagnostic Test' : isEngineering ? 'JEE Diagnostic Test' : 'Comprehensive Assessment');
 
     // Question Timer (60s per question)
     const [questionTimer, setQuestionTimer] = useState(60);
@@ -75,6 +102,19 @@ const TestPlayer = () => {
     useEffect(() => {
         setQuestionTimer(60);
     }, [currentQuestion]);
+
+    // Track time updated per second for current question
+    useEffect(() => {
+        const tracker = setInterval(() => {
+            if (questions[currentQuestion]) {
+                setTimePerQuestion(prev => ({
+                    ...prev,
+                    [questions[currentQuestion].id]: (prev[questions[currentQuestion].id] || 0) + 1
+                }));
+            }
+        }, 1000);
+        return () => clearInterval(tracker);
+    }, [currentQuestion, questions]);
 
     // Question Timer Countdown & Auto-Skip
     useEffect(() => {
@@ -157,27 +197,79 @@ const TestPlayer = () => {
     const handleSubmit = () => {
         let correctCount = 0;
         let attemptedCount = 0;
+
+        // Detailed Analysis Data Structures
+        const subjectStats = {};
+        const questionData = [];
+
         questions.forEach(q => {
-            if (answers[q.id]) {
-                attemptedCount++;
-                if (answers[q.id] === q.correctAnswer) correctCount++;
+            const userAns = answers[q.id];
+            const isAttempted = userAns !== undefined;
+            const isCorrect = userAns === q.correctAnswer;
+            const timeTaken = timePerQuestion[q.id] || 0;
+
+            if (isAttempted) attemptedCount++;
+            if (isCorrect) correctCount++;
+
+            // Update Subject Stats
+            if (!subjectStats[q.subject]) {
+                subjectStats[q.subject] = {
+                    total: 0,
+                    attempted: 0,
+                    correct: 0,
+                    time: 0,
+                    score: 0
+                };
             }
+            subjectStats[q.subject].total++;
+            subjectStats[q.subject].time += timeTaken;
+            if (isAttempted) subjectStats[q.subject].attempted++;
+            if (isCorrect) {
+                subjectStats[q.subject].correct++;
+                subjectStats[q.subject].score += 4;
+            } else if (isAttempted) {
+                subjectStats[q.subject].score -= 1;
+            }
+
+            // Push detailed question data
+            questionData.push({
+                ...q,
+                userAnswer: userAns,
+                isCorrect,
+                isAttempted,
+                timeTaken
+            });
+        });
+
+        // Format Subject Stats for Analysis Page
+        const subjectAnalysis = Object.keys(subjectStats).map(sub => {
+            const stats = subjectStats[sub];
+            return {
+                subject: sub,
+                score: stats.score,
+                max: stats.total * 4,
+                accuracy: stats.attempted > 0 ? Math.round((stats.correct / stats.attempted) * 100) : 0,
+                time: formatTime(stats.time), // Format aggregated time
+                color: sub === 'Physics' ? '#f59e0b' : sub === 'Chemistry' ? '#10b981' : '#6366f1'
+            };
         });
 
         const resultData = {
-            totalQuestions: TOTAL_QUESTIONS,
+            totalQuestions: questions.length, // Dynamic length
             attempted: attemptedCount,
             correct: correctCount,
             wrong: attemptedCount - correctCount,
             score: (correctCount * 4) - ((attemptedCount - correctCount) * 1),
-            maxScore: TOTAL_QUESTIONS * 4,
+            maxScore: questions.length * 4,
             accuracy: attemptedCount > 0 ? Math.round((correctCount / attemptedCount) * 100) : 0,
             timeSpent: formatTime((DURATION_MINUTES * 60) - timeLeft),
-            timestamp: new Date().toLocaleDateString()
+            timestamp: new Date().toLocaleDateString(),
+            subjectAnalysis,
+            questionData
         };
 
         const history = JSON.parse(localStorage.getItem('digimentors_test_history') || '[]');
-        history.unshift({ ...resultData, name: `Test Attempt ${history.length + 1}`, status: 'Completed', date: new Date().toLocaleDateString() });
+        history.unshift({ ...resultData, name: testTitle, status: 'Completed', date: new Date().toLocaleDateString() });
         localStorage.setItem('digimentors_test_history', JSON.stringify(history));
 
         navigate('/analysis', { state: { result: resultData } });
@@ -262,7 +354,7 @@ const TestPlayer = () => {
                     {/* Top Bar: Subject & Marks */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
                         <div style={{ display: 'flex', gap: '8px', background: 'rgba(255,255,255,0.03)', padding: '4px', borderRadius: '100px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                            {['Physics', 'Chemistry', 'Mathematics'].map(Sub => (
+                            {['Physics', 'Chemistry', 'Biology', 'Mathematics'].filter(sub => questions.some(q => q.subject === sub)).map(Sub => (
                                 <button
                                     key={Sub}
                                     className="btn-reset"
@@ -345,7 +437,8 @@ const TestPlayer = () => {
                                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                                                     fontWeight: '700', fontSize: '1rem', flexShrink: 0,
                                                     border: isSelected ? 'none' : '1px solid rgba(255,255,255,0.1)'
-                                                }}>
+                                                }}
+                                                >
                                                     {opt.id}
                                                 </div>
                                                 <span style={{ color: isSelected ? 'white' : '#d4d4d8', fontWeight: isSelected ? '600' : '400', fontSize: '1.05rem' }}>{opt.text}</span>

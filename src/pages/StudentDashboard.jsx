@@ -292,6 +292,7 @@ const StudentDashboard = () => {
                     <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '1.5rem' }}>Quick Actions</h2>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '1.5rem' }}>
                         {[
+                            { title: 'Custom Practice', path: '/test-generator', icon: Target, color: '#8b5cf6' },
                             { title: 'Question Bank', path: '/questions', icon: BookOpen, color: '#3b82f6' },
                             { title: 'Test History', path: '/test-history', icon: Clock, color: '#f59e0b' },
                             { title: 'Live Analysis', path: '/analysis', icon: BarChart2, color: '#10b981' },

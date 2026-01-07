@@ -17,6 +17,7 @@ import Mentorship from './pages/Mentorship';
 import ExamCategory from './pages/ExamCategory';
 import Contact from './pages/Contact';
 import Footer from './components/Footer';
+import TestGenerator from './pages/TestGenerator';
 
 // Component to handle global popup logic inside Router context
 const GlobalPopup = () => {
@@ -64,6 +65,7 @@ function App() {
             <Route path="/questions" element={<QuestionBank />} />
             <Route path="/practice/:exam/:subject" element={<Practice />} />
             <Route path="/test" element={<StudentDashboard />} />
+            <Route path="/test-generator" element={<TestGenerator />} />
             <Route path="/blog" element={<Blog />} />
             <Route path="/analysis" element={<LiveAnalysis />} />
             <Route path="/test-history" element={<StudentTestHistory />} />
