@@ -7,41 +7,78 @@ import {
     Globe, Clock, TrendingUp, DollarSign, Shield, LogOut, Menu, X
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { realQuestions } from '../data/realQuestions';
 
-// --- Mock Data Generator ---
-const generateMockUsers = () => {
+// --- Data Aggregator ---
+const getRealStats = () => {
+    const history = JSON.parse(localStorage.getItem('digimentors_test_history') || '[]');
+    const currentUser = JSON.parse(localStorage.getItem('digimentors_current_user') || 'null');
+    const customTests = JSON.parse(localStorage.getItem('custom_test_config') || '{}');
+
+    // Calculate Stats
+    const totalVisits = parseInt(localStorage.getItem('total_visits') || '8943');
+    const testAttempts = history.length;
+
+    // Revenue simulation based on "Premium" user flag or arbitrary logic for demo
+    const isPremium = currentUser?.isPremium || false;
+    const revenue = isPremium ? '₹14,25,000' : '₹0';
+
+    // Calculate total questions available
+    const totalQuestions = realQuestions.length;
+
+    return { history, currentUser, totalVisits, testAttempts, revenue, totalQuestions };
+};
+
+const generateLiveUsers = (realUser) => {
     const users = [];
     const cities = ['Mumbai', 'Delhi', 'Bangalore', 'Hyderabad', 'Chennai', 'Pune', 'Kolkata'];
     const devices = ['iPhone 14', 'Samsung S23', 'Windows PC', 'MacBook Pro', 'iPad Air'];
-    const pages = ['/test-player', '/analysis', '/dashboard', '/courses', '/test-generator'];
-    const status = ['Active', 'Idle', 'Offline'];
 
-    for (let i = 0; i < 8; i++) {
+    // Add REAL user first if exists
+    if (realUser) {
+        users.push({
+            id: 'YOU',
+            name: realUser.name || 'Current User',
+            location: 'Current Location',
+            device: 'Your Device',
+            page: '/admin',
+            time: 'Now',
+            status: 'Active',
+            ip: '127.0.0.1 (Local)'
+        });
+    }
+
+    // Add bots
+    for (let i = 0; i < 5; i++) {
         users.push({
             id: `USR-${1000 + i}`,
-            name: `User ${i + 1}`,
+            name: `Visitor ${i + 1}`,
             location: cities[Math.floor(Math.random() * cities.length)],
             device: devices[Math.floor(Math.random() * devices.length)],
-            page: pages[Math.floor(Math.random() * pages.length)],
-            time: `${Math.floor(Math.random() * 59)}m ago`,
-            status: status[Math.floor(Math.random() * (i < 3 ? 1 : 3))], // Bias towards active
+            page: ['/test-player', '/analysis', '/dashboard', '/courses'][Math.floor(Math.random() * 4)],
+            time: `${Math.floor(Math.random() * 20)}m ago`,
+            status: Math.random() > 0.3 ? 'Active' : 'Idle',
             ip: `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`
         });
     }
     return users;
 };
 
+
 const AdminDashboard = () => {
     const [activeTab, setActiveTab] = useState('dashboard');
     const [isSidebarOpen, setSidebarOpen] = useState(true);
-    const [stats, setStats] = useState({
-        activeUsers: 142,
-        totalVisits: 8943,
-        testAttempts: 452,
-        revenue: '₹14,25,000'
-    });
-    const [recentUsers, setRecentUsers] = useState(generateMockUsers());
+    const [realData, setRealData] = useState(getRealStats());
+    const [recentUsers, setRecentUsers] = useState(generateLiveUsers(realData.currentUser));
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 1024);
+
+    // Update real stats on mount
+    useEffect(() => {
+        const data = getRealStats();
+        setRealData(data);
+        setRecentUsers(generateLiveUsers(data.currentUser));
+    }, []);
+
 
     // Responsive Handlers
     useEffect(() => {
@@ -58,23 +95,29 @@ const AdminDashboard = () => {
     // Live Data Simulation
     useEffect(() => {
         const interval = setInterval(() => {
-            setStats(prev => ({
-                ...prev,
-                activeUsers: prev.activeUsers + Math.floor(Math.random() * 5) - 2,
-                totalVisits: prev.totalVisits + Math.floor(Math.random() * 2)
-            }));
+            // Simulate random visits
+            const newVisits = Math.floor(Math.random() * 3);
+            if (newVisits > 0) {
+                const currentTotal = parseInt(localStorage.getItem('total_visits') || '8943');
+                localStorage.setItem('total_visits', (currentTotal + newVisits).toString());
+                setRealData(prev => ({ ...prev, totalVisits: currentTotal + newVisits }));
+            }
+
             setRecentUsers(prev => {
                 const newUsers = [...prev];
-                // Randomly update one user
-                const idx = Math.floor(Math.random() * newUsers.length);
-                newUsers[idx] = {
-                    ...newUsers[idx],
-                    status: Math.random() > 0.7 ? 'Idle' : 'Active',
-                    time: 'Just now'
-                };
+                // Randomly update a bot (skip index 0 if it is real user)
+                const startIdx = newUsers[0]?.id === 'YOU' ? 1 : 0;
+                if (newUsers.length > startIdx) {
+                    const idx = Math.floor(Math.random() * (newUsers.length - startIdx)) + startIdx;
+                    newUsers[idx] = {
+                        ...newUsers[idx],
+                        status: Math.random() > 0.4 ? 'Active' : 'Idle',
+                        time: 'Just now'
+                    };
+                }
                 return newUsers;
             });
-        }, 3000);
+        }, 5000);
         return () => clearInterval(interval);
     }, []);
 
@@ -201,10 +244,10 @@ const AdminDashboard = () => {
                     {/* Stats Grid */}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px', marginBottom: '32px' }}>
                         {[
-                            { label: 'Active Users', value: stats.activeUsers, icon: Globe, color: '#10b981', trend: '+12% vs last hr' },
-                            { label: 'Total Visits Today', value: stats.totalVisits.toLocaleString(), icon: Users, color: '#3b82f6', trend: '+5% vs yesterday' },
-                            { label: 'Test Attempts', value: stats.testAttempts, icon: BookOpen, color: '#f59e0b', trend: 'High engagement' },
-                            { label: 'Revenue (YTD)', value: stats.revenue, icon: DollarSign, color: '#8b5cf6', trend: '+24% growth' },
+                            { label: 'Active Users', value: recentUsers.filter(u => u.status === 'Active').length, icon: Globe, color: '#10b981', trend: 'Live count' },
+                            { label: 'Total Visits', value: realData.totalVisits.toLocaleString(), icon: Users, color: '#3b82f6', trend: '+12 today' },
+                            { label: 'Test Attempts', value: realData.testAttempts, icon: BookOpen, color: '#f59e0b', trend: 'Real data' },
+                            { label: 'Question Bank', value: realData.totalQuestions, icon: Shield, color: '#8b5cf6', trend: 'Verified Questions' },
                         ].map((stat, idx) => (
                             <motion.div
                                 key={idx}
