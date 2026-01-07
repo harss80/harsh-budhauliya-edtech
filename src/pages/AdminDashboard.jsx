@@ -58,30 +58,6 @@ const getTrackedUsers = () => {
         });
     }
 
-    // Add some simulated "Other" visitors for demonstration
-    // These represent other people "currently on the site"
-    const demoLocations = [
-        'Delhi, India', 'Bangalore, Karnataka', 'Pune, Maharashtra', 'Hyderabad, Telangana'
-    ];
-
-    for (let i = 0; i < 3; i++) {
-        users.push({
-            id: `USR-DEMO-${i}`,
-            name: `Visitor ${i + 2}`,
-            email: `visitor${i + 2}@gmail.com`,
-            phone: `+91 91234 5678${i}`,
-            location: demoLocations[i % demoLocations.length],
-            device: i % 2 === 0 ? 'Android Mobile' : 'iPhone 14',
-            lastActive: `${(i + 1) * 5} mins ago`,
-            status: 'Active',
-            clicks: [
-                { page: '/courses', element: 'JEE Main Course', time: '2 mins ago' },
-                { page: '/home', element: 'Hero Banner', time: '10 mins ago' }
-            ],
-            tests: []
-        });
-    }
-
     return users;
 };
 
