@@ -459,7 +459,7 @@ const TestPlayer = () => {
                     {/* Footer Nav */}
                     <div style={{
                         display: 'grid',
-                        gridTemplateColumns: isMobile ? '1fr 1fr 1fr 1fr' : 'auto auto',
+                        gridTemplateColumns: isMobile ? '1fr 1fr' : 'auto auto',
                         gap: isMobile ? '8px' : '0',
                         justifyContent: isMobile ? 'stretch' : 'space-between',
                         alignItems: 'center',
