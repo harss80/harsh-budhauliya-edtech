@@ -30,40 +30,61 @@ const getRealStats = () => {
 };
 
 // --- User Activity Aggregator ---
-const getActivityLog = () => {
+// --- User Activity Aggregator ---
+const getTrackedUsers = () => {
     const history = JSON.parse(localStorage.getItem('digimentors_test_history') || '[]');
     const currentUser = JSON.parse(localStorage.getItem('digimentors_current_user') || 'null');
 
-    const logs = [];
+    // Simulate a database of users based on local session + history
+    // in a real app, this would fetch from a backend API
+    const users = [];
 
-    // Add Login Entry if user exists
     if (currentUser) {
-        logs.push({
-            id: 'LOGIN-001',
-            user: currentUser.name || 'User',
-            action: 'Logged In',
-            details: 'Session Active',
-            time: 'Recently',
+        users.push({
+            id: 'USR-REAL-01',
+            name: currentUser.name || 'Admin User',
+            email: currentUser.email || 'admin@digimentors.in',
+            phone: currentUser.phone || '+91 98765 43210',
+            location: 'Mumbai, Maharashtra, India',
+            device: 'Windows PC (Chrome)',
+            lastActive: 'Now',
             status: 'Online',
-            type: 'auth'
+            clicks: [
+                { page: '/admin', element: 'Dashboard Tab', time: 'Just now' },
+                { page: '/dashboard', element: 'View Analysis', time: '5 mins ago' },
+                { page: '/test-player', element: 'Submit Test', time: '1 hour ago' }
+            ],
+            tests: history.map(h => ({ name: h.name, score: h.score, date: h.date }))
         });
     }
 
-    // Add recent test attempts
-    history.slice(0, 5).forEach((test, idx) => {
-        logs.push({
-            id: `TEST-${idx}`,
-            user: currentUser?.name || 'User',
-            action: 'Attempted Test',
-            details: `${test.name} - Score: ${test.score}`,
-            time: test.date || 'Unknown',
-            status: 'Completed',
-            type: 'test'
-        });
-    });
+    // Add some simulated "Other" visitors for demonstration
+    // These represent other people "currently on the site"
+    const demoLocations = [
+        'Delhi, India', 'Bangalore, Karnataka', 'Pune, Maharashtra', 'Hyderabad, Telangana'
+    ];
 
-    return logs;
+    for (let i = 0; i < 3; i++) {
+        users.push({
+            id: `USR-DEMO-${i}`,
+            name: `Visitor ${i + 2}`,
+            email: `visitor${i + 2}@gmail.com`,
+            phone: `+91 91234 5678${i}`,
+            location: demoLocations[i % demoLocations.length],
+            device: i % 2 === 0 ? 'Android Mobile' : 'iPhone 14',
+            lastActive: `${(i + 1) * 5} mins ago`,
+            status: 'Active',
+            clicks: [
+                { page: '/courses', element: 'JEE Main Course', time: '2 mins ago' },
+                { page: '/home', element: 'Hero Banner', time: '10 mins ago' }
+            ],
+            tests: []
+        });
+    }
+
+    return users;
 };
+
 
 // Calculate Subject Distribution
 const getSubjectStats = () => {
@@ -80,15 +101,18 @@ const AdminDashboard = () => {
     const [activeTab, setActiveTab] = useState('dashboard');
     const [isSidebarOpen, setSidebarOpen] = useState(true);
     const [realData, setRealData] = useState(getRealStats());
-    const [activityLog, setActivityLog] = useState(getActivityLog());
+    const [trackedUsers, setTrackedUsers] = useState(getTrackedUsers());
+    const [selectedUser, setSelectedUser] = useState(null); // For Detail View
     const [subjectStats, setSubjectStats] = useState(getSubjectStats());
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 1024);
+
 
     // Initial Data Load
     useEffect(() => {
         const data = getRealStats();
         setRealData(data);
-        setActivityLog(getActivityLog());
+        setRealData(data);
+        setTrackedUsers(getTrackedUsers());
         setSubjectStats(getSubjectStats());
     }, []);
 
@@ -110,7 +134,7 @@ const AdminDashboard = () => {
         const interval = setInterval(() => {
             // Only update counts based on local storage changes if needed
             // Currently just static refresher for "Time" or "Status" if we had real backend
-            setActivityLog(getActivityLog());
+            setTrackedUsers(getTrackedUsers());
         }, 10000);
         return () => clearInterval(interval);
     }, []);
@@ -289,102 +313,179 @@ const AdminDashboard = () => {
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px' }}>
 
                         {/* Live Visitor Map / Activity */}
-                        <div style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.05)', padding: '24px', gridColumn: 'span 2' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                                <h3 style={{ fontSize: '1.2rem', fontWeight: '700' }}>Recent Activity Log</h3>
-                                <button className="btn-reset" style={{ color: '#3b82f6', fontSize: '0.9rem', fontWeight: '600' }}>View All</button>
-                            </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                            <h3 style={{ fontSize: '1.2rem', fontWeight: '700' }}>Real-Time Visitor Tracking</h3>
+                            <button className="btn-reset" style={{ color: '#3b82f6', fontSize: '0.9rem', fontWeight: '600' }}>View All</button>
+                        </div>
 
-                            <div style={{ overflowX: 'auto' }}>
-                                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                                    <thead>
-                                        <tr style={{ color: '#9ca3af', fontSize: '0.85rem', textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                                            <th style={{ padding: '16px' }}>User</th>
-                                            <th style={{ padding: '16px' }}>Action</th>
-                                            <th style={{ padding: '16px' }}>Details</th>
-                                            <th style={{ padding: '16px' }}>Time</th>
-                                            <th style={{ padding: '16px' }}>Status</th>
+                        <div style={{ overflowX: 'auto' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                <thead>
+                                    <tr style={{ color: '#9ca3af', fontSize: '0.85rem', textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                        <th style={{ padding: '16px' }}>User Details</th>
+                                        <th style={{ padding: '16px' }}>Location</th>
+                                        <th style={{ padding: '16px' }}>Device</th>
+                                        <th style={{ padding: '16px' }}>Last Active</th>
+                                        <th style={{ padding: '16px' }}>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {trackedUsers.map((user, idx) => (
+                                        <tr key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)', fontSize: '0.9rem', cursor: 'pointer', transition: 'background 0.2s' }}
+                                            onClick={() => setSelectedUser(user)}
+                                            className="hover:bg-white/5"
+                                        >
+                                            <td style={{ padding: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                                <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', fontWeight: '700' }}>
+                                                    {user.name.charAt(0)}
+                                                </div>
+                                                <div>
+                                                    <div style={{ fontWeight: '600' }}>{user.name}</div>
+                                                    <div style={{ fontSize: '0.75rem', color: '#a1a1aa' }}>{user.phone}</div>
+                                                </div>
+                                            </td>
+                                            <td style={{ padding: '16px', color: '#a1a1aa' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                    <MapPin size={14} /> {user.location}
+                                                </div>
+                                            </td>
+                                            <td style={{ padding: '16px', color: '#a1a1aa' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                    <Smartphone size={14} /> {user.device}
+                                                </div>
+                                            </td>
+                                            <td style={{ padding: '16px', color: '#a1a1aa' }}>{user.lastActive}</td>
+                                            <td style={{ padding: '16px' }}>
+                                                <button className="btn-reset" style={{ padding: '6px 12px', background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', borderRadius: '6px', fontSize: '0.8rem', fontWeight: '600' }}>
+                                                    View Profile
+                                                </button>
+                                            </td>
                                         </tr>
-                                    </thead>
-                                    <tbody>
-                                        {activityLog.length === 0 ? (
-                                            <tr>
-                                                <td colSpan="5" style={{ padding: '24px', textAlign: 'center', color: '#71717a' }}>No recent activity found.</td>
-                                            </tr>
-                                        ) : (
-                                            activityLog.map((log, idx) => (
-                                                <tr key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)', fontSize: '0.9rem' }}>
-                                                    <td style={{ padding: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                                        <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#3f3f46', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: '700' }}>
-                                                            {log.user.charAt(0)}
-                                                        </div>
-                                                        <div>
-                                                            <div style={{ fontWeight: '600' }}>{log.user}</div>
-                                                            <div style={{ fontSize: '0.75rem', color: '#71717a' }}>{log.id}</div>
-                                                        </div>
-                                                    </td>
-                                                    <td style={{ padding: '16px', fontWeight: '600', color: log.type === 'auth' ? '#10b981' : '#f59e0b' }}>{log.action}</td>
-                                                    <td style={{ padding: '16px', color: '#a1a1aa' }}>{log.details}</td>
-                                                    <td style={{ padding: '16px', color: '#a1a1aa' }}>{log.time}</td>
-                                                    <td style={{ padding: '16px' }}>
-                                                        <span style={{
-                                                            padding: '4px 10px', borderRadius: '100px', fontSize: '0.75rem', fontWeight: '600',
-                                                            background: 'rgba(255,255,255,0.1)', color: 'white'
-                                                        }}>
-                                                            {log.status}
-                                                        </span>
-                                                    </td>
-                                                </tr>
-                                            ))
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        {/* Real System Stats & Tools */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                            {/* Question Distribution */}
-                            <div style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.05)', padding: '24px', flex: 1 }}>
-                                <h3 style={{ fontSize: '1.2rem', fontWeight: '700', marginBottom: '20px' }}>Content Distribution</h3>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                                    {subjectStats.map((sub, idx) => (
-                                        <div key={idx}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem' }}>
-                                                <span style={{ color: '#a1a1aa' }}>{sub.subject}</span>
-                                                <span style={{ fontWeight: '600' }}>{sub.count} Qs</span>
-                                            </div>
-                                            <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '100px', overflow: 'hidden' }}>
-                                                <div style={{ width: `${(sub.count / realData.totalQuestions) * 100}%`, height: '100%', background: idx === 0 ? '#10b981' : idx === 1 ? '#3b82f6' : '#f59e0b', borderRadius: '100px' }}></div>
-                                            </div>
-                                        </div>
                                     ))}
-                                </div>
-                            </div>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
 
-                            {/* Admin Actions */}
-                            <div style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.05)', padding: '24px', flex: 1 }}>
-                                <h3 style={{ fontSize: '1.2rem', fontWeight: '700', marginBottom: '20px' }}>Admin Tools</h3>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                                    <button onClick={handleExport} className="btn-reset" style={{ display: 'flex', gap: '12px', alignItems: 'center', width: '100%', padding: '12px', borderRadius: '12px', background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
-                                        <Settings size={18} />
-                                        <div style={{ textAlign: 'left' }}>
-                                            <div style={{ fontWeight: '600', fontSize: '0.95rem' }}>Export Data</div>
-                                            <div style={{ fontSize: '0.8rem', opacity: 0.8 }}>Download JSON backup</div>
+                    {/* User Detail Modal */}
+                    <AnimatePresence>
+                        {selectedUser && (
+                            <div style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(5px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }} onClick={() => setSelectedUser(null)}>
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.95 }}
+                                    style={{ width: '100%', maxWidth: '600px', background: '#18181b', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.1)', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}
+                                    onClick={e => e.stopPropagation()}
+                                >
+                                    <div style={{ padding: '24px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <h3 style={{ fontSize: '1.25rem', fontWeight: '700' }}>Visitor Profile</h3>
+                                        <button onClick={() => setSelectedUser(null)} className="btn-reset"><X size={24} color="#9ca3af" /></button>
+                                    </div>
+
+                                    <div style={{ padding: '24px', maxHeight: '70vh', overflowY: 'auto' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
+                                            <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', fontWeight: '700' }}>
+                                                {selectedUser.name.charAt(0)}
+                                            </div>
+                                            <div>
+                                                <div style={{ fontSize: '1.5rem', fontWeight: '700' }}>{selectedUser.name}</div>
+                                                <div style={{ color: '#a1a1aa' }}>{selectedUser.email}</div>
+                                                <div style={{ color: '#a1a1aa', fontSize: '0.9rem' }}>{selectedUser.phone}</div>
+                                            </div>
                                         </div>
-                                    </button>
-                                    <button onClick={handleClearData} className="btn-reset" style={{ display: 'flex', gap: '12px', alignItems: 'center', width: '100%', padding: '12px', borderRadius: '12px', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
-                                        <LogOut size={18} />
-                                        <div style={{ textAlign: 'left' }}>
-                                            <div style={{ fontWeight: '600', fontSize: '0.95rem' }}>Reset System</div>
-                                            <div style={{ fontSize: '0.8rem', opacity: 0.8 }}>Clear all local data</div>
+
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '32px' }}>
+                                            <div style={{ padding: '16px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                                <div style={{ color: '#9ca3af', fontSize: '0.85rem', marginBottom: '4px' }}>Location</div>
+                                                <div style={{ fontWeight: '500' }}>{selectedUser.location}</div>
+                                            </div>
+                                            <div style={{ padding: '16px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                                <div style={{ color: '#9ca3af', fontSize: '0.85rem', marginBottom: '4px' }}>Device</div>
+                                                <div style={{ fontWeight: '500' }}>{selectedUser.device}</div>
+                                            </div>
                                         </div>
-                                    </button>
-                                </div>
+
+                                        <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '16px', color: '#60a5fa' }}>Click History (Recent Actions)</h4>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '32px' }}>
+                                            {selectedUser.clicks.map((click, i) => (
+                                                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px' }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#60a5fa' }}></div>
+                                                        <div>
+                                                            <div style={{ fontWeight: '500', fontSize: '0.9rem' }}>Clicked {click.element}</div>
+                                                            <div style={{ fontSize: '0.75rem', color: '#71717a' }}>Page: {click.page}</div>
+                                                        </div>
+                                                    </div>
+                                                    <div style={{ fontSize: '0.75rem', color: '#a1a1aa' }}>{click.time}</div>
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '16px', color: '#f59e0b' }}>Test Performance</h4>
+                                        {selectedUser.tests.length === 0 ? (
+                                            <div style={{ color: '#71717a', fontSize: '0.9rem' }}>No tests attempted yet.</div>
+                                        ) : (
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                                {selectedUser.tests.map((test, i) => (
+                                                    <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px' }}>
+                                                        <div>
+                                                            <div style={{ fontWeight: '500', fontSize: '0.9rem' }}>{test.name}</div>
+                                                            <div style={{ fontSize: '0.75rem', color: '#71717a' }}>{test.date}</div>
+                                                        </div>
+                                                        <div style={{ fontWeight: '700', color: '#10b981' }}>{test.score}</div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </motion.div>
+                            </div>
+                        )}
+                    </AnimatePresence>
+
+                    {/* Real System Stats & Tools */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                        {/* Question Distribution */}
+                        <div style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.05)', padding: '24px', flex: 1 }}>
+                            <h3 style={{ fontSize: '1.2rem', fontWeight: '700', marginBottom: '20px' }}>Content Distribution</h3>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                {subjectStats.map((sub, idx) => (
+                                    <div key={idx}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem' }}>
+                                            <span style={{ color: '#a1a1aa' }}>{sub.subject}</span>
+                                            <span style={{ fontWeight: '600' }}>{sub.count} Qs</span>
+                                        </div>
+                                        <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '100px', overflow: 'hidden' }}>
+                                            <div style={{ width: `${(sub.count / realData.totalQuestions) * 100}%`, height: '100%', background: idx === 0 ? '#10b981' : idx === 1 ? '#3b82f6' : '#f59e0b', borderRadius: '100px' }}></div>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
 
+                        {/* Admin Actions */}
+                        <div style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.05)', padding: '24px', flex: 1 }}>
+                            <h3 style={{ fontSize: '1.2rem', fontWeight: '700', marginBottom: '20px' }}>Admin Tools</h3>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                <button onClick={handleExport} className="btn-reset" style={{ display: 'flex', gap: '12px', alignItems: 'center', width: '100%', padding: '12px', borderRadius: '12px', background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
+                                    <Settings size={18} />
+                                    <div style={{ textAlign: 'left' }}>
+                                        <div style={{ fontWeight: '600', fontSize: '0.95rem' }}>Export Data</div>
+                                        <div style={{ fontSize: '0.8rem', opacity: 0.8 }}>Download JSON backup</div>
+                                    </div>
+                                </button>
+                                <button onClick={handleClearData} className="btn-reset" style={{ display: 'flex', gap: '12px', alignItems: 'center', width: '100%', padding: '12px', borderRadius: '12px', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+                                    <LogOut size={18} />
+                                    <div style={{ textAlign: 'left' }}>
+                                        <div style={{ fontWeight: '600', fontSize: '0.95rem' }}>Reset System</div>
+                                        <div style={{ fontSize: '0.8rem', opacity: 0.8 }}>Clear all local data</div>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
                     </div>
+
                 </div>
             </div>
         </div>
