@@ -29,54 +29,67 @@ const getRealStats = () => {
     return { history, currentUser, totalVisits, testAttempts, revenue, totalQuestions };
 };
 
-const generateLiveUsers = (realUser) => {
-    const users = [];
-    const cities = ['Mumbai', 'Delhi', 'Bangalore', 'Hyderabad', 'Chennai', 'Pune', 'Kolkata'];
-    const devices = ['iPhone 14', 'Samsung S23', 'Windows PC', 'MacBook Pro', 'iPad Air'];
+// --- User Activity Aggregator ---
+const getActivityLog = () => {
+    const history = JSON.parse(localStorage.getItem('digimentors_test_history') || '[]');
+    const currentUser = JSON.parse(localStorage.getItem('digimentors_current_user') || 'null');
 
-    // Add REAL user first if exists
-    if (realUser) {
-        users.push({
-            id: 'YOU',
-            name: realUser.name || 'Current User',
-            location: 'Current Location',
-            device: 'Your Device',
-            page: '/admin',
-            time: 'Now',
-            status: 'Active',
-            ip: '127.0.0.1 (Local)'
+    const logs = [];
+
+    // Add Login Entry if user exists
+    if (currentUser) {
+        logs.push({
+            id: 'LOGIN-001',
+            user: currentUser.name || 'User',
+            action: 'Logged In',
+            details: 'Session Active',
+            time: 'Recently',
+            status: 'Online',
+            type: 'auth'
         });
     }
 
-    // Add bots
-    for (let i = 0; i < 5; i++) {
-        users.push({
-            id: `USR-${1000 + i}`,
-            name: `Visitor ${i + 1}`,
-            location: cities[Math.floor(Math.random() * cities.length)],
-            device: devices[Math.floor(Math.random() * devices.length)],
-            page: ['/test-player', '/analysis', '/dashboard', '/courses'][Math.floor(Math.random() * 4)],
-            time: `${Math.floor(Math.random() * 20)}m ago`,
-            status: Math.random() > 0.3 ? 'Active' : 'Idle',
-            ip: `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`
+    // Add recent test attempts
+    history.slice(0, 5).forEach((test, idx) => {
+        logs.push({
+            id: `TEST-${idx}`,
+            user: currentUser?.name || 'User',
+            action: 'Attempted Test',
+            details: `${test.name} - Score: ${test.score}`,
+            time: test.date || 'Unknown',
+            status: 'Completed',
+            type: 'test'
         });
-    }
-    return users;
+    });
+
+    return logs;
 };
+
+// Calculate Subject Distribution
+const getSubjectStats = () => {
+    const stats = {};
+    realQuestions.forEach(q => {
+        stats[q.subject] = (stats[q.subject] || 0) + 1;
+    });
+    return Object.keys(stats).map(subject => ({ subject, count: stats[subject] }));
+};
+
 
 
 const AdminDashboard = () => {
     const [activeTab, setActiveTab] = useState('dashboard');
     const [isSidebarOpen, setSidebarOpen] = useState(true);
     const [realData, setRealData] = useState(getRealStats());
-    const [recentUsers, setRecentUsers] = useState(generateLiveUsers(realData.currentUser));
+    const [activityLog, setActivityLog] = useState(getActivityLog());
+    const [subjectStats, setSubjectStats] = useState(getSubjectStats());
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 1024);
 
-    // Update real stats on mount
+    // Initial Data Load
     useEffect(() => {
         const data = getRealStats();
         setRealData(data);
-        setRecentUsers(generateLiveUsers(data.currentUser));
+        setActivityLog(getActivityLog());
+        setSubjectStats(getSubjectStats());
     }, []);
 
 
@@ -92,34 +105,33 @@ const AdminDashboard = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    // Live Data Simulation
+    // Live Data Updates (Real only)
     useEffect(() => {
         const interval = setInterval(() => {
-            // Simulate random visits
-            const newVisits = Math.floor(Math.random() * 3);
-            if (newVisits > 0) {
-                const currentTotal = parseInt(localStorage.getItem('total_visits') || '8943');
-                localStorage.setItem('total_visits', (currentTotal + newVisits).toString());
-                setRealData(prev => ({ ...prev, totalVisits: currentTotal + newVisits }));
-            }
-
-            setRecentUsers(prev => {
-                const newUsers = [...prev];
-                // Randomly update a bot (skip index 0 if it is real user)
-                const startIdx = newUsers[0]?.id === 'YOU' ? 1 : 0;
-                if (newUsers.length > startIdx) {
-                    const idx = Math.floor(Math.random() * (newUsers.length - startIdx)) + startIdx;
-                    newUsers[idx] = {
-                        ...newUsers[idx],
-                        status: Math.random() > 0.4 ? 'Active' : 'Idle',
-                        time: 'Just now'
-                    };
-                }
-                return newUsers;
-            });
-        }, 5000);
+            // Only update counts based on local storage changes if needed
+            // Currently just static refresher for "Time" or "Status" if we had real backend
+            setActivityLog(getActivityLog());
+        }, 10000);
         return () => clearInterval(interval);
     }, []);
+
+    const handleClearData = () => {
+        if (window.confirm('Are you sure you want to clear all test history? This cannot be undone.')) {
+            localStorage.removeItem('digimentors_test_history');
+            localStorage.removeItem('total_visits');
+            window.location.reload();
+        }
+    };
+
+    const handleExport = () => {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(realData.history));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", "digimentors_data.json");
+        document.body.appendChild(downloadAnchorNode); // required for firefox
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+    };
 
     const sidebarVariants = {
         open: { width: '280px', transition: { type: 'spring', stiffness: 100 } },
@@ -244,9 +256,8 @@ const AdminDashboard = () => {
                     {/* Stats Grid */}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px', marginBottom: '32px' }}>
                         {[
-                            { label: 'Active Users', value: recentUsers.filter(u => u.status === 'Active').length, icon: Globe, color: '#10b981', trend: 'Live count' },
-                            { label: 'Total Visits', value: realData.totalVisits.toLocaleString(), icon: Users, color: '#3b82f6', trend: '+12 today' },
-                            { label: 'Test Attempts', value: realData.testAttempts, icon: BookOpen, color: '#f59e0b', trend: 'Real data' },
+                            { label: 'Total Logins', value: realData.totalVisits.toLocaleString(), icon: Users, color: '#3b82f6', trend: 'Lifetime' },
+                            { label: 'Tests Taken', value: realData.testAttempts, icon: BookOpen, color: '#f59e0b', trend: 'Student Activity' },
                             { label: 'Question Bank', value: realData.totalQuestions, icon: Shield, color: '#8b5cf6', trend: 'Verified Questions' },
                         ].map((stat, idx) => (
                             <motion.div
@@ -280,7 +291,7 @@ const AdminDashboard = () => {
                         {/* Live Visitor Map / Activity */}
                         <div style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.05)', padding: '24px', gridColumn: 'span 2' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                                <h3 style={{ fontSize: '1.2rem', fontWeight: '700' }}>Live Visitor Insights</h3>
+                                <h3 style={{ fontSize: '1.2rem', fontWeight: '700' }}>Recent Activity Log</h3>
                                 <button className="btn-reset" style={{ color: '#3b82f6', fontSize: '0.9rem', fontWeight: '600' }}>View All</button>
                             </div>
 
@@ -289,91 +300,86 @@ const AdminDashboard = () => {
                                     <thead>
                                         <tr style={{ color: '#9ca3af', fontSize: '0.85rem', textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                                             <th style={{ padding: '16px' }}>User</th>
+                                            <th style={{ padding: '16px' }}>Action</th>
+                                            <th style={{ padding: '16px' }}>Details</th>
+                                            <th style={{ padding: '16px' }}>Time</th>
                                             <th style={{ padding: '16px' }}>Status</th>
-                                            <th style={{ padding: '16px' }}>Location</th>
-                                            <th style={{ padding: '16px' }}>Device</th>
-                                            <th style={{ padding: '16px' }}>Current Page</th>
-                                            <th style={{ padding: '16px' }}>Active</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {recentUsers.map((user, idx) => (
-                                            <tr key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)', fontSize: '0.9rem' }}>
-                                                <td style={{ padding: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#3f3f46', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: '700' }}>
-                                                        {user.name.charAt(0)}
-                                                    </div>
-                                                    <div>
-                                                        <div style={{ fontWeight: '600' }}>{user.name}</div>
-                                                        <div style={{ fontSize: '0.75rem', color: '#71717a' }}>{user.id}</div>
-                                                    </div>
-                                                </td>
-                                                <td style={{ padding: '16px' }}>
-                                                    <span style={{
-                                                        padding: '4px 10px', borderRadius: '100px', fontSize: '0.75rem', fontWeight: '600',
-                                                        background: user.status === 'Active' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(113, 113, 122, 0.1)',
-                                                        color: user.status === 'Active' ? '#10b981' : '#a1a1aa'
-                                                    }}>
-                                                        {user.status}
-                                                    </span>
-                                                </td>
-                                                <td style={{ padding: '16px', color: '#a1a1aa' }}>{user.location}</td>
-                                                <td style={{ padding: '16px', color: '#a1a1aa' }}>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                                        <Smartphone size={14} /> {user.device}
-                                                    </div>
-                                                </td>
-                                                <td style={{ padding: '16px', color: '#60a5fa' }}>{user.page}</td>
-                                                <td style={{ padding: '16px', color: '#a1a1aa' }}>{user.time}</td>
+                                        {activityLog.length === 0 ? (
+                                            <tr>
+                                                <td colSpan="5" style={{ padding: '24px', textAlign: 'center', color: '#71717a' }}>No recent activity found.</td>
                                             </tr>
-                                        ))}
+                                        ) : (
+                                            activityLog.map((log, idx) => (
+                                                <tr key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)', fontSize: '0.9rem' }}>
+                                                    <td style={{ padding: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                                        <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#3f3f46', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: '700' }}>
+                                                            {log.user.charAt(0)}
+                                                        </div>
+                                                        <div>
+                                                            <div style={{ fontWeight: '600' }}>{log.user}</div>
+                                                            <div style={{ fontSize: '0.75rem', color: '#71717a' }}>{log.id}</div>
+                                                        </div>
+                                                    </td>
+                                                    <td style={{ padding: '16px', fontWeight: '600', color: log.type === 'auth' ? '#10b981' : '#f59e0b' }}>{log.action}</td>
+                                                    <td style={{ padding: '16px', color: '#a1a1aa' }}>{log.details}</td>
+                                                    <td style={{ padding: '16px', color: '#a1a1aa' }}>{log.time}</td>
+                                                    <td style={{ padding: '16px' }}>
+                                                        <span style={{
+                                                            padding: '4px 10px', borderRadius: '100px', fontSize: '0.75rem', fontWeight: '600',
+                                                            background: 'rgba(255,255,255,0.1)', color: 'white'
+                                                        }}>
+                                                            {log.status}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        )}
                                     </tbody>
                                 </table>
                             </div>
                         </div>
 
-                        {/* System Health / Alerts */}
+                        {/* Real System Stats & Tools */}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                            {/* Question Distribution */}
                             <div style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.05)', padding: '24px', flex: 1 }}>
-                                <h3 style={{ fontSize: '1.2rem', fontWeight: '700', marginBottom: '20px' }}>System Health</h3>
+                                <h3 style={{ fontSize: '1.2rem', fontWeight: '700', marginBottom: '20px' }}>Content Distribution</h3>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                                    {[
-                                        { label: 'Server CPU Load', value: '42%', color: '#10b981' },
-                                        { label: 'Memory Usage', value: '68%', color: '#f59e0b' },
-                                        { label: 'Database Latency', value: '12ms', color: '#3b82f6' }
-                                    ].map((item, idx) => (
+                                    {subjectStats.map((sub, idx) => (
                                         <div key={idx}>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem' }}>
-                                                <span style={{ color: '#a1a1aa' }}>{item.label}</span>
-                                                <span style={{ fontWeight: '600' }}>{item.value}</span>
+                                                <span style={{ color: '#a1a1aa' }}>{sub.subject}</span>
+                                                <span style={{ fontWeight: '600' }}>{sub.count} Qs</span>
                                             </div>
                                             <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '100px', overflow: 'hidden' }}>
-                                                <div style={{ width: item.value, height: '100%', background: item.color, borderRadius: '100px' }}></div>
+                                                <div style={{ width: `${(sub.count / realData.totalQuestions) * 100}%`, height: '100%', background: idx === 0 ? '#10b981' : idx === 1 ? '#3b82f6' : '#f59e0b', borderRadius: '100px' }}></div>
                                             </div>
                                         </div>
                                     ))}
                                 </div>
                             </div>
 
+                            {/* Admin Actions */}
                             <div style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.05)', padding: '24px', flex: 1 }}>
-                                <h3 style={{ fontSize: '1.2rem', fontWeight: '700', marginBottom: '20px' }}>Recent Alerts</h3>
+                                <h3 style={{ fontSize: '1.2rem', fontWeight: '700', marginBottom: '20px' }}>Admin Tools</h3>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                                    <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-                                        <div style={{ padding: '8px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '8px', color: '#ef4444' }}><AlertCircle size={16} /></div>
-                                        <div>
-                                            <div style={{ fontWeight: '600', fontSize: '0.95rem' }}>High Traffic detected</div>
-                                            <div style={{ fontSize: '0.85rem', color: '#a1a1aa' }}>IP Range 192.168.x.x originating anomalous load.</div>
-                                            <div style={{ fontSize: '0.75rem', color: '#52525b', marginTop: '4px' }}>2 mins ago</div>
+                                    <button onClick={handleExport} className="btn-reset" style={{ display: 'flex', gap: '12px', alignItems: 'center', width: '100%', padding: '12px', borderRadius: '12px', background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
+                                        <Settings size={18} />
+                                        <div style={{ textAlign: 'left' }}>
+                                            <div style={{ fontWeight: '600', fontSize: '0.95rem' }}>Export Data</div>
+                                            <div style={{ fontSize: '0.8rem', opacity: 0.8 }}>Download JSON backup</div>
                                         </div>
-                                    </div>
-                                    <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-                                        <div style={{ padding: '8px', background: 'rgba(245, 158, 11, 0.1)', borderRadius: '8px', color: '#f59e0b' }}><Settings size={16} /></div>
-                                        <div>
-                                            <div style={{ fontWeight: '600', fontSize: '0.95rem' }}>System Update Pending</div>
-                                            <div style={{ fontSize: '0.85rem', color: '#a1a1aa' }}>New patch v2.4.1 available for deployment.</div>
-                                            <div style={{ fontSize: '0.75rem', color: '#52525b', marginTop: '4px' }}>1 hour ago</div>
+                                    </button>
+                                    <button onClick={handleClearData} className="btn-reset" style={{ display: 'flex', gap: '12px', alignItems: 'center', width: '100%', padding: '12px', borderRadius: '12px', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+                                        <LogOut size={18} />
+                                        <div style={{ textAlign: 'left' }}>
+                                            <div style={{ fontWeight: '600', fontSize: '0.95rem' }}>Reset System</div>
+                                            <div style={{ fontSize: '0.8rem', opacity: 0.8 }}>Clear all local data</div>
                                         </div>
-                                    </div>
+                                    </button>
                                 </div>
                             </div>
                         </div>
