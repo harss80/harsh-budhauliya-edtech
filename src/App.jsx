@@ -50,36 +50,56 @@ const GlobalPopup = () => {
   );
 };
 
+// Layout component to handle conditional rendering of Navbar/Footer
+const Layout = ({ children }) => {
+  const location = useLocation();
+  // Check if current path is admin panel
+  const isAdmin = location.pathname.startsWith('/admin');
+  const isTestPlayer = location.pathname.startsWith('/attempt-test');
+
+  if (isAdmin || isTestPlayer) {
+    return (
+      <div className="app-container" style={{ minHeight: '100vh' }}>
+        {children}
+      </div>
+    );
+  }
+
+  return (
+    <div className="app-container" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <Navbar />
+      <main style={{ flex: 1 }}>
+        {children}
+      </main>
+      <Footer />
+    </div>
+  );
+};
+
 function App() {
   return (
     <Router>
       <GlobalPopup />
-      <div className="app-container" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-        <Navbar />
-        <main style={{ flex: 1 }}>
-
-
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/category/:category" element={<ExamCategory />} />
-            <Route path="/questions" element={<QuestionBank />} />
-            <Route path="/practice/:exam/:subject" element={<Practice />} />
-            <Route path="/test" element={<StudentDashboard />} />
-            <Route path="/test-generator" element={<TestGenerator />} />
-            <Route path="/blog" element={<Blog />} />
-            <Route path="/analysis" element={<LiveAnalysis />} />
-            <Route path="/test-history" element={<StudentTestHistory />} />
-            <Route path="/study-material" element={<StudyMaterial />} />
-            <Route path="/attempt-test/:testId" element={<TestPlayer />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/leaderboard" element={<Leaderboard />} />
-            <Route path="/mentorship" element={<Mentorship />} />
-            <Route path="/contact" element={<Contact />} />
-          </Routes>
-        </main>
-        <Footer />
-      </div>
+      <Layout>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/category/:category" element={<ExamCategory />} />
+          <Route path="/questions" element={<QuestionBank />} />
+          <Route path="/practice/:exam/:subject" element={<Practice />} />
+          <Route path="/test" element={<StudentDashboard />} />
+          <Route path="/test-generator" element={<TestGenerator />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/analysis" element={<LiveAnalysis />} />
+          <Route path="/test-history" element={<StudentTestHistory />} />
+          <Route path="/study-material" element={<StudyMaterial />} />
+          <Route path="/attempt-test/:testId" element={<TestPlayer />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
+          <Route path="/mentorship" element={<Mentorship />} />
+          <Route path="/contact" element={<Contact />} />
+        </Routes>
+      </Layout>
     </Router>
   );
 }

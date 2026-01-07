@@ -1,228 +1,350 @@
+
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Users, BarChart2, Globe, Settings, Search,
-    TrendingUp, UserCheck, Clock, Shield
+    LayoutDashboard, Users, Activity, BookOpen, Settings,
+    Search, Bell, ChevronDown, MapPin, Smartphone,
+    Globe, Clock, TrendingUp, DollarSign, Shield, LogOut, Menu, X
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
+
+// --- Mock Data Generator ---
+const generateMockUsers = () => {
+    const users = [];
+    const cities = ['Mumbai', 'Delhi', 'Bangalore', 'Hyderabad', 'Chennai', 'Pune', 'Kolkata'];
+    const devices = ['iPhone 14', 'Samsung S23', 'Windows PC', 'MacBook Pro', 'iPad Air'];
+    const pages = ['/test-player', '/analysis', '/dashboard', '/courses', '/test-generator'];
+    const status = ['Active', 'Idle', 'Offline'];
+
+    for (let i = 0; i < 8; i++) {
+        users.push({
+            id: `USR-${1000 + i}`,
+            name: `User ${i + 1}`,
+            location: cities[Math.floor(Math.random() * cities.length)],
+            device: devices[Math.floor(Math.random() * devices.length)],
+            page: pages[Math.floor(Math.random() * pages.length)],
+            time: `${Math.floor(Math.random() * 59)}m ago`,
+            status: status[Math.floor(Math.random() * (i < 3 ? 1 : 3))], // Bias towards active
+            ip: `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`
+        });
+    }
+    return users;
+};
 
 const AdminDashboard = () => {
-    const [activeTab, setActiveTab] = useState('students');
-    const [leads, setLeads] = useState([]);
-    const [searchTerm, setSearchTerm] = useState('');
+    const [activeTab, setActiveTab] = useState('dashboard');
+    const [isSidebarOpen, setSidebarOpen] = useState(true);
+    const [stats, setStats] = useState({
+        activeUsers: 142,
+        totalVisits: 8943,
+        testAttempts: 452,
+        revenue: '₹14,25,000'
+    });
+    const [recentUsers, setRecentUsers] = useState(generateMockUsers());
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 1024);
 
+    // Responsive Handlers
     useEffect(() => {
-        // Load Real Users from Local Storage
-        const storedUsers = JSON.parse(localStorage.getItem('digimentors_users') || '[]');
-
-        // Map to table format
-        const realLeads = storedUsers.map((u, idx) => ({
-            id: idx,
-            name: u.name,
-            email: u.email,
-            mobile: "N/A", // Not collecting mobile in simplified login
-            class: u.educationDetails?.grade || "N/A",
-            exam: u.educationDetails?.targetExam || "N/A",
-            score: "Pending", // Would need complex linking
-            status: "Registered"
-        }));
-
-        setLeads(realLeads);
+        const handleResize = () => {
+            const mobile = window.innerWidth <= 1024;
+            setIsMobile(mobile);
+            if (mobile) setSidebarOpen(false);
+            else setSidebarOpen(true);
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    const filteredLeads = leads.filter(lead =>
-        lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        lead.email.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // Live Data Simulation
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setStats(prev => ({
+                ...prev,
+                activeUsers: prev.activeUsers + Math.floor(Math.random() * 5) - 2,
+                totalVisits: prev.totalVisits + Math.floor(Math.random() * 2)
+            }));
+            setRecentUsers(prev => {
+                const newUsers = [...prev];
+                // Randomly update one user
+                const idx = Math.floor(Math.random() * newUsers.length);
+                newUsers[idx] = {
+                    ...newUsers[idx],
+                    status: Math.random() > 0.7 ? 'Idle' : 'Active',
+                    time: 'Just now'
+                };
+                return newUsers;
+            });
+        }, 3000);
+        return () => clearInterval(interval);
+    }, []);
 
-    const TabButton = ({ id, icon: Icon, label }) => (
-        <button
-            onClick={() => setActiveTab(id)}
-            style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                padding: '12px 20px',
-                width: '100%',
-                background: activeTab === id ? 'var(--primary)' : 'transparent',
-                color: activeTab === id ? 'white' : 'var(--text-muted)',
-                border: 'none',
-                borderRadius: '12px',
-                cursor: 'pointer',
-                textAlign: 'left',
-                marginBottom: '8px',
-                transition: 'all 0.2s',
-                fontWeight: activeTab === id ? '600' : '500'
-            }}
-        >
-            <Icon size={20} />
-            {label}
-        </button>
-    );
+    const sidebarVariants = {
+        open: { width: '280px', transition: { type: 'spring', stiffness: 100 } },
+        closed: { width: '80px', transition: { type: 'spring', stiffness: 100 } },
+        mobileOpen: { width: '280px', x: 0 },
+        mobileClosed: { width: '280px', x: '-100%' },
+    };
 
     return (
-        <div style={{ display: 'flex', minHeight: '100vh', background: '#0a0b10', color: 'white' }}>
+        <div style={{ minHeight: '100vh', background: '#09090b', color: 'white', display: 'flex', overflow: 'hidden' }}>
+
             {/* Sidebar */}
-            <div style={{ width: '280px', borderRight: '1px solid rgba(255,255,255,0.05)', padding: '2rem', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ marginBottom: '3rem', paddingLeft: '12px' }}>
-                    <div className="academic-badge" style={{ marginBottom: '10px' }}>ADMINISTRATOR</div>
-                    <h2 style={{ fontSize: '1.5rem', fontWeight: '800' }}>Control Center</h2>
-                </div>
-
-                <nav style={{ flex: 1 }}>
-                    <TabButton id="students" icon={Users} label="Student Database" />
-                    <TabButton id="analytics" icon={BarChart2} label="Traffic & Analytics" />
-                    <TabButton id="seo" icon={Globe} label="SEO & Metadata" />
-                    <TabButton id="settings" icon={Settings} label="System Settings" />
-                </nav>
-
-                <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '1rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                        <div style={{ width: '8px', height: '8px', background: '#22c55e', borderRadius: '50%' }}></div>
-                        <span style={{ fontSize: '0.85rem', fontWeight: '600' }}>System Healthy</span>
+            <motion.div
+                initial={isMobile ? "mobileClosed" : "open"}
+                animate={isMobile ? (isSidebarOpen ? "mobileOpen" : "mobileClosed") : (isSidebarOpen ? "open" : "closed")}
+                variants={sidebarVariants}
+                style={{
+                    background: 'rgba(24, 24, 27, 0.6)',
+                    borderRight: '1px solid rgba(255,255,255,0.05)',
+                    display: 'flex', flexDirection: 'column',
+                    position: isMobile ? 'fixed' : 'relative',
+                    zIndex: 50, height: '100vh', backdropFilter: 'blur(20px)'
+                }}
+            >
+                {/* Logo Area */}
+                <div style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '12px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                    <div style={{ width: '32px', height: '32px', background: 'linear-gradient(135deg, #6366f1, #a855f7)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Shield size={18} color="white" />
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>v2.4.0 (Stable)</div>
+                    {(isSidebarOpen || isMobile) && (
+                        <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ fontWeight: '700', fontSize: '1.2rem', background: 'linear-gradient(90deg, white, #94a3b8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                            DM Admin
+                        </motion.span>
+                    )}
                 </div>
-            </div>
+
+                {/* Menu Items */}
+                <div style={{ padding: '16px', flex: 1 }}>
+                    {[
+                        { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+                        { id: 'users', icon: Users, label: 'Live Visitors' },
+                        { id: 'analytics', icon: Activity, label: 'Analytics' },
+                        { id: 'content', icon: BookOpen, label: 'Content' },
+                        { id: 'settings', icon: Settings, label: 'Settings' }
+                    ].map(item => (
+                        <button
+                            key={item.id}
+                            onClick={() => { setActiveTab(item.id); if (isMobile) setSidebarOpen(false); }}
+                            className="btn-reset"
+                            style={{
+                                width: '100%', padding: '12px 16px', marginBottom: '8px',
+                                borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '12px',
+                                background: activeTab === item.id ? 'linear-gradient(90deg, rgba(99, 102, 241, 0.1), transparent)' : 'transparent',
+                                borderLeft: activeTab === item.id ? '3px solid #6366f1' : '3px solid transparent',
+                                color: activeTab === item.id ? 'white' : '#9ca3af',
+                                transition: 'all 0.2s'
+                            }}
+                        >
+                            <item.icon size={20} color={activeTab === item.id ? '#818cf8' : '#9ca3af'} />
+                            {(isSidebarOpen || isMobile) && <span style={{ fontWeight: '500' }}>{item.label}</span>}
+                        </button>
+                    ))}
+                </div>
+
+                {/* Footer */}
+                <div style={{ padding: '24px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                    <Link to="/" style={{ textDecoration: 'none' }}>
+                        <button className="btn-reset" style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#ef4444', width: '100%' }}>
+                            <LogOut size={20} />
+                            {(isSidebarOpen || isMobile) && <span style={{ fontWeight: '600' }}>Exit</span>}
+                        </button>
+                    </Link>
+                </div>
+            </motion.div>
 
             {/* Main Content */}
-            <div style={{ flex: 1, padding: '3rem', overflowY: 'auto' }}>
-                <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem' }}>
-                    <h1 style={{ fontSize: '2rem', fontWeight: 'bold' }}>
-                        {activeTab === 'students' && 'Student Management'}
-                        {activeTab === 'analytics' && 'Performance Metrics'}
-                        {activeTab === 'seo' && 'SEO Configuration'}
-                        {activeTab === 'settings' && 'Global Settings'}
-                    </h1>
-                    <div style={{ display: 'flex', gap: '1rem' }}>
-                        <div style={{ position: 'relative' }}>
-                            <Search size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+
+                {/* Header */}
+                <header style={{
+                    height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    padding: '0 32px', borderBottom: '1px solid rgba(255,255,255,0.05)',
+                    background: 'rgba(9, 9, 11, 0.8)', backdropFilter: 'blur(10px)'
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <button onClick={() => setSidebarOpen(!isSidebarOpen)} className="btn-reset" style={{ color: '#9ca3af' }}>
+                            {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+                        </button>
+                        <h2 style={{ fontSize: '1.5rem', fontWeight: '700' }}>
+                            {activeTab === 'dashboard' ? 'Overview' :
+                                activeTab === 'users' ? 'Real-Time Visitors' :
+                                    activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
+                        </h2>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+                        <div style={{ position: 'relative', display: isMobile ? 'none' : 'block' }}>
+                            <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#6b7280' }} />
                             <input
                                 type="text"
-                                placeholder="Global Search..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
+                                placeholder="Search anything..."
                                 style={{
-                                    padding: '12px 12px 12px 44px',
-                                    background: 'rgba(255,255,255,0.03)',
-                                    border: '1px solid rgba(255,255,255,0.1)',
-                                    borderRadius: '100px',
-                                    color: 'white',
-                                    outline: 'none',
+                                    background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+                                    padding: '10px 16px 10px 40px', borderRadius: '100px', color: 'white', outline: 'none',
                                     width: '300px'
                                 }}
                             />
                         </div>
-                        <div style={{ width: '48px', height: '48px', background: 'var(--primary)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <Shield size={24} color="white" />
+                        <button className="btn-reset" style={{ position: 'relative' }}>
+                            <Bell size={20} color="#9ca3af" />
+                            <span style={{ position: 'absolute', top: '-2px', right: '-2px', width: '8px', height: '8px', background: '#ef4444', borderRadius: '50%' }}></span>
+                        </button>
+                        <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'linear-gradient(135deg, #3b82f6, #06b6d4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700' }}>
+                            A
                         </div>
                     </div>
                 </header>
 
-                {/* Students Tab */}
-                {activeTab === 'students' && (
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                        <div className="glass-card" style={{ padding: '0', overflow: 'hidden' }}>
-                            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                                <thead>
-                                    <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.02)' }}>
-                                        <th style={{ padding: '20px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>STUDENT NAME</th>
-                                        <th style={{ padding: '20px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>CONTACT</th>
-                                        <th style={{ padding: '20px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>CLASS / EXAM</th>
-                                        <th style={{ padding: '20px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>DIAGNOSTIC SCORE</th>
-                                        <th style={{ padding: '20px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>STATUS</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {filteredLeads.map((lead) => (
-                                        <tr key={lead.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                                            <td style={{ padding: '20px', fontWeight: '600' }}>{lead.name}</td>
-                                            <td style={{ padding: '20px', color: 'var(--text-muted)' }}>
-                                                <div>{lead.email}</div>
-                                                <div style={{ fontSize: '0.8rem' }}>{lead.mobile}</div>
-                                            </td>
-                                            <td style={{ padding: '20px' }}>
-                                                <span style={{ background: 'rgba(255,255,255,0.05)', padding: '4px 10px', borderRadius: '4px', fontSize: '0.8rem', marginRight: '6px' }}>{lead.class}</span>
-                                                <span style={{ background: 'rgba(99, 102, 241, 0.1)', color: '#6366f1', padding: '4px 10px', borderRadius: '4px', fontSize: '0.8rem' }}>{lead.exam}</span>
-                                            </td>
-                                            <td style={{ padding: '20px', fontWeight: '700' }}>{lead.score}</td>
-                                            <td style={{ padding: '20px' }}>
-                                                <span style={{
-                                                    display: 'inline-flex', alignItems: 'center', gap: '6px',
-                                                    color: lead.status.includes('Active') || lead.status.includes('Online') ? '#22c55e' : '#94a3b8',
-                                                    fontSize: '0.85rem', fontWeight: '600'
-                                                }}>
-                                                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'currentColor' }}></div>
-                                                    {lead.status}
-                                                </span>
-                                            </td>
+                {/* Scrollable Body */}
+                <div style={{ flex: 1, overflowY: 'auto', padding: '32px' }}>
+
+                    {/* Stats Grid */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px', marginBottom: '32px' }}>
+                        {[
+                            { label: 'Active Users', value: stats.activeUsers, icon: Globe, color: '#10b981', trend: '+12% vs last hr' },
+                            { label: 'Total Visits Today', value: stats.totalVisits.toLocaleString(), icon: Users, color: '#3b82f6', trend: '+5% vs yesterday' },
+                            { label: 'Test Attempts', value: stats.testAttempts, icon: BookOpen, color: '#f59e0b', trend: 'High engagement' },
+                            { label: 'Revenue (YTD)', value: stats.revenue, icon: DollarSign, color: '#8b5cf6', trend: '+24% growth' },
+                        ].map((stat, idx) => (
+                            <motion.div
+                                key={idx}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: idx * 0.1 }}
+                                className="glass-card"
+                                style={{
+                                    padding: '24px', background: 'rgba(255,255,255,0.02)',
+                                    borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)'
+                                }}
+                            >
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                                    <div style={{ padding: '12px', background: `${stat.color}20`, borderRadius: '12px' }}>
+                                        <stat.icon size={24} color={stat.color} />
+                                    </div>
+                                    <span style={{ fontSize: '0.85rem', color: '#10b981', background: 'rgba(16, 185, 129, 0.1)', padding: '4px 8px', borderRadius: '100px' }}>
+                                        {stat.trend}
+                                    </span>
+                                </div>
+                                <div style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '4px' }}>{stat.value}</div>
+                                <div style={{ color: '#9ca3af', fontSize: '0.9rem' }}>{stat.label}</div>
+                            </motion.div>
+                        ))}
+                    </div>
+
+                    {/* Main Analytics Area */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px' }}>
+
+                        {/* Live Visitor Map / Activity */}
+                        <div style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.05)', padding: '24px', gridColumn: 'span 2' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                                <h3 style={{ fontSize: '1.2rem', fontWeight: '700' }}>Live Visitor Insights</h3>
+                                <button className="btn-reset" style={{ color: '#3b82f6', fontSize: '0.9rem', fontWeight: '600' }}>View All</button>
+                            </div>
+
+                            <div style={{ overflowX: 'auto' }}>
+                                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                    <thead>
+                                        <tr style={{ color: '#9ca3af', fontSize: '0.85rem', textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                            <th style={{ padding: '16px' }}>User</th>
+                                            <th style={{ padding: '16px' }}>Status</th>
+                                            <th style={{ padding: '16px' }}>Location</th>
+                                            <th style={{ padding: '16px' }}>Device</th>
+                                            <th style={{ padding: '16px' }}>Current Page</th>
+                                            <th style={{ padding: '16px' }}>Active</th>
                                         </tr>
+                                    </thead>
+                                    <tbody>
+                                        {recentUsers.map((user, idx) => (
+                                            <tr key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)', fontSize: '0.9rem' }}>
+                                                <td style={{ padding: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#3f3f46', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: '700' }}>
+                                                        {user.name.charAt(0)}
+                                                    </div>
+                                                    <div>
+                                                        <div style={{ fontWeight: '600' }}>{user.name}</div>
+                                                        <div style={{ fontSize: '0.75rem', color: '#71717a' }}>{user.id}</div>
+                                                    </div>
+                                                </td>
+                                                <td style={{ padding: '16px' }}>
+                                                    <span style={{
+                                                        padding: '4px 10px', borderRadius: '100px', fontSize: '0.75rem', fontWeight: '600',
+                                                        background: user.status === 'Active' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(113, 113, 122, 0.1)',
+                                                        color: user.status === 'Active' ? '#10b981' : '#a1a1aa'
+                                                    }}>
+                                                        {user.status}
+                                                    </span>
+                                                </td>
+                                                <td style={{ padding: '16px', color: '#a1a1aa' }}>{user.location}</td>
+                                                <td style={{ padding: '16px', color: '#a1a1aa' }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                        <Smartphone size={14} /> {user.device}
+                                                    </div>
+                                                </td>
+                                                <td style={{ padding: '16px', color: '#60a5fa' }}>{user.page}</td>
+                                                <td style={{ padding: '16px', color: '#a1a1aa' }}>{user.time}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        {/* System Health / Alerts */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                            <div style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.05)', padding: '24px', flex: 1 }}>
+                                <h3 style={{ fontSize: '1.2rem', fontWeight: '700', marginBottom: '20px' }}>System Health</h3>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                    {[
+                                        { label: 'Server CPU Load', value: '42%', color: '#10b981' },
+                                        { label: 'Memory Usage', value: '68%', color: '#f59e0b' },
+                                        { label: 'Database Latency', value: '12ms', color: '#3b82f6' }
+                                    ].map((item, idx) => (
+                                        <div key={idx}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem' }}>
+                                                <span style={{ color: '#a1a1aa' }}>{item.label}</span>
+                                                <span style={{ fontWeight: '600' }}>{item.value}</span>
+                                            </div>
+                                            <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '100px', overflow: 'hidden' }}>
+                                                <div style={{ width: item.value, height: '100%', background: item.color, borderRadius: '100px' }}></div>
+                                            </div>
+                                        </div>
                                     ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </motion.div>
-                )}
+                                </div>
+                            </div>
 
-                {/* Analytics Tab */}
-                {activeTab === 'analytics' && (
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '2rem' }}>
-                            <div className="glass-card" style={{ padding: '1.5rem' }}>
-                                <div style={{ color: 'var(--text-muted)', marginBottom: '10px' }}>Total Visits</div>
-                                <div style={{ fontSize: '2.5rem', fontWeight: '800' }}>124,592</div>
-                                <div style={{ color: '#22c55e', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '4px' }}><TrendingUp size={16} /> +12.5% this week</div>
-                            </div>
-                            <div className="glass-card" style={{ padding: '1.5rem' }}>
-                                <div style={{ color: 'var(--text-muted)', marginBottom: '10px' }}>Lead Conv. Rate</div>
-                                <div style={{ fontSize: '2.5rem', fontWeight: '800' }}>4.8%</div>
-                                <div style={{ color: '#22c55e', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '4px' }}><TrendingUp size={16} /> +0.8% this week</div>
-                            </div>
-                            <div className="glass-card" style={{ padding: '1.5rem' }}>
-                                <div style={{ color: 'var(--text-muted)', marginBottom: '10px' }}>Active Students</div>
-                                <div style={{ fontSize: '2.5rem', fontWeight: '800' }}>8,420</div>
-                                <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Currently Online</div>
+                            <div style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.05)', padding: '24px', flex: 1 }}>
+                                <h3 style={{ fontSize: '1.2rem', fontWeight: '700', marginBottom: '20px' }}>Recent Alerts</h3>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                    <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                                        <div style={{ padding: '8px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '8px', color: '#ef4444' }}><AlertCircle size={16} /></div>
+                                        <div>
+                                            <div style={{ fontWeight: '600', fontSize: '0.95rem' }}>High Traffic detected</div>
+                                            <div style={{ fontSize: '0.85rem', color: '#a1a1aa' }}>IP Range 192.168.x.x originating anomalous load.</div>
+                                            <div style={{ fontSize: '0.75rem', color: '#52525b', marginTop: '4px' }}>2 mins ago</div>
+                                        </div>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                                        <div style={{ padding: '8px', background: 'rgba(245, 158, 11, 0.1)', borderRadius: '8px', color: '#f59e0b' }}><Settings size={16} /></div>
+                                        <div>
+                                            <div style={{ fontWeight: '600', fontSize: '0.95rem' }}>System Update Pending</div>
+                                            <div style={{ fontSize: '0.85rem', color: '#a1a1aa' }}>New patch v2.4.1 available for deployment.</div>
+                                            <div style={{ fontSize: '0.75rem', color: '#52525b', marginTop: '4px' }}>1 hour ago</div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div className="glass-card" style={{ height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
-                            [ Detailed Traffic Chart Visualization Placeholder ]
-                        </div>
-                    </motion.div>
-                )}
 
-                {/* SEO Tab */}
-                {activeTab === 'seo' && (
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                        <div className="glass-card" style={{ padding: '2rem' }}>
-                            <div style={{ marginBottom: '2rem' }}>
-                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Meta Title</label>
-                                <input type="text" defaultValue="Digimentors | Premier Institute for JEE & NEET" style={adminInputStyle} />
-                            </div>
-                            <div style={{ marginBottom: '2rem' }}>
-                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Meta Description</label>
-                                <textarea defaultValue="Join India's leading EdTech platform. Expert faculty, AI-driven diagnostics, and personalized learning paths for JEE, NEET, and Foundation." style={{ ...adminInputStyle, minHeight: '100px' }} />
-                            </div>
-                            <div style={{ marginBottom: '2rem' }}>
-                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Keywords (Comma Separated)</label>
-                                <input type="text" defaultValue="JEE, NEET, Physics, Chemistry, IIT, AIIMS, Online Coaching" style={adminInputStyle} />
-                            </div>
-                            <button className="btn-reset" style={{ padding: '12px 24px', background: 'var(--primary)', color: 'white', borderRadius: '8px', fontWeight: '600' }}>Save SEO Configuration</button>
-                        </div>
-                    </motion.div>
-                )}
+                    </div>
+                </div>
             </div>
         </div>
     );
 };
 
-const adminInputStyle = {
-    width: '100%',
-    padding: '12px 16px',
-    background: 'rgba(255,255,255,0.03)',
-    border: '1px solid rgba(255,255,255,0.1)',
-    borderRadius: '8px',
-    color: 'white',
-    outline: 'none',
-    fontSize: '0.95rem'
-};
+// Helper Icon Component
+const AlertCircle = ({ size, color }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color || "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+);
 
 export default AdminDashboard;
