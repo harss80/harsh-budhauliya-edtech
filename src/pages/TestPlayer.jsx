@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Clock, ChevronLeft, ChevronRight, AlertCircle,
-    CheckCircle, Bookmark, Grid, Menu, X
+    CheckCircle, Bookmark, Grid, Menu, X, MoreVertical,
+    HelpCircle
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -26,8 +27,7 @@ const TestPlayer = () => {
             : ['Physics', 'Chemistry', 'Mathematics', 'Biology'];
 
     // Configuration
-    const TOTAL_QUESTIONS = 30; // Using 30 real questions for now
-    const DURATION_MINUTES = 60;
+    const DURATION_MINUTES = 60; // 1 hour standard
 
     // State
     const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -48,13 +48,12 @@ const TestPlayer = () => {
             if (config.chapters && config.chapters.length > 0) {
                 // Filter by selected chapters
                 filtered = questionPool.filter(q => config.chapters.includes(q.chapter));
-
-                // If specific class selected, filter by that too (optional, but good for safety)
+                // Optional: Filter by class
                 if (config.class && config.class.length > 0) {
                     filtered = filtered.filter(q => config.class.includes(q.class));
                 }
             } else {
-                // Fallback if config missing
+                // Fallback for custom if no config (e.g. direct link)
                 filtered = questionPool;
             }
         } else {
@@ -62,24 +61,21 @@ const TestPlayer = () => {
             filtered = questionPool.filter(q => relevantSubjects.includes(q.subject));
         }
 
-        // If not enough questions, use all (fallback)
-        if (filtered.length === 0) filtered = questionPool;
-
-        // Shuffle (Fisher-Yates)
+        // Shuffle (Fisher-Yates) for randomness
         for (let i = filtered.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [filtered[i], filtered[j]] = [filtered[j], filtered[i]];
         }
 
-        // Limit to TOTAL_QUESTIONS or available
-        // logic: if custom, use all filtered questions up to max (or config limit)
-        // For standard, limit to 30.
-        const limit = testId === 'custom-generated' ? filtered.length : TOTAL_QUESTIONS;
-        const selected = filtered.slice(0, limit);
+        // Limit Questions
+        // For custom: use all matching questions (max 100 to be safe)
+        // For standard: use 50
+        const MAX_QS = testId === 'custom-generated' ? 100 : 50;
+        const selected = filtered.slice(0, MAX_QS);
 
-        // Map to expected format if needed
+        // Map to display format
         return selected.map((q, i) => ({
-            id: i + 1, // Display ID
+            id: i + 1, // Display ID (1, 2, 3...)
             originalId: q.id,
             subject: q.subject,
             text: q.question,
@@ -118,6 +114,8 @@ const TestPlayer = () => {
 
     // Question Timer Countdown & Auto-Skip
     useEffect(() => {
+        if (!questions.length) return;
+
         const qTimer = setInterval(() => {
             setQuestionTimer((prev) => {
                 if (prev <= 1) {
@@ -129,7 +127,7 @@ const TestPlayer = () => {
             });
         }, 1000);
         return () => clearInterval(qTimer);
-    }, [currentQuestion, questions.length]); // Depend on currentQuestion so handleNext uses correct index
+    }, [currentQuestion, questions.length]);
 
     // Responsive Check
     useEffect(() => {
@@ -143,7 +141,7 @@ const TestPlayer = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    // Timer
+    // Global Timer
     useEffect(() => {
         const timer = setInterval(() => {
             setTimeLeft((prev) => {
@@ -249,13 +247,13 @@ const TestPlayer = () => {
                 score: stats.score,
                 max: stats.total * 4,
                 accuracy: stats.attempted > 0 ? Math.round((stats.correct / stats.attempted) * 100) : 0,
-                time: formatTime(stats.time), // Format aggregated time
-                color: sub === 'Physics' ? '#f59e0b' : sub === 'Chemistry' ? '#10b981' : '#6366f1'
+                time: formatTime(stats.time),
+                color: sub === 'Physics' ? '#f59e0b' : sub === 'Chemistry' ? '#10b981' : '#6366f1' // Standard colors
             };
         });
 
         const resultData = {
-            totalQuestions: questions.length, // Dynamic length
+            totalQuestions: questions.length,
             attempted: attemptedCount,
             correct: correctCount,
             wrong: attemptedCount - correctCount,
@@ -275,180 +273,195 @@ const TestPlayer = () => {
         navigate('/analysis', { state: { result: resultData } });
     };
 
+    if (questions.length === 0) {
+        return (
+            <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#09090b', color: 'white', flexDirection: 'column' }}>
+                <h2>No questions found for this configuration.</h2>
+                <button onClick={() => navigate('/test-generator')} className="btn-reset" style={{ marginTop: '1rem', color: '#3b82f6', textDecoration: 'underline' }}>Go Back</button>
+            </div>
+        )
+    }
+
     return (
         <div style={{
             position: 'fixed', inset: 0, zIndex: 9999,
-            background: 'linear-gradient(to bottom right, #09090b, #1e1b4b)',
-            display: 'flex', flexDirection: 'column', color: '#f4f4f5'
+            background: '#09090b',
+            display: 'flex', flexDirection: 'column', color: '#f4f4f5',
+            fontFamily: '"Inter", sans-serif'
         }}>
 
-            {/* Header */}
+            {/* --- TOP HEADER --- */}
             <header style={{
-                height: '64px', background: 'rgba(24, 24, 27, 0.6)', backdropFilter: 'blur(12px)',
+                height: '70px', background: 'rgba(24, 24, 27, 0.8)', backdropFilter: 'blur(16px)',
                 borderBottom: '1px solid rgba(255,255,255,0.08)',
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: isMobile ? '0 1rem' : '0 1.5rem',
-                flexShrink: 0, zIndex: 10
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: isMobile ? '0 1rem' : '0 2rem',
+                flexShrink: 0, zIndex: 60
             }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', overflow: 'hidden' }}>
-                    {!isMobile && (
-                        <div>
-                            <h2 style={{ fontSize: '1.2rem', fontWeight: '700', margin: 0, background: 'linear-gradient(90deg, #fff, #a5b4fc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                                {testTitle}
-                            </h2>
-                        </div>
-                    )}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                    {/* Logo/Title */}
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <h2 style={{ fontSize: isMobile ? '1rem' : '1.1rem', fontWeight: '700', color: 'white', margin: 0 }}>
+                            {testTitle}
+                        </h2>
+                        {!isMobile && <span style={{ fontSize: '0.8rem', color: '#a1a1aa' }}>ID: {testId === 'custom-generated' ? 'CUST-GEN' : testId.toUpperCase()}</span>}
+                    </div>
+
+                    {/* Question Timer Badge */}
                     <div style={{
-                        background: 'rgba(255,255,255,0.05)', padding: '6px 14px', borderRadius: '100px',
+                        background: 'rgba(255,255,255,0.05)', padding: '6px 12px', borderRadius: '100px',
                         display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem',
-                        border: '1px solid rgba(255,255,255,0.1)'
+                        border: '1px solid rgba(255,255,255,0.08)'
                     }}>
-                        <Clock size={15} color={questionTimer < 10 ? '#ef4444' : '#fbbf24'} />
-                        {!isMobile && <span style={{ color: 'var(--text-muted)' }}>Question Time:</span>}
-                        <span style={{ fontWeight: '700', color: questionTimer < 10 ? '#ef4444' : 'white', minWidth: '24px', textAlign: 'center' }}>{questionTimer}s</span>
+                        <Clock size={16} color={questionTimer < 10 ? '#ef4444' : '#fbbf24'} />
+                        <span style={{ color: '#a1a1aa', fontSize: '0.8rem', display: isMobile ? 'none' : 'inline' }}>Time Left:</span>
+                        <span style={{ fontWeight: '700', color: questionTimer < 10 ? '#ef4444' : 'white', minWidth: '24px' }}>{questionTimer}s</span>
                     </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '0.5rem' : '1rem' }}>
-                    {/* Timer */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    {/* Global Timer */}
                     <div style={{
-                        display: 'flex', alignItems: 'center', gap: '8px',
-                        background: timeLeft < 300 ? 'rgba(239, 68, 68, 0.1)' : 'rgba(99, 102, 241, 0.1)',
-                        padding: '6px 14px', borderRadius: '100px',
-                        border: timeLeft < 300 ? '1px solid rgba(239, 68, 68, 0.3)' : '1px solid rgba(99, 102, 241, 0.3)',
+                        display: 'flex', alignItems: 'center', gap: '10px',
+                        background: '#1e1b4b',
+                        padding: '8px 16px', borderRadius: '12px',
+                        border: '1px solid #312e81',
+                        color: '#a5b4fc',
+                        fontWeight: '700', fontSize: '1.1rem'
                     }}>
-                        <Clock size={16} color={timeLeft < 300 ? '#ef4444' : '#818cf8'} />
-                        <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: '700', fontSize: '1rem', color: timeLeft < 300 ? '#ef4444' : 'white' }}>
-                            {formatTime(timeLeft)}
-                        </span>
+                        <Clock size={18} />
+                        <span style={{ fontVariantNumeric: 'tabular-nums' }}>{formatTime(timeLeft)}</span>
                     </div>
 
-                    <button
-                        onClick={handleSubmit}
-                        className="btn-reset"
-                        style={{
-                            background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
-                            color: 'white', padding: isMobile ? '8px 16px' : '8px 24px', borderRadius: '100px',
-                            fontWeight: '600', fontSize: '0.9rem', boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)',
-                            border: '1px solid rgba(255,255,255,0.1)'
-                        }}
-                    >
-                        {isMobile ? 'Submit' : 'Submit Test'}
-                    </button>
+                    {/* Submit Button (Desktop) */}
+                    {!isMobile && (
+                        <button
+                            onClick={handleSubmit}
+                            className="btn-reset"
+                            style={{
+                                background: '#ef4444',
+                                color: 'white', padding: '10px 24px', borderRadius: '12px',
+                                fontWeight: '700', fontSize: '0.95rem',
+                                transition: 'all 0.2s',
+                                boxShadow: '0 4px 12px rgba(239, 68, 68, 0.4)'
+                            }}
+                        >
+                            Finish Test
+                        </button>
+                    )}
 
-                    <button
-                        className="btn-reset lg:hidden"
-                        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                        style={{ display: isMobile ? 'flex' : 'none', color: 'white', padding: '8px', background: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}
-                    >
-                        {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
-                    </button>
+                    {/* Mobile Menu Toggle */}
+                    {isMobile && (
+                        <button
+                            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                            className="btn-reset"
+                            style={{ padding: '8px', color: 'white' }}
+                        >
+                            {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+                        </button>
+                    )}
                 </div>
             </header>
 
-            {/* Body */}
+            {/* --- MAIN CONTENT --- */}
             <div style={{ flex: 1, display: 'flex', overflow: 'hidden', position: 'relative' }}>
 
-                {/* Main Question Area */}
+                {/* Scrollable Questions Area */}
                 <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', padding: isMobile ? '1rem' : '2rem' }}>
 
-                    {/* Top Bar: Subject & Marks */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
-                        <div style={{ display: 'flex', gap: '8px', background: 'rgba(255,255,255,0.03)', padding: '4px', borderRadius: '100px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                    {/* Progress Bar (Top) */}
+                    <div style={{ height: '4px', background: 'rgba(255,255,255,0.05)', borderRadius: '100px', marginBottom: '2rem', overflow: 'hidden' }}>
+                        <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${((currentQuestion + 1) / questions.length) * 100}%` }}
+                            transition={{ ease: "easeOut" }}
+                            style={{ height: '100%', background: 'linear-gradient(90deg, #3b82f6, #8b5cf6)' }}
+                        />
+                    </div>
+
+                    {/* Subject Tabs */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+                        <div style={{ display: 'flex', gap: '8px' }}>
                             {['Physics', 'Chemistry', 'Biology', 'Mathematics'].filter(sub => questions.some(q => q.subject === sub)).map(Sub => (
-                                <button
+                                <span
                                     key={Sub}
-                                    className="btn-reset"
                                     style={{
-                                        padding: '6px 16px', borderRadius: '100px', fontSize: '0.85rem', fontWeight: '600',
-                                        background: questions[currentQuestion].subject === Sub ? 'rgba(99, 102, 241, 0.2)' : 'transparent',
-                                        color: questions[currentQuestion].subject === Sub ? '#a5b4fc' : '#a1a1aa',
-                                        border: questions[currentQuestion].subject === Sub ? '1px solid rgba(99, 102, 241, 0.3)' : '1px solid transparent',
+                                        padding: '6px 14px', borderRadius: '100px', fontSize: '0.8rem', fontWeight: '600',
+                                        background: questions[currentQuestion].subject === Sub ? 'white' : 'transparent',
+                                        color: questions[currentQuestion].subject === Sub ? 'black' : '#71717a',
+                                        border: questions[currentQuestion].subject === Sub ? '1px solid white' : '1px solid rgba(255,255,255,0.1)',
                                         transition: 'all 0.3s'
                                     }}
                                 >
                                     {Sub}
-                                </button>
+                                </span>
                             ))}
                         </div>
-                        <div style={{ display: 'flex', gap: '12px', fontSize: '0.85rem', fontWeight: '600', background: 'rgba(0,0,0,0.2)', padding: '6px 12px', borderRadius: '8px' }}>
-                            <span style={{ color: '#34d399', display: 'flex', alignItems: 'center', gap: '4px' }}><CheckCircle size={14} /> +4</span>
-                            <span style={{ color: '#f87171', display: 'flex', alignItems: 'center', gap: '4px' }}><AlertCircle size={14} /> -1</span>
+                        <div style={{ fontSize: '0.85rem', color: '#a1a1aa' }}>
+                            Question <span style={{ color: 'white', fontWeight: '700' }}>{currentQuestion + 1}</span> of {questions.length}
                         </div>
                     </div>
 
                     <AnimatePresence mode='wait'>
                         <motion.div
                             key={currentQuestion}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            transition={{ duration: 0.2 }}
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            transition={{ duration: 0.25 }}
                             style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
                         >
-                            {/* Question Card */}
-                            <div className="glass-card" style={{
-                                background: 'rgba(30, 30, 35, 0.6)', backdropFilter: 'blur(20px)',
-                                borderRadius: '24px', border: '1px solid rgba(255,255,255,0.05)',
-                                padding: isMobile ? '1.5rem' : '2.5rem', marginBottom: '2rem',
-                                boxShadow: '0 20px 40px -10px rgba(0,0,0,0.3)'
+                            {/* Question Content */}
+                            <div style={{
+                                flex: 1,
+                                background: '#18181b',
+                                border: '1px solid rgba(255,255,255,0.08)',
+                                borderRadius: '24px',
+                                padding: isMobile ? '1.5rem' : '3rem',
+                                marginBottom: '2rem'
                             }}>
-                                <div style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                    <span style={{
-                                        background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-                                        color: 'white', padding: '4px 12px', borderRadius: '8px',
-                                        fontWeight: '700', fontSize: '0.9rem', boxShadow: '0 4px 10px rgba(59, 130, 246, 0.3)'
+                                <div style={{ marginBottom: '2rem', display: 'flex', gap: '1rem' }}>
+                                    <div style={{
+                                        width: '40px', height: '40px', borderRadius: '12px', background: '#27272a',
+                                        color: '#3b82f6', fontWeight: '800', fontSize: '1.2rem',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
                                     }}>
-                                        Q{currentQuestion + 1}
-                                    </span>
-                                    <div style={{ height: '1px', flex: 1, background: 'linear-gradient(90deg, rgba(255,255,255,0.1), transparent)' }}></div>
+                                        Q
+                                    </div>
+                                    <h3 style={{
+                                        fontSize: isMobile ? '1.1rem' : '1.4rem',
+                                        lineHeight: '1.6', color: '#f4f4f5', fontWeight: '500', margin: 0
+                                    }}>
+                                        {questions[currentQuestion].text}
+                                    </h3>
                                 </div>
 
-                                <p style={{
-                                    fontSize: isMobile ? '1.1rem' : '1.35rem', lineHeight: '1.6',
-                                    color: '#f4f4f5', fontWeight: '500', marginBottom: '2.5rem',
-                                    fontFamily: '"Plus Jakarta Sans", sans-serif'
-                                }}>
-                                    {questions[currentQuestion].text}
-                                </p>
-
-                                {/* Options */}
                                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '1rem' }}>
                                     {questions[currentQuestion].options.map(opt => {
                                         const isSelected = answers[questions[currentQuestion].id] === opt.id;
                                         return (
-                                            <motion.button
-                                                whileHover={{ scale: 1.01, backgroundColor: 'rgba(255,255,255,0.08)' }}
-                                                whileTap={{ scale: 0.99 }}
+                                            <button
                                                 key={opt.id}
                                                 onClick={() => handleAnswer(opt.id)}
                                                 className="btn-reset"
                                                 style={{
-                                                    padding: '1.5rem', textAlign: 'left',
-                                                    background: isSelected ? 'rgba(37, 99, 235, 0.15)' : 'rgba(255,255,255,0.03)',
-                                                    border: isSelected ? '1px solid #3b82f6' : '1px solid rgba(255,255,255,0.1)',
+                                                    padding: '1.25rem', textAlign: 'left',
+                                                    background: isSelected ? 'rgba(59, 130, 246, 0.1)' : 'rgba(255,255,255,0.02)',
+                                                    border: isSelected ? '2px solid #3b82f6' : '1px solid rgba(255,255,255,0.1)',
                                                     borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '16px',
-                                                    transition: 'all 0.2s', position: 'relative', overflow: 'hidden'
+                                                    transition: 'all 0.2s', position: 'relative'
                                                 }}
                                             >
                                                 <div style={{
-                                                    width: '40px', height: '40px', borderRadius: '12px',
+                                                    width: '32px', height: '32px', borderRadius: '50%',
                                                     background: isSelected ? '#3b82f6' : 'rgba(255,255,255,0.08)',
-                                                    color: isSelected ? 'white' : '#a1a1aa',
+                                                    color: isSelected ? 'white' : '#71717a',
                                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                    fontWeight: '700', fontSize: '1.1rem', flexShrink: 0,
-                                                    border: isSelected ? 'none' : '1px solid rgba(255,255,255,0.1)',
-                                                    transition: 'all 0.2s'
-                                                }}
-                                                >
+                                                    fontWeight: '700', fontSize: '0.9rem', flexShrink: 0
+                                                }}>
                                                     {opt.id}
                                                 </div>
-                                                <span style={{ color: isSelected ? 'white' : '#e4e4e7', fontWeight: isSelected ? '600' : '400', fontSize: '1.1rem', lineHeight: '1.5' }}>{opt.text}</span>
-                                                {isSelected && (
-                                                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} style={{ marginLeft: 'auto' }}>
-                                                        <CheckCircle size={22} color="#3b82f6" fill="rgba(37, 99, 235, 0.2)" />
-                                                    </motion.div>
-                                                )}
-                                            </motion.button>
+                                                <span style={{ color: isSelected ? 'white' : '#d4d4d8', fontSize: '1rem' }}>{opt.text}</span>
+                                            </button>
                                         );
                                     })}
                                 </div>
@@ -456,122 +469,101 @@ const TestPlayer = () => {
                         </motion.div>
                     </AnimatePresence>
 
-                    {/* Footer Nav */}
+                    {/* Bottom Action Bar */}
                     <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: isMobile ? '1fr 1fr' : 'auto auto',
-                        gap: isMobile ? '8px' : '0',
-                        justifyContent: isMobile ? 'stretch' : 'space-between',
-                        alignItems: 'center',
-                        marginTop: 'auto', paddingTop: '1rem',
-                        borderTop: '1px solid rgba(255,255,255,0.05)'
+                        display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center',
+                        paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.05)'
                     }}>
-                        {/* Left Side Group (Mark & Clear) */}
-                        <div style={{ display: isMobile ? 'contents' : 'flex', gap: '1rem' }}>
-                            <button onClick={toggleMarkForReview} className="btn-reset" title="Mark for Review" style={{
-                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                                color: markedForReview.has(questions[currentQuestion].id) ? '#a855f7' : '#a1a1aa',
-                                fontWeight: '600', padding: isMobile ? '12px' : '10px 16px',
-                                background: 'rgba(255,255,255,0.03)',
-                                borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)',
-                                transition: 'all 0.2s', width: '100%'
+                        <div style={{ display: 'flex', gap: '1rem', width: isMobile ? '100%' : 'auto' }}>
+                            <button onClick={toggleMarkForReview} className="btn-reset" style={{
+                                flex: isMobile ? 1 : 'unset', padding: '12px 20px', borderRadius: '12px',
+                                background: markedForReview.has(questions[currentQuestion].id) ? '#a855f7' : 'rgba(255,255,255,0.05)',
+                                color: markedForReview.has(questions[currentQuestion].id) ? 'white' : '#a1a1aa',
+                                fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                                transition: 'all 0.2s'
                             }}>
-                                <Bookmark size={18} fill={markedForReview.has(questions[currentQuestion].id) ? '#a855f7' : 'none'} />
-                                <span className={isMobile ? 'hidden' : 'block'}>{markedForReview.has(questions[currentQuestion].id) ? 'Marked' : 'Mark for Review'}</span>
+                                <Bookmark size={18} fill={markedForReview.has(questions[currentQuestion].id) ? 'currentColor' : 'none'} />
+                                {markedForReview.has(questions[currentQuestion].id) ? 'Marked' : 'Mark Review'}
                             </button>
-
                             <button onClick={() => {
-                                const newAnswers = { ...answers };
-                                delete newAnswers[questions[currentQuestion].id];
-                                setAnswers(newAnswers);
-                            }} className="btn-reset" title="Clear Response" style={{
-                                color: '#a1a1aa', fontWeight: '600', fontSize: '0.9rem',
-                                padding: isMobile ? '12px' : '10px 16px',
-                                background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%'
+                                const newAns = { ...answers };
+                                delete newAns[questions[currentQuestion].id];
+                                setAnswers(newAns);
+                            }} className="btn-reset" style={{
+                                flex: isMobile ? 1 : 'unset', padding: '12px', borderRadius: '12px',
+                                background: 'transparent', border: '1px solid rgba(255,255,255,0.1)',
+                                color: '#a1a1aa', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'
                             }}>
-                                <X size={18} />
-                                <span className={isMobile ? 'hidden' : 'block'} style={{ marginLeft: '8px' }}>Clear Response</span>
+                                <X size={18} /> Clear
                             </button>
                         </div>
 
-                        {/* Right Side Group (Prev & Next) */}
-                        <div style={{ display: isMobile ? 'contents' : 'flex', gap: '1rem' }}>
-                            <button
-                                onClick={handlePrev} disabled={currentQuestion === 0}
-                                className="btn-reset"
-                                style={{
-                                    padding: isMobile ? '12px' : '10px 24px', background: 'rgba(255,255,255,0.05)',
-                                    color: 'white', borderRadius: '12px', opacity: currentQuestion === 0 ? 0.5 : 1,
-                                    fontWeight: '600', fontSize: '0.9rem', border: '1px solid rgba(255,255,255,0.1)',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%'
-                                }}
-                            >
+                        <div style={{ display: 'flex', gap: '1rem', width: isMobile ? '100%' : 'auto' }}>
+                            <button onClick={handlePrev} disabled={currentQuestion === 0} className="btn-reset" style={{
+                                padding: '12px 24px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)',
+                                color: 'white', opacity: currentQuestion === 0 ? 0.3 : 1, cursor: currentQuestion === 0 ? 'not-allowed' : 'pointer'
+                            }}>
                                 <ChevronLeft size={20} />
-                                <span className={isMobile ? 'hidden' : 'block'} style={{ marginLeft: '8px' }}>Previous</span>
                             </button>
-
-                            <button
-                                onClick={handleNext}
-                                className="btn-reset"
-                                style={{
-                                    padding: isMobile ? '12px 10px' : '10px 32px',
-                                    background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-                                    color: 'white', borderRadius: '12px', fontWeight: '700', fontSize: '0.95rem',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                                    boxShadow: '0 4px 12px rgba(37, 99, 235, 0.4)', width: '100%'
-                                }}
-                            >
-                                <span style={{ whiteSpace: 'nowrap' }}>{isMobile ? 'Next' : 'Save & Next'}</span> <ChevronRight size={18} />
+                            <button onClick={handleNext} className="btn-reset" style={{
+                                flex: 1, padding: '12px 32px', borderRadius: '12px', background: 'white',
+                                color: 'black', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'
+                            }}>
+                                Save & Next <ChevronRight size={18} />
                             </button>
                         </div>
                     </div>
 
                 </div>
 
-                {/* Sidebar - Palette */}
+                {/* --- RIGHT SIDEBAR (PALETTE) --- */}
                 <AnimatePresence>
                     {isSidebarOpen && (
                         <motion.div
                             initial={{ x: '100%' }}
                             animate={{ x: 0 }}
                             exit={{ x: '100%' }}
-                            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
                             style={{
-                                width: '320px', background: 'rgba(24, 24, 27, 0.95)', backdropFilter: 'blur(20px)',
-                                borderLeft: '1px solid rgba(255,255,255,0.1)',
+                                width: isMobile ? '100%' : '320px',
+                                background: '#121214', borderLeft: '1px solid rgba(255,255,255,0.08)',
                                 display: 'flex', flexDirection: 'column',
                                 position: isMobile ? 'absolute' : 'static',
-                                zIndex: 50, top: 0, bottom: 0, right: 0
+                                zIndex: 100, top: 0, bottom: 0, right: 0
                             }}
                         >
-                            <div style={{ padding: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: 'white' }}>Question Palette</h3>
-                                {isMobile && <button onClick={() => setIsSidebarOpen(false)} className="btn-reset" style={{ color: 'var(--text-muted)' }}><X size={20} /></button>}
+                            <div style={{ padding: '20px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <h3 style={{ fontSize: '1rem', fontWeight: '700', color: 'white' }}>Question Palette</h3>
+                                {isMobile && <button onClick={() => setIsSidebarOpen(false)} className="btn-reset" style={{ color: '#a1a1aa' }}><X size={20} /></button>}
                             </div>
 
-                            <div style={{ padding: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '0.8rem' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#a1a1aa' }}>
-                                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981' }}></div> Answered
+                            <div style={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
+                                {/* Legend */}
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '24px' }}>
+
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981' }}></div>
+                                        <span style={{ fontSize: '0.75rem', color: '#a1a1aa' }}>Answered</span>
                                     </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#a1a1aa' }}>
-                                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ef4444' }}></div> Skipped
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ef4444' }}></div>
+                                        <span style={{ fontSize: '0.75rem', color: '#a1a1aa' }}>Skipped</span>
                                     </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#a1a1aa' }}>
-                                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#a855f7' }}></div> Review
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#a855f7' }}></div>
+                                        <span style={{ fontSize: '0.75rem', color: '#a1a1aa' }}>Review</span>
                                     </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#a1a1aa' }}>
-                                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#27272a', border: '1px solid #52525b' }}></div> Not Visited
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#27272a', border: '1px solid #3f3f46' }}></div>
+                                        <span style={{ fontSize: '0.75rem', color: '#a1a1aa' }}>Not Visited</span>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div style={{ padding: '1.5rem', overflowY: 'auto', flex: 1 }}>
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '10px' }}>
+                                {/* Grid */}
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '8px' }}>
                                     {questions.map((q, idx) => {
                                         const qId = q.id;
-                                        let bg = 'rgba(255,255,255,0.03)';
+                                        let bg = '#18181b';
                                         let color = '#a1a1aa';
                                         let border = '1px solid rgba(255,255,255,0.1)';
 
@@ -580,14 +572,11 @@ const TestPlayer = () => {
                                         else if (visited.has(idx) && !answers[qId]) { bg = '#ef4444'; color = 'white'; border = 'none'; }
 
                                         if (currentQuestion === idx) {
-                                            border = '2px solid #3b82f6';
-                                            if (!answers[qId] && !markedForReview.has(qId)) bg = 'rgba(59, 130, 246, 0.1)';
+                                            border = '2px solid white';
                                         }
 
                                         return (
-                                            <motion.button
-                                                whileHover={{ scale: 1.1 }}
-                                                whileTap={{ scale: 0.9 }}
+                                            <button
                                                 key={qId}
                                                 onClick={() => {
                                                     setCurrentQuestion(idx);
@@ -596,21 +585,39 @@ const TestPlayer = () => {
                                                 }}
                                                 className="btn-reset"
                                                 style={{
-                                                    aspectRatio: '1', borderRadius: '10px', background: bg, color: color,
+                                                    aspectRatio: '1', borderRadius: '8px', background: bg, color: color,
                                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                                                     fontWeight: '700', fontSize: '0.85rem', border: border,
-                                                    transition: 'all 0.2s'
+                                                    transition: 'all 0.1s'
                                                 }}
                                             >
                                                 {qId}
-                                            </motion.button>
+                                            </button>
                                         );
                                     })}
                                 </div>
                             </div>
+
+                            {/* Mobile Submit Button inside Menu */}
+                            {isMobile && (
+                                <div style={{ padding: '20px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                                    <button
+                                        onClick={handleSubmit}
+                                        className="btn-reset"
+                                        style={{
+                                            width: '100%', background: '#ef4444', color: 'white',
+                                            padding: '14px', borderRadius: '12px', fontWeight: '700'
+                                        }}
+                                    >
+                                        Finish Test
+                                    </button>
+                                </div>
+                            )}
+
                         </motion.div>
                     )}
                 </AnimatePresence>
+
             </div>
         </div>
     );

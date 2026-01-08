@@ -22,7 +22,7 @@ const Contact = () => {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                         {[
                             { icon: Phone, title: "Call Us", desc: "+91 98765 43210", sub: "Mon-Sat, 9AM - 7PM" },
-                            { icon: Mail, title: "Email Support", desc: "support@digimentors.com", sub: "Response within 24 hours" },
+                            { icon: Mail, title: "Email Support", desc: "academic@digimentors.in", sub: "Response within 24 hours" },
                             { icon: MapPin, title: "Headquarters", desc: "IIT Delhi Technopark", sub: "Hauz Khas, New Delhi" }
                         ].map((item, idx) => (
                             <motion.div

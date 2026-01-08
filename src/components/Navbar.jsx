@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, ChevronRight, GraduationCap } from 'lucide-react';
+import { Menu, X, ChevronDown, GraduationCap, Phone, User, LayoutDashboard, LogOut } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
 const Navbar = () => {
@@ -9,103 +10,165 @@ const Navbar = () => {
     const [user, setUser] = useState(null);
     const location = useLocation();
 
+    // Check for user login status
     useEffect(() => {
-        const handleScroll = () => setScrolled(window.scrollY > 20);
-        window.addEventListener('scroll', handleScroll);
+        const checkUser = () => {
+            const storedUser = localStorage.getItem('digimentors_current_user');
+            if (storedUser) {
+                setUser(JSON.parse(storedUser));
+            } else {
+                setUser(null);
+            }
+        };
 
-        // Check for user
-        const storedUser = localStorage.getItem('digimentors_user_profile');
-        if (storedUser) setUser(JSON.parse(storedUser));
+        checkUser();
+        window.addEventListener('storage', checkUser);
+        window.addEventListener('scroll', () => setScrolled(window.scrollY > 20));
 
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
+        return () => {
+            window.removeEventListener('storage', checkUser);
+            window.removeEventListener('scroll', () => setScrolled(window.scrollY > 20));
+        };
+    }, [location]);
 
     const navLinks = [
-        { name: 'JEE', path: '/category/jee' },
-        { name: 'NEET', path: '/category/neet' },
-        { name: 'FOUNDATION', path: '/category/foundation' },
-        { name: 'LEADERBOARD', path: '/leaderboard' },
-        { name: 'MENTORS', path: '/mentorship' },
-        { name: 'CONTACT', path: '/contact' },
+        { name: 'Home', path: '/' },
+        { name: 'Courses', path: '/courses' },
+        { name: 'Test Series', path: '/test-series' },
+        { name: 'Study Material', path: '/study-material' },
+        { name: 'About', path: '/about' },
     ];
 
+    const dropdownVariants = {
+        hidden: { opacity: 0, y: 10, scale: 0.95, display: 'none' },
+        visible: { opacity: 1, y: 0, scale: 1, display: 'block' }
+    };
+
     return (
-        <nav className={`nav-fixed ${scrolled ? 'scrolled' : ''}`}>
-            <div className="nav-container">
-                <div className="nav-pill">
-                    <Link to="/" className="nav-logo">
-                        <div className="nav-logo-icon">
-                            <GraduationCap size={22} color="white" />
+        <>
+            <motion.nav
+                initial={{ y: -100 }}
+                animate={{ y: 0 }}
+                transition={{ duration: 0.5 }}
+                style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    zIndex: 1000,
+                    background: scrolled ? 'rgba(5, 5, 5, 0.85)' : 'transparent',
+                    backdropFilter: scrolled ? 'blur(12px)' : 'none',
+                    borderBottom: scrolled ? '1px solid rgba(255,255,255,0.08)' : '1px solid transparent',
+                    padding: '16px 0',
+                    transition: 'all 0.3s ease'
+                }}
+            >
+                <div className="container" style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+
+                    {/* Logo */}
+                    <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
+                        <div style={{ width: '40px', height: '40px', background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 20px rgba(59, 130, 246, 0.4)' }}>
+                            <GraduationCap size={24} color="white" />
                         </div>
-                        <span style={{ letterSpacing: '-0.02em', fontWeight: '800' }}>DIGIMENTORS</span>
+                        <span style={{ fontSize: '1.4rem', fontWeight: '800', letterSpacing: '-0.02em', color: 'white' }}>
+                            DIGIMENTORS
+                        </span>
                     </Link>
 
-                    <div className="nav-links-desktop">
+                    {/* Desktop Links */}
+                    <div className="desktop-menu" style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
                         {navLinks.map((link) => (
                             <Link
                                 key={link.name}
                                 to={link.path}
-                                className="nav-link"
-                                style={{ color: location.pathname === link.path ? 'white' : 'var(--text-muted)' }}
+                                style={{
+                                    color: '#a1a1aa',
+                                    textDecoration: 'none',
+                                    fontSize: '0.95rem',
+                                    fontWeight: '500',
+                                    transition: 'color 0.2s',
+                                    position: 'relative'
+                                }}
+                                onMouseEnter={(e) => e.target.style.color = 'white'}
+                                onMouseLeave={(e) => e.target.style.color = '#a1a1aa'}
                             >
                                 {link.name}
                             </Link>
                         ))}
                     </div>
 
-                    <div className="nav-cta-desktop">
-                        {user ? (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                <span style={{ fontSize: '0.85rem', color: 'white', fontWeight: '600' }}>Hi, {user.name.split(' ')[0]}</span>
-                                <Link to="/test" className="nav-btn" style={{ background: 'var(--primary)', padding: '8px 20px', fontSize: '0.8rem' }}>MY DASHBOARD</Link>
+                    {/* Right Actions */}
+                    <div className="desktop-actions" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'white', fontWeight: '600', fontSize: '0.9rem' }}>
+                            <div style={{ padding: '8px', background: 'rgba(255,255,255,0.1)', borderRadius: '50%' }}>
+                                <Phone size={16} />
                             </div>
+                            <span style={{ fontSize: '0.85rem' }}>Talk to us</span>
+                        </div>
+
+                        {user ? (
+                            <Link to="/test" className="btn-reset" style={{ padding: '10px 20px', background: 'white', color: 'black', borderRadius: '100px', fontWeight: '700', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
+                                <LayoutDashboard size={18} /> Dashboard
+                            </Link>
                         ) : (
-                            <>
-                                <Link to="/login" className="nav-login" style={{ fontSize: '0.8rem', letterSpacing: '0.05em' }}>LOGIN</Link>
-                                <Link to="/test" className="nav-btn" style={{ background: 'var(--primary)', color: 'white', fontSize: '0.8rem', letterSpacing: '0.05em', border: '1px solid var(--primary-light)' }}>DASHBOARD</Link>
-                            </>
+                            <div style={{ display: 'flex', gap: '1rem' }}>
+                                <Link to="/login" style={{ color: 'white', textDecoration: 'none', fontWeight: '600', fontSize: '0.95rem', padding: '10px 0' }}>Login</Link>
+                                <Link to="/login" className="btn-reset" style={{ padding: '10px 24px', background: 'linear-gradient(90deg, #3b82f6, #2563eb)', color: 'white', borderRadius: '100px', fontWeight: '600', fontSize: '0.9rem', boxShadow: '0 4px 12px rgba(59, 130, 246, 0.4)', textDecoration: 'none' }}>
+                                    Get Started
+                                </Link>
+                            </div>
                         )}
                     </div>
 
-                    <button className="mobile-toggle" onClick={() => setIsOpen(!isOpen)}>
-                        {isOpen ? <X size={24} /> : <Menu size={24} />}
+                    {/* Mobile Toggle */}
+                    <button className="mobile-toggle" onClick={() => setIsOpen(!isOpen)} style={{ color: 'white', background: 'none', border: 'none', cursor: 'pointer' }}>
+                        {isOpen ? <X size={28} /> : <Menu size={28} />}
                     </button>
                 </div>
 
+                {/* Mobile Menu Overlay */}
                 <AnimatePresence>
                     {isOpen && (
                         <motion.div
-                            initial={{ opacity: 0, y: -20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -20 }}
-                            className="mobile-menu"
-                            style={{
-                                position: 'fixed',
-                                top: '70px',
-                                left: 0,
-                                right: 0,
-                                margin: '0 1rem'
-                            }}
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: '100vh' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            style={{ position: 'fixed', top: '72px', left: 0, right: 0, background: '#050505', padding: '2rem', overflowY: 'auto', borderTop: '1px solid rgba(255,255,255,0.1)' }}
                         >
-                            {navLinks.map((link) => (
-                                <Link
-                                    key={link.name}
-                                    to={link.path}
-                                    className="mobile-menu-link"
-                                    onClick={() => setIsOpen(false)}
-                                >
-                                    {link.name} <ChevronRight size={18} opacity={0.5} />
-                                </Link>
-                            ))}
-                            <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                <Link to="/login" className="nav-login" style={{ textAlign: 'center' }}>Portal Login</Link>
-                                <Link to="/signup" className="nav-btn" style={{ textAlign: 'center', background: 'var(--primary)', color: 'white' }}>Enroll Now</Link>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                                {navLinks.map((link) => (
+                                    <Link
+                                        key={link.name}
+                                        to={link.path}
+                                        onClick={() => setIsOpen(false)}
+                                        style={{ fontSize: '1.2rem', fontWeight: '600', color: 'white', textDecoration: 'none', paddingBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.05)' }}
+                                    >
+                                        {link.name}
+                                    </Link>
+                                ))}
+                                {user ? (
+                                    <Link to="/test" onClick={() => setIsOpen(false)} style={{ padding: '16px', background: '#3b82f6', color: 'white', borderRadius: '12px', textAlign: 'center', fontWeight: '700', textDecoration: 'none' }}>Go to Dashboard</Link>
+                                ) : (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
+                                        <Link to="/login" onClick={() => setIsOpen(false)} style={{ padding: '16px', background: 'rgba(255,255,255,0.1)', color: 'white', borderRadius: '12px', textAlign: 'center', fontWeight: '600', textDecoration: 'none' }}>Login</Link>
+                                        <Link to="/login" onClick={() => setIsOpen(false)} style={{ padding: '16px', background: '#3b82f6', color: 'white', borderRadius: '12px', textAlign: 'center', fontWeight: '700', textDecoration: 'none' }}>Sign Up Free</Link>
+                                    </div>
+                                )}
                             </div>
                         </motion.div>
                     )}
                 </AnimatePresence>
-            </div>
-        </nav>
+            </motion.nav>
+            <style>{`
+                @media (max-width: 900px) {
+                    .desktop-menu, .desktop-actions { display: none !important; }
+                    .mobile-toggle { display: block !important; }
+                }
+                @media (min-width: 901px) {
+                    .mobile-toggle { display: none !important; }
+                }
+            `}</style>
+        </>
     );
 };
 

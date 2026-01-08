@@ -155,6 +155,10 @@ export const realQuestions = [
         correctAnswer: 'A',
         explanation: 'Impulse = Force × time = [MLT⁻²][T] = [MLT⁻¹]. Momentum = mass × velocity = [M][LT⁻¹] = [MLT⁻¹].'
     },
+    // New Physics 11
+    { id: 'phy_11_006', subject: 'Physics', class: 'Class 11', chapter: 'Work, Energy and Power', question: 'If potential energy U = ax² - bx, then force is zero at x equals:', options: [{ id: 'A', text: 'b/2a' }, { id: 'B', text: '2a/b' }, { id: 'C', text: 'b/a' }, { id: 'D', text: 'a/b' }], correctAnswer: 'A', explanation: 'F = -dU/dx = -(2ax-b). F=0 implies 2ax=b => x=b/2a.' },
+    { id: 'phy_11_007', subject: 'Physics', class: 'Class 11', chapter: 'Oscillations', question: 'The time period of a simple pendulum depends on:', options: [{ id: 'A', text: 'Mass of bob' }, { id: 'B', text: 'Length of string' }, { id: 'C', text: 'Amplitude' }, { id: 'D', text: 'Material of bob' }], correctAnswer: 'B', explanation: 'T = 2π√(L/g). Depends on Length.' },
+
 
     // --- PHYSICS (Class 12) ---
     {
@@ -217,6 +221,10 @@ export const realQuestions = [
         correctAnswer: 'B',
         explanation: 'In an inductor, current lags behind the voltage by π/2 (90°).'
     },
+    // New Physics 12
+    { id: 'phy_12_005', subject: 'Physics', class: 'Class 12', chapter: 'Semiconductor Electronics', question: 'In a p-type semiconductor, the majority charge carriers are:', options: [{ id: 'A', text: 'Electrons' }, { id: 'B', text: 'Holes' }, { id: 'C', text: 'Neutrons' }, { id: 'D', text: 'Protons' }], correctAnswer: 'B', explanation: 'Doping with trivalent impurity creates holes.' },
+    { id: 'phy_12_006', subject: 'Physics', class: 'Class 12', chapter: 'Nuclei', question: 'The binding energy per nucleon is maximum for:', options: [{ id: 'A', text: 'He-4' }, { id: 'B', text: 'Fe-56' }, { id: 'C', text: 'U-235' }, { id: 'D', text: 'H-2' }], correctAnswer: 'B', explanation: 'Fe-56 has the highest binding energy per nucleon (8.8 MeV), making it most stable.' },
+
 
     // --- CHEMISTRY (Class 11) ---
     {
@@ -279,6 +287,10 @@ export const realQuestions = [
         correctAnswer: 'C',
         explanation: 'Contribution of H+ from water (10⁻⁷ M) cannot be neglected. Total [H+] ≈ 1.1 × 10⁻⁷. pH ≈ 6.96.'
     },
+    // New Chem 11
+    { id: 'chem_11_005', subject: 'Chemistry', class: 'Class 11', chapter: 'States of Matter', question: 'At constant temperature, the product of pressure and volume of a given amount of gas is constant. This is:', options: [{ id: 'A', text: 'Boyles Law' }, { id: 'B', text: 'Charles Law' }, { id: 'C', text: 'Avogadros Law' }, { id: 'D', text: 'Daltons Law' }], correctAnswer: 'A', explanation: 'Boyles Law: PV = k (at constant T).' },
+    { id: 'chem_11_006', subject: 'Chemistry', class: 'Class 11', chapter: 'Redox Reactions', question: 'The oxidation state of Cr in K₂Cr₂O₇ is:', options: [{ id: 'A', text: '+6' }, { id: 'B', text: '+7' }, { id: 'C', text: '+3' }, { id: 'D', text: '+5' }], correctAnswer: 'A', explanation: '2(+1) + 2x + 7(-2) = 0 => 2x - 12 = 0 => x = +6.' },
+
 
     // --- CHEMISTRY (Class 12) ---
     {
@@ -341,6 +353,9 @@ export const realQuestions = [
         correctAnswer: 'B',
         explanation: 'CO is a neutral ligand. Since the complex is neutral, the oxidation state of Ni is 0.'
     },
+    // New Chem 12
+    { id: 'chem_12_005', subject: 'Chemistry', class: 'Class 12', chapter: 'Chemical Kinetics', question: 'For a first order reaction, the half-life period is independent of:', options: [{ id: 'A', text: 'Initial concentration' }, { id: 'B', text: 'Temperature' }, { id: 'C', text: 'Catalyst' }, { id: 'D', text: 'Rate constant' }], correctAnswer: 'A', explanation: 't(1/2) = 0.693/k. Independent of initial concentration [A]₀.' },
+
 
     // --- BIOLOGY (Class 11) ---
     {
@@ -418,6 +433,10 @@ export const realQuestions = [
         correctAnswer: 'B',
         explanation: 'Bryophytes require water for fertilization, hence are called amphibians of the plant kingdom.'
     },
+    // New Bio 11
+    { id: 'bio_11_006', subject: 'Biology', class: 'Class 11', chapter: 'Animal Kingdom', question: 'Which of the following animals is cold blooded?', options: [{ id: 'A', text: 'Pigeon' }, { id: 'B', text: 'Human' }, { id: 'C', text: 'Shark' }, { id: 'D', text: 'Rabbit' }], correctAnswer: 'C', explanation: 'Sharks (Pisces/Fish) are poikilotherms (cold-blooded).' },
+    { id: 'bio_11_007', subject: 'Biology', class: 'Class 11', chapter: 'Biomolecules', question: 'Enzymes are basically:', options: [{ id: 'A', text: 'Fats' }, { id: 'B', text: 'Sugars' }, { id: 'C', text: 'Proteins' }, { id: 'D', text: 'Vitamins' }], correctAnswer: 'C', explanation: 'Almost all enzymes are proteins.' },
+
 
     // --- BIOLOGY (Class 12) ---
     {
@@ -495,6 +514,9 @@ export const realQuestions = [
         correctAnswer: 'A',
         explanation: 'Kary Mullis invented Polymerase Chain Reaction (PCR) in 1983.'
     },
+    // New Bio 12
+    { id: 'bio_12_006', subject: 'Biology', class: 'Class 12', chapter: 'Molecular Basis of Inheritance', question: 'The genetic material in HIV is:', options: [{ id: 'A', text: 'dsDNA' }, { id: 'B', text: 'dsRNA' }, { id: 'C', text: 'ssRNA' }, { id: 'D', text: 'ssDNA' }], correctAnswer: 'C', explanation: 'HIV contains two identical copies of single-stranded RNA (ssRNA).' },
+
 
     // --- MATHEMATICS (Class 11) ---
     {
@@ -557,6 +579,9 @@ export const realQuestions = [
         correctAnswer: 'A',
         explanation: 'Total 11 letters. 4 S, 4 I, 2 P. 11! / (4! 4! 2!) = 39916800 / (24*24*2) = 34650.'
     },
+    // New Math 11
+    { id: 'math_11_005', subject: 'Mathematics', class: 'Class 11', chapter: 'Straight Lines', question: 'The slope of a line perpendicular to 3x - 4y + 5 = 0 is:', options: [{ id: 'A', text: '3/4' }, { id: 'B', text: '-3/4' }, { id: 'C', text: '-4/3' }, { id: 'D', text: '4/3' }], correctAnswer: 'C', explanation: 'Slope of given line is 3/4. Perpendicular slope m2 = -1/m1 = -4/3.' },
+
 
     // --- MATHEMATICS (Class 12) ---
     {
@@ -618,5 +643,7 @@ export const realQuestions = [
         ],
         correctAnswer: 'A',
         explanation: 'Projection = (a.b)/|b|. a.b = 2(1) -1(2) + 1(2) = 2. |b| = √(1+4+4) = 3. Result = 2/3.'
-    }
+    },
+    // New Math 12
+    { id: 'math_12_005', subject: 'Mathematics', class: 'Class 12', chapter: 'Integrals', question: 'Integral of ln(x) dx is:', options: [{ id: 'A', text: '1/x + C' }, { id: 'B', text: 'x ln(x) - x + C' }, { id: 'C', text: 'x ln(x) + C' }, { id: 'D', text: 'ln(x)' }], correctAnswer: 'B', explanation: 'Using Integration by Parts: ∫u dv = uv - ∫v du. u=ln x, dv=dx.' }
 ];

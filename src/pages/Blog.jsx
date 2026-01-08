@@ -2,200 +2,217 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Newspaper, Calendar, ChevronRight, Tag,
-    TrendingUp, Award, BookOpen, Clock
+    Calendar, Clock, ChevronRight, Tag,
+    Search, User, TrendingUp, Sparkles,
+    ArrowRightCircle, Mail
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
 
 const Blog = () => {
     const [activeCategory, setActiveCategory] = useState('All');
+    const [searchQuery, setSearchQuery] = useState('');
 
-    const categories = ['All', 'Exam Updates', 'Study Tips', 'Success Stories', 'Policy News'];
+    const categories = ['All', 'Exam Strategy', 'Student Life', 'News & Updates', 'Subject Mastery'];
 
+    // Simulated Blog Data with High-Quality Images
     const blogPosts = [
         {
             id: 1,
-            title: "JEE Main 2026: Expected Dates & Syllabus Changes",
-            excerpt: "NTA is expected to release the official calendar for JEE Main 2026 soon. Experts predict minor adjustments in the syllabus...",
-            category: "Exam Updates",
-            date: "Jan 05, 2026",
-            readTime: "5 min read",
-            image: "linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%)",
+            title: "JEE Main 2026: Complete 1-Year Roadmap",
+            excerpt: "A month-by-month breakdown of what you need to cover to secure a 99+ percentile in the upcoming JEE Main.",
+            category: "Exam Strategy",
+            author: "Rahul Verma (IIT Delhi)",
+            date: "Jan 10, 2026",
+            readTime: "8 min read",
+            image: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=2070&auto=format&fit=crop",
             featured: true
         },
         {
             id: 2,
-            title: "5 Proven Strategies to Boost Your Physics Score",
-            excerpt: "Struggling with Mechanics? Here are top 5 visualization techniques used by toppers to master difficult physics concepts.",
-            category: "Study Tips",
-            date: "Jan 03, 2026",
-            readTime: "8 min read",
-            image: "linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)",
+            title: "5 Scientifically Proven Ways to Focus",
+            excerpt: "Struggling with distractions? Neuroscience-backed techniques to maintain deep focus during long study sessions.",
+            category: "Student Life",
+            author: "Dr. Anjali Singh",
+            date: "Jan 05, 2026",
+            readTime: "5 min read",
+            image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?q=80&w=2074&auto=format&fit=crop",
             featured: false
         },
         {
             id: 3,
-            title: "NEET 2025 Topper Interview: 'Consistency is Key'",
-            excerpt: "Meet Aarav Singh, AIR 1, as he shares his daily routine, distraction management, and the importance of NCERT.",
-            category: "Success Stories",
-            date: "Dec 28, 2025",
-            readTime: "10 min read",
-            image: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+            title: "NEET 2025: NTA Reduces Syllabus?",
+            excerpt: "Breaking down the latest notification from NTA regarding chapter exclusions in Biology and Chemistry.",
+            category: "News & Updates",
+            author: "Digimentors Team",
+            date: "Jan 03, 2026",
+            readTime: "4 min read",
+            image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=2970&auto=format&fit=crop",
             featured: false
         },
         {
             id: 4,
-            title: "New Education Policy: Impact on Engineering Entrances",
-            excerpt: "How the NEP 2020 implementation is reshaping the format of competitive exams starting next academic session.",
-            category: "Policy News",
-            date: "Dec 20, 2025",
-            readTime: "6 min read",
-            image: "linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)",
+            title: "Mastering Rotational Motion in 3 Days",
+            excerpt: "The most feared chapter in Physics simplified. Key concepts, critical problems, and visualization tricks.",
+            category: "Subject Mastery",
+            author: "Sameer Sir",
+            date: "Dec 28, 2025",
+            readTime: "12 min read",
+            image: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=2070&auto=format&fit=crop",
             featured: false
         },
         {
             id: 5,
-            title: "Chemistry: Managing Organic & Inorganic together",
-            excerpt: "Balancing reaction mechanisms with periodic table trends can be tough. Here is a schedule that works.",
-            category: "Study Tips",
-            date: "Dec 15, 2025",
-            readTime: "7 min read",
-            image: "linear-gradient(135deg, #ec4899 0%, #db2777 100%)",
+            title: "Why Mock Tests Are More Important Than Lectures",
+            excerpt: "Analysis showing the direct correlation between number of mock tests attempted and final rank.",
+            category: "Exam Strategy",
+            author: "Amit Kumar (AIR 45)",
+            date: "Dec 20, 2025",
+            readTime: "6 min read",
+            image: "https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?q=80&w=2070&auto=format&fit=crop",
             featured: false
         },
         {
             id: 6,
-            title: "Breaking: Board Exam Percentage Criteria Revised",
-            excerpt: "The Ministry of Education has announced a relaxation in the 75% criteria for specific reservation categories.",
-            category: "Exam Updates",
-            date: "Dec 10, 2025",
-            readTime: "4 min read",
-            image: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
+            title: "Managing Board Exams with JEE/NEET Prep",
+            excerpt: "How to balance your school percentage goals with competitive exam aspirations without burning out.",
+            category: "Student Life",
+            author: "Priya S.",
+            date: "Dec 15, 2025",
+            readTime: "7 min read",
+            image: "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?q=80&w=2073&auto=format&fit=crop",
             featured: false
         }
     ];
 
-    const filteredPosts = activeCategory === 'All'
-        ? blogPosts
-        : blogPosts.filter(post => post.category === activeCategory);
+    const filteredPosts = blogPosts.filter(post => {
+        const matchesCategory = activeCategory === 'All' || post.category === activeCategory;
+        const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesCategory && matchesSearch;
+    });
+
+    const featuredPost = blogPosts.find(p => p.featured);
 
     return (
-        <div style={{ minHeight: '100vh', background: 'var(--background)', paddingTop: '100px', paddingBottom: '60px' }}>
-            <div className="container">
+        <div style={{ background: '#050505', minHeight: '100vh', fontFamily: '"Inter", sans-serif', color: 'white', paddingTop: '80px', paddingBottom: '80px' }}>
 
-                {/* Header */}
-                <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="academic-badge"
-                        style={{ marginBottom: '1rem' }}
-                    >
-                        DIGIMENTORS INSIGHTS
+            <div className="container" style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px' }}>
+
+                {/* Header Section */}
+                <div style={{ padding: '60px 0', textAlign: 'center', position: 'relative' }}>
+                    <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(59, 130, 246, 0.1)', color: '#60a5fa', padding: '8px 16px', borderRadius: '100px', fontSize: '0.85rem', fontWeight: '700', marginBottom: '1.5rem', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
+                        <Sparkles size={14} /> Digimentors Insights
                     </motion.div>
-                    <motion.h1
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1 }}
-                        className="gradient-text"
-                        style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', marginBottom: '1.5rem', fontWeight: '800' }}
-                    >
-                        Latest Educational News
+                    <motion.h1 style={{ fontSize: 'clamp(3rem, 5vw, 4.5rem)', fontWeight: '800', marginBottom: '1.5rem', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+                        Expert Advice for <br /> <span className="gradient-text" style={{ background: 'linear-gradient(to right, #60a5fa, #a78bfa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Future Toppers.</span>
                     </motion.h1>
-                    <motion.p
+                    <p style={{ fontSize: '1.2rem', color: '#a1a1aa', maxWidth: '600px', margin: '0 auto 3rem' }}>
+                        Strategies, news, and motivation from India's best educators and past rankers.
+                    </p>
+
+                    {/* Search Bar */}
+                    <div style={{ position: 'relative', maxWidth: '500px', margin: '0 auto 2rem' }}>
+                        <Search style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#71717a' }} size={20} />
+                        <input
+                            type="text"
+                            placeholder="Search articles..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            style={{ width: '100%', padding: '16px 16px 16px 50px', background: '#18181b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '100px', color: 'white', fontSize: '1rem', outline: 'none' }}
+                        />
+                    </div>
+
+                    {/* Filters */}
+                    <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                        {categories.map((cat) => (
+                            <button
+                                key={cat}
+                                onClick={() => setActiveCategory(cat)}
+                                className="btn-reset"
+                                style={{
+                                    padding: '10px 20px',
+                                    borderRadius: '100px',
+                                    background: activeCategory === cat ? 'white' : 'rgba(255,255,255,0.05)',
+                                    color: activeCategory === cat ? 'black' : '#a1a1aa',
+                                    fontWeight: '600',
+                                    fontSize: '0.9rem',
+                                    transition: 'all 0.3s'
+                                }}
+                            >
+                                {cat}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Featured Post Area (Only on All) */}
+                {activeCategory === 'All' && !searchQuery && featuredPost && (
+                    <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.2 }}
-                        style={{ color: 'var(--text-muted)', fontSize: '1.2rem', maxWidth: '600px', margin: '0 auto' }}
+                        style={{ marginBottom: '5rem', background: '#18181b', borderRadius: '32px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))' }}
                     >
-                        Stay updated with exam announcements, expert strategies, and success stories from the Digimentors community.
-                    </motion.p>
-                </div>
-
-                {/* Categories */}
-                <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '3rem' }}>
-                    {categories.map((cat) => (
-                        <button
-                            key={cat}
-                            onClick={() => setActiveCategory(cat)}
-                            className="btn-reset"
-                            style={{
-                                padding: '10px 24px',
-                                borderRadius: '100px',
-                                background: activeCategory === cat ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
-                                color: activeCategory === cat ? 'white' : 'var(--text-muted)',
-                                border: activeCategory === cat ? '1px solid var(--primary)' : '1px solid rgba(255,255,255,0.1)',
-                                fontWeight: '600',
-                                fontSize: '0.9rem',
-                                transition: 'all 0.3s'
-                            }}
-                        >
-                            {cat}
-                        </button>
-                    ))}
-                </div>
-
-                {/* Featured Post (Only show if All is selected or category matches featured post) */}
-                {activeCategory === 'All' && (
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="glass-card"
-                        style={{ padding: '0', overflow: 'hidden', marginBottom: '4rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))' }}
-                    >
-                        <div style={{ height: '100%', minHeight: '300px', background: blogPosts[0].image, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <Newspaper size={80} color="rgba(255,255,255,0.2)" />
+                        <div style={{ height: '400px' }}>
+                            <img src={featuredPost.image} alt="Featured" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         </div>
                         <div style={{ padding: '3rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
-                                <span className="academic-badge" style={{ background: 'rgba(99, 102, 241, 0.1)', color: '#818cf8', padding: '6px 12px', fontSize: '0.75rem' }}>
-                                    {blogPosts[0].category}
-                                </span>
-                                <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                                    <Calendar size={14} /> {blogPosts[0].date}
-                                </span>
+                            <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '1.5rem' }}>
+                                <span style={{ background: '#3b82f6', color: 'white', padding: '4px 12px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: '800' }}>FEATURED</span>
+                                <span style={{ color: '#a1a1aa', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '4px' }}><Calendar size={14} /> {featuredPost.date}</span>
                             </div>
-                            <h2 style={{ fontSize: '2rem', marginBottom: '1rem', fontWeight: '800', lineHeight: '1.2' }}>{blogPosts[0].title}</h2>
-                            <p style={{ color: 'var(--text-muted)', marginBottom: '2rem', fontSize: '1.1rem', lineHeight: '1.6' }}>
-                                {blogPosts[0].excerpt}
-                            </p>
-                            <button className="btn-reset" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary-light)', fontWeight: '700' }}>
-                                Read Full Article <ChevronRight size={18} />
-                            </button>
+                            <h2 style={{ fontSize: '2.5rem', fontWeight: '800', marginBottom: '1rem', lineHeight: 1.2 }}>{featuredPost.title}</h2>
+                            <p style={{ color: '#a1a1aa', fontSize: '1.1rem', marginBottom: '2rem', lineHeight: 1.6 }}>{featuredPost.excerpt}</p>
+                            <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                <div style={{ width: '40px', height: '40px', background: 'rgba(255,255,255,0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><User size={20} /></div>
+                                <div>
+                                    <div style={{ fontSize: '0.9rem', fontWeight: '600' }}>{featuredPost.author}</div>
+                                    <div style={{ fontSize: '0.8rem', color: '#a1a1aa' }}>Author</div>
+                                </div>
+                            </div>
                         </div>
                     </motion.div>
                 )}
 
-                {/* Grid */}
-                <motion.div layout className="responsive-grid">
+                {/* Posts Grid */}
+                <motion.div layout style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '2.5rem' }}>
                     <AnimatePresence>
-                        {filteredPosts.filter(p => activeCategory === 'All' ? !p.featured : true).map((post) => (
+                        {filteredPosts.filter(p => activeCategory === 'All' && !searchQuery ? !p.featured : true).map((post) => (
                             <motion.div
                                 layout
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
                                 exit={{ opacity: 0, scale: 0.9 }}
                                 key={post.id}
-                                className="glass-card"
-                                style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
-                                whileHover={{ y: -10 }}
+                                style={{ background: '#121214', borderRadius: '24px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column' }}
+                                whileHover={{ y: -8, boxShadow: '0 20px 40px -10px rgba(0,0,0,0.5)' }}
                             >
-                                <div style={{ height: '200px', background: post.image, position: 'relative' }}>
-                                    <div style={{ position: 'absolute', top: '16px', left: '16px', padding: '6px 12px', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', borderRadius: '100px', fontSize: '0.75rem', fontWeight: '700', color: 'white', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                        <Tag size={12} /> {post.category}
+                                <div style={{ height: '220px', position: 'relative', overflow: 'hidden' }}>
+                                    <motion.img
+                                        whileHover={{ scale: 1.05 }}
+                                        transition={{ duration: 0.4 }}
+                                        src={post.image}
+                                        alt={post.title}
+                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                    />
+                                    <div style={{ position: 'absolute', bottom: '16px', left: '16px', background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)', padding: '6px 12px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: '700', border: '1px solid rgba(255,255,255,0.1)' }}>
+                                        {post.category}
                                     </div>
                                 </div>
-                                <div style={{ padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                                <div style={{ padding: '24px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                                    <div style={{ display: 'flex', gap: '12px', color: '#71717a', fontSize: '0.85rem', marginBottom: '12px' }}>
                                         <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Calendar size={14} /> {post.date}</span>
                                         <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Clock size={14} /> {post.readTime}</span>
                                     </div>
-                                    <h3 style={{ fontSize: '1.2rem', fontWeight: '700', marginBottom: '1rem', color: 'white', lineHeight: '1.4' }}>{post.title}</h3>
-                                    <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '1.5rem', lineHeight: '1.6' }}>{post.excerpt}</p>
+                                    <h3 style={{ fontSize: '1.4rem', fontWeight: '700', marginBottom: '12px', lineHeight: 1.3 }}>{post.title}</h3>
+                                    <p style={{ color: '#a1a1aa', lineHeight: 1.6, marginBottom: '1.5rem' }}>{post.excerpt}</p>
 
-                                    <div style={{ marginTop: 'auto', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1rem' }}>
-                                        <button className="btn-reset" style={{ width: '100%', textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'white', fontWeight: '600', fontSize: '0.9rem' }}>
-                                            Read More <ChevronRight size={16} />
+                                    <div style={{ marginTop: 'auto', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <div style={{ width: '28px', height: '28px', background: '#27272a', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem' }}>
+                                                <User size={14} color="#a1a1aa" />
+                                            </div>
+                                            <span style={{ fontSize: '0.85rem', color: '#a1a1aa' }}>{post.author}</span>
+                                        </div>
+                                        <button className="btn-reset" style={{ color: '#60a5fa', fontWeight: '600', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                            Read <ChevronRight size={16} />
                                         </button>
                                     </div>
                                 </div>
@@ -205,31 +222,20 @@ const Blog = () => {
                 </motion.div>
 
                 {/* Newsletter */}
-                <div className="glass-card" style={{ marginTop: '6rem', padding: '4rem 2rem', textAlign: 'center', background: 'linear-gradient(145deg, rgba(30, 32, 40, 0.8), rgba(21, 23, 30, 0.9))' }}>
-                    <div style={{ width: '80px', height: '80px', background: 'rgba(99, 102, 241, 0.15)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 2rem' }}>
-                        <BookOpen size={40} color="var(--primary)" />
-                    </div>
-                    <h2 style={{ fontSize: '2rem', fontWeight: '800', marginBottom: '1rem' }}>Never Miss an Update</h2>
-                    <p style={{ color: 'var(--text-muted)', marginBottom: '2.5rem', maxWidth: '500px', margin: '0 auto 2.5rem' }}>Subscribe to our newsletter to get the latest exam news and study tips delivered directly to your inbox.</p>
+                <section style={{ marginTop: '8rem', padding: '4rem', background: 'linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%)', borderRadius: '32px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+                    <div style={{ position: 'relative', zIndex: 1 }}>
+                        <div style={{ width: '80px', height: '80px', background: 'rgba(255,255,255,0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 2rem' }}>
+                            <Mail size={32} color="white" />
+                        </div>
+                        <h2 style={{ fontSize: '2.5rem', fontWeight: '800', marginBottom: '1rem' }}>Get Studying Tips Weekly</h2>
+                        <p style={{ color: '#cbd5e1', marginBottom: '3rem', maxWidth: '500px', margin: '0 auto 3rem' }}>Join 50,000+ students who get our weekly digest of exam strategies and news.</p>
 
-                    <div style={{ display: 'flex', gap: '1rem', maxWidth: '500px', margin: '0 auto', flexWrap: 'wrap' }}>
-                        <input
-                            type="email"
-                            placeholder="Enter your email address"
-                            style={{
-                                flex: 1,
-                                padding: '16px 24px',
-                                background: 'rgba(0,0,0,0.3)',
-                                border: '1px solid rgba(255,255,255,0.1)',
-                                borderRadius: '100px',
-                                color: 'white',
-                                outline: 'none',
-                                minWidth: '250px'
-                            }}
-                        />
-                        <button className="btn-reset" style={{ padding: '16px 32px', background: 'var(--primary)', color: 'white', borderRadius: '100px', fontWeight: '700' }}>Subscribe</button>
+                        <div style={{ display: 'flex', gap: '1rem', maxWidth: '500px', margin: '0 auto' }}>
+                            <input type="email" placeholder="Enter email address" style={{ flex: 1, padding: '16px 24px', borderRadius: '100px', border: 'none', fontSize: '1rem', outline: 'none' }} />
+                            <button className="btn-reset" style={{ padding: '16px 32px', background: '#3b82f6', color: 'white', borderRadius: '100px', fontWeight: '700' }}>Subscribe</button>
+                        </div>
                     </div>
-                </div>
+                </section>
 
             </div>
         </div>
