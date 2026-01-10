@@ -56,9 +56,9 @@ const Navbar = () => {
                     left: 0,
                     right: 0,
                     zIndex: 1000,
-                    background: scrolled ? 'rgba(5, 5, 5, 0.85)' : 'transparent',
-                    backdropFilter: scrolled ? 'blur(12px)' : 'none',
-                    borderBottom: scrolled ? '1px solid rgba(255,255,255,0.08)' : '1px solid transparent',
+                    background: scrolled ? 'rgba(9, 9, 11, 0.8)' : 'transparent', // Zinc-950 alpha
+                    backdropFilter: scrolled ? 'blur(16px)' : 'none',
+                    borderBottom: scrolled ? '1px solid rgba(255,255,255,0.08)' : '1px solid transparent', // Subtle border
                     padding: '16px 0',
                     transition: 'all 0.3s ease'
                 }}
@@ -67,10 +67,10 @@ const Navbar = () => {
 
                     {/* Logo */}
                     <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
-                        <div style={{ width: '40px', height: '40px', background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 20px rgba(59, 130, 246, 0.4)' }}>
+                        <div style={{ width: '40px', height: '40px', background: 'linear-gradient(135deg, #2563eb, #3b82f6)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)' }}>
                             <GraduationCap size={24} color="white" />
                         </div>
-                        <span style={{ fontSize: '1.4rem', fontWeight: '800', letterSpacing: '-0.02em', color: 'white' }}>
+                        <span style={{ fontSize: '1.4rem', fontWeight: '700', letterSpacing: '-0.02em', color: 'white' }}>
                             DIGIMENTORS
                         </span>
                     </Link>
@@ -133,7 +133,7 @@ const Navbar = () => {
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: '100vh' }}
                             exit={{ opacity: 0, height: 0 }}
-                            style={{ position: 'fixed', top: '72px', left: 0, right: 0, background: '#050505', padding: '2rem', overflowY: 'auto', borderTop: '1px solid rgba(255,255,255,0.1)' }}
+                            style={{ position: 'fixed', top: '72px', left: 0, right: 0, background: '#09090b', padding: '2rem', overflowY: 'auto', borderTop: '1px solid rgba(255,255,255,0.08)' }}
                         >
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                                 {navLinks.map((link) => (
@@ -141,7 +141,7 @@ const Navbar = () => {
                                         key={link.name}
                                         to={link.path}
                                         onClick={() => setIsOpen(false)}
-                                        style={{ fontSize: '1.2rem', fontWeight: '600', color: 'white', textDecoration: 'none', paddingBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.05)' }}
+                                        style={{ fontSize: '1.1rem', fontWeight: '500', color: '#e4e4e7', textDecoration: 'none', paddingBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.05)' }}
                                     >
                                         {link.name}
                                     </Link>

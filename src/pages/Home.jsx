@@ -16,10 +16,10 @@ const ASSETS = {
     found: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=2022&auto=format&fit=crop",
     crash: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=2070&auto=format&fit=crop",
     testSeries: "https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?q=80&w=2070&auto=format&fit=crop",
-    faculty1: "https://randomuser.me/api/portraits/men/32.jpg",
-    faculty2: "https://randomuser.me/api/portraits/women/44.jpg",
-    faculty3: "https://randomuser.me/api/portraits/men/86.jpg",
-    faculty4: "https://randomuser.me/api/portraits/women/68.jpg",
+    faculty1: "/assets/faculty_verma.png",
+    faculty2: "/assets/faculty_anjali.png",
+    faculty3: "/assets/faculty_sameer.png",
+    faculty4: "/assets/faculty_pooja.png",
 };
 
 // --- Animations ---
@@ -327,7 +327,7 @@ const Home = () => {
     const filteredBatches = (activeTab === 'All' ? allBatches : allBatches.filter(b => b.cat === activeTab || (activeTab === 'Dropper' && (b.title.includes('Dropper') || b.title.includes('Yakeen') || b.title.includes('Prayas'))))).slice(0, 6);
 
     return (
-        <div style={{ background: '#050505', minHeight: '100vh', fontFamily: '"Inter", sans-serif', color: 'white', paddingBottom: '80px', overflowX: 'hidden' }}>
+        <div style={{ background: '#09090b', minHeight: '100vh', fontFamily: '"Plus Jakarta Sans", sans-serif', color: 'white', paddingBottom: '80px', overflowX: 'hidden' }}>
 
             {/* Modal for Details */}
             <AnimatePresence>
@@ -336,16 +336,15 @@ const Home = () => {
 
             {/* 1. Announcement Ticker */}
             {siteConfig.announcement && (
-                <div style={{ background: 'linear-gradient(90deg, #f59e0b, #d97706)', color: 'black', textAlign: 'center', padding: '10px', fontSize: '0.9rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                    <Sparkles size={16} fill="black" /> {siteConfig.announcement}
+                <div style={{ background: '#2563eb', color: 'white', textAlign: 'center', padding: '10px', fontSize: '0.9rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                    <Sparkles size={16} fill="white" /> {siteConfig.announcement}
                 </div>
             )}
 
             {/* 2. Commercial Hero Section */}
             <section style={{ position: 'relative', paddingTop: '100px', paddingBottom: '80px', overflow: 'hidden' }}>
-                {/* Background Glows */}
-                <div style={{ position: 'absolute', top: '-20%', left: '10%', width: '600px', height: '600px', background: 'radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 60%)', filter: 'blur(80px)' }} />
-                <div style={{ position: 'absolute', bottom: '-20%', right: '10%', width: '500px', height: '500px', background: 'radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 60%)', filter: 'blur(80px)' }} />
+                {/* Clean Professional Background - No excessive glows */}
+                <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.08) 0%, transparent 50%)', pointerEvents: 'none' }} />
 
                 <div className="container" style={{ position: 'relative', zIndex: 10 }}>
                     <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '4rem', alignItems: 'center' }}>
@@ -442,7 +441,7 @@ const Home = () => {
             </section>
 
             {/* 4. Live Batches with Filter */}
-            <section style={{ padding: '80px 0', background: '#0a0a0c' }}>
+            <section style={{ padding: '80px 0', background: '#121214' }}>
                 <div className="container">
                     <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
                         <h2 style={{ fontSize: '2.5rem', fontWeight: '800', marginBottom: '1.5rem' }}>Explore <span style={{ color: '#eab308' }}>Live Courses</span></h2>
@@ -498,7 +497,7 @@ const Home = () => {
             </section>
 
             {/* Why Choose Us */}
-            <section style={{ padding: '80px 0', background: '#0e0e11' }}>
+            <section style={{ padding: '80px 0', background: '#121214' }}>
                 <div className="container">
                     <h2 style={{ fontSize: '2.5rem', fontWeight: '800', marginBottom: '4rem', textAlign: 'center' }}>Why <span style={{ color: '#3b82f6' }}>Digimentors?</span></h2>
 
