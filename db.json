@@ -1,7 +1,192 @@
 {
   "users": [],
-  "activities": [],
+  "activities": [
+    {
+      "visitorId": "VISIT-H9UZZJ1QC",
+      "page": "/login",
+      "time": "2:49:08 AM",
+      "timestamp": 1768252748047,
+      "isoDate": "2026-01-12T21:19:08.047Z",
+      "city": "Delhi",
+      "country": "India",
+      "device": "Desktop",
+      "referrer": "Direct",
+      "user": {
+        "name": "Test User",
+        "email": "test@example.com",
+        "password": "password",
+        "joinDate": "1/7/2026",
+        "educationDetails": {
+          "grade": "12",
+          "targetExam": "JEE Main",
+          "schoolName": "",
+          "city": ""
+        }
+      }
+    },
+    {
+      "visitorId": "VISIT-H9UZZJ1QC",
+      "page": "/login",
+      "time": "2:49:08 AM",
+      "timestamp": 1768252748039,
+      "isoDate": "2026-01-12T21:19:08.039Z",
+      "city": "Delhi",
+      "country": "India",
+      "device": "Desktop",
+      "referrer": "Direct",
+      "user": {
+        "name": "Test User",
+        "email": "test@example.com",
+        "password": "password",
+        "joinDate": "1/7/2026",
+        "educationDetails": {
+          "grade": "12",
+          "targetExam": "JEE Main",
+          "schoolName": "",
+          "city": ""
+        }
+      }
+    },
+    {
+      "visitorId": "VISIT-H9UZZJ1QC",
+      "page": "/",
+      "time": "2:32:47 AM",
+      "timestamp": 1768251767923,
+      "isoDate": "2026-01-12T21:02:47.923Z",
+      "city": "Delhi",
+      "country": "India",
+      "device": "Desktop",
+      "referrer": "Direct",
+      "user": {
+        "name": "Test User",
+        "email": "test@example.com",
+        "password": "password",
+        "joinDate": "1/7/2026",
+        "educationDetails": {
+          "grade": "12",
+          "targetExam": "JEE Main",
+          "schoolName": "",
+          "city": ""
+        }
+      }
+    },
+    {
+      "visitorId": "VISIT-H9UZZJ1QC",
+      "page": "/",
+      "time": "2:32:47 AM",
+      "timestamp": 1768251767904,
+      "isoDate": "2026-01-12T21:02:47.904Z",
+      "city": "Delhi",
+      "country": "India",
+      "device": "Desktop",
+      "referrer": "Direct",
+      "user": {
+        "name": "Test User",
+        "email": "test@example.com",
+        "password": "password",
+        "joinDate": "1/7/2026",
+        "educationDetails": {
+          "grade": "12",
+          "targetExam": "JEE Main",
+          "schoolName": "",
+          "city": ""
+        }
+      }
+    },
+    {
+      "visitorId": "VISIT-H9UZZJ1QC",
+      "page": "/login",
+      "time": "2:32:22 AM",
+      "timestamp": 1768251742102,
+      "isoDate": "2026-01-12T21:02:22.102Z",
+      "city": "Delhi",
+      "country": "India",
+      "device": "Desktop",
+      "referrer": "Direct",
+      "user": {
+        "name": "Test User",
+        "email": "test@example.com",
+        "password": "password",
+        "joinDate": "1/7/2026",
+        "educationDetails": {
+          "grade": "12",
+          "targetExam": "JEE Main",
+          "schoolName": "",
+          "city": ""
+        }
+      }
+    },
+    {
+      "visitorId": "VISIT-H9UZZJ1QC",
+      "page": "/login",
+      "time": "2:32:22 AM",
+      "timestamp": 1768251742095,
+      "isoDate": "2026-01-12T21:02:22.095Z",
+      "city": "Delhi",
+      "country": "India",
+      "device": "Desktop",
+      "referrer": "Direct",
+      "user": {
+        "name": "Test User",
+        "email": "test@example.com",
+        "password": "password",
+        "joinDate": "1/7/2026",
+        "educationDetails": {
+          "grade": "12",
+          "targetExam": "JEE Main",
+          "schoolName": "",
+          "city": ""
+        }
+      }
+    },
+    {
+      "visitorId": "VISIT-H9UZZJ1QC",
+      "page": "/",
+      "time": "2:28:23 AM",
+      "timestamp": 1768251503658,
+      "isoDate": "2026-01-12T20:58:23.658Z",
+      "city": "Delhi",
+      "country": "India",
+      "device": "Desktop",
+      "referrer": "Direct",
+      "user": {
+        "name": "Test User",
+        "email": "test@example.com",
+        "password": "password",
+        "joinDate": "1/7/2026",
+        "educationDetails": {
+          "grade": "12",
+          "targetExam": "JEE Main",
+          "schoolName": "",
+          "city": ""
+        }
+      }
+    },
+    {
+      "visitorId": "VISIT-H9UZZJ1QC",
+      "page": "/",
+      "time": "2:28:23 AM",
+      "timestamp": 1768251503640,
+      "isoDate": "2026-01-12T20:58:23.640Z",
+      "city": "Delhi",
+      "country": "India",
+      "device": "Desktop",
+      "referrer": "Direct",
+      "user": {
+        "name": "Test User",
+        "email": "test@example.com",
+        "password": "password",
+        "joinDate": "1/7/2026",
+        "educationDetails": {
+          "grade": "12",
+          "targetExam": "JEE Main",
+          "schoolName": "",
+          "city": ""
+        }
+      }
+    }
+  ],
   "stats": {
-    "totalVisits": 0
+    "totalVisits": 8
   }
 }
