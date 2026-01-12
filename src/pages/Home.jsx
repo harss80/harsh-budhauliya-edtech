@@ -349,8 +349,19 @@ const Home = () => {
                 <div style={{ position: 'absolute', bottom: '-20%', right: '10%', width: '500px', height: '500px', background: 'radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 60%)', filter: 'blur(80px)' }} />
 
                 <div className="container" style={{ position: 'relative', zIndex: 10 }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '4rem', alignItems: 'center' }}>
-                        <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }}>
+                    <div style={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        gap: '4rem',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}>
+                        <motion.div
+                            initial={{ opacity: 0, x: -30 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.8 }}
+                            style={{ flex: '1 1 500px' }} // Min width 500px, stacks if smaller
+                        >
                             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(59, 130, 246, 0.1)', color: '#60a5fa', padding: '8px 16px', borderRadius: '100px', fontSize: '0.85rem', fontWeight: '700', marginBottom: '2rem', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
                                 <Trophy size={16} /> India's #1 Learning Platform
                             </div>
@@ -385,7 +396,7 @@ const Home = () => {
                         </motion.div>
 
                         {/* Right Side */}
-                        <div style={{ position: 'relative', height: '600px', padding: '20px' }}>
+                        <div style={{ position: 'relative', flex: '1 1 450px', minHeight: '400px', maxHeight: '600px', width: '100%' }}>
                             {[ASSETS.faculty1, ASSETS.faculty2, ASSETS.faculty3].map((img, i) => (
                                 <motion.div
                                     key={i}

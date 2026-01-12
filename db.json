@@ -3,6 +3,106 @@
   "activities": [
     {
       "visitorId": "VISIT-H9UZZJ1QC",
+      "page": "/",
+      "time": "2:54:54 AM",
+      "timestamp": 1768253094914,
+      "isoDate": "2026-01-12T21:24:54.914Z",
+      "city": "Delhi",
+      "country": "India",
+      "device": "Desktop",
+      "referrer": "Direct",
+      "user": {
+        "name": "Test User",
+        "email": "test@example.com",
+        "password": "password",
+        "joinDate": "1/7/2026",
+        "educationDetails": {
+          "grade": "12",
+          "targetExam": "JEE Main",
+          "schoolName": "",
+          "city": ""
+        }
+      }
+    },
+    {
+      "visitorId": "VISIT-H9UZZJ1QC",
+      "page": "/",
+      "time": "2:54:54 AM",
+      "timestamp": 1768253094902,
+      "isoDate": "2026-01-12T21:24:54.902Z",
+      "city": "Delhi",
+      "country": "India",
+      "device": "Desktop",
+      "referrer": "Direct",
+      "user": {
+        "name": "Test User",
+        "email": "test@example.com",
+        "password": "password",
+        "joinDate": "1/7/2026",
+        "educationDetails": {
+          "grade": "12",
+          "targetExam": "JEE Main",
+          "schoolName": "",
+          "city": ""
+        }
+      }
+    },
+    {
+      "visitorId": "VISIT-4RBXFKOER",
+      "page": "/",
+      "time": "2:53:07 AM",
+      "timestamp": 1768252987102,
+      "isoDate": "2026-01-12T21:23:07.102Z",
+      "city": "Pitampura",
+      "country": "India",
+      "device": "Desktop",
+      "referrer": "Direct",
+      "user": {
+        "name": "harsh budhauliya",
+        "email": "harshbudhauliya882@gmail.com",
+        "password": "harsh",
+        "phone": "8929989312",
+        "admissionId": "ADM-763955",
+        "accessRights": [],
+        "joinDate": "1/9/2026",
+        "lastLogin": "1/9/2026, 12:47:15 AM",
+        "educationDetails": {
+          "grade": "dropper",
+          "targetExam": "NEET",
+          "schoolName": "gbss no2",
+          "city": "CHHATARPUR"
+        }
+      }
+    },
+    {
+      "visitorId": "VISIT-4RBXFKOER",
+      "page": "/",
+      "time": "2:53:07 AM",
+      "timestamp": 1768252987091,
+      "isoDate": "2026-01-12T21:23:07.091Z",
+      "city": "Pitampura",
+      "country": "India",
+      "device": "Desktop",
+      "referrer": "Direct",
+      "user": {
+        "name": "harsh budhauliya",
+        "email": "harshbudhauliya882@gmail.com",
+        "password": "harsh",
+        "phone": "8929989312",
+        "admissionId": "ADM-763955",
+        "accessRights": [],
+        "joinDate": "1/9/2026",
+        "lastLogin": "1/9/2026, 12:47:15 AM",
+        "educationDetails": {
+          "grade": "dropper",
+          "targetExam": "NEET",
+          "schoolName": "gbss no2",
+          "city": "CHHATARPUR"
+        }
+      }
+    },
+    {
+      "visitorId": "VISIT-H9UZZJ1QC",
       "page": "/login",
       "time": "2:49:08 AM",
       "timestamp": 1768252748047,
@@ -187,6 +287,6 @@
     }
   ],
   "stats": {
-    "totalVisits": 8
+    "totalVisits": 12
   }
 }
