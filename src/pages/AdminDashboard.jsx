@@ -445,13 +445,36 @@ const AdminDashboard = () => {
     }, []);
 
     // Live Refresh
+    // Live Refresh (Hybrid: Backend + Local Fallback)
     useEffect(() => {
-        const interval = setInterval(() => {
-            setStats(getSystemStats());
-            setUsers(getAllUsers());
-            setActivities(getRecentActivity());
-            setSiteConfig(getSiteConfig());
-        }, 3000); // Poll every 3 seconds for "Live" feel
+        const fetchData = async () => {
+            try {
+                const res = await fetch(`http://${window.location.hostname}:3000/api/data`);
+                if (!res.ok) throw new Error('Backend Offline');
+                const db = await res.json();
+
+                // Update State from Backend
+                if (db.users) setUsers([...db.users].reverse());
+                if (db.activities) setActivities(db.activities);
+
+                // Update Stats
+                setStats(prev => ({
+                    ...prev,
+                    totalVisits: db.stats?.totalVisits || prev.totalVisits,
+                    totalUsers: db.users?.length || prev.totalUsers
+                }));
+
+            } catch (e) {
+                // Fallback to Local Storage if Backend is offline
+                setStats(getSystemStats());
+                setUsers(getAllUsers());
+                setActivities(getRecentActivity());
+            }
+            setSiteConfig(getSiteConfig()); // Config is still local for now unless synced
+        };
+
+        fetchData(); // Immediate fetch
+        const interval = setInterval(fetchData, 3000); // Poll every 3s
         return () => clearInterval(interval);
     }, []);
 

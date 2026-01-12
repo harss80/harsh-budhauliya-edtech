@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     ArrowRight, PlayCircle, Star, Download,
     ChevronRight, Trophy, Video, Timer,
-    CheckCircle2, Sparkles, BookOpen, UserCheck, Zap, X
+    CheckCircle2, Sparkles, BookOpen, UserCheck, Zap, X,
+    Atom, Stethoscope, School, Microscope, ChevronRightCircle
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -16,10 +17,10 @@ const ASSETS = {
     found: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=2022&auto=format&fit=crop",
     crash: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=2070&auto=format&fit=crop",
     testSeries: "https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?q=80&w=2070&auto=format&fit=crop",
-    faculty1: "/assets/faculty_verma.png",
-    faculty2: "/assets/faculty_anjali.png",
-    faculty3: "/assets/faculty_sameer.png",
-    faculty4: "/assets/faculty_pooja.png",
+    faculty1: "https://randomuser.me/api/portraits/men/32.jpg",
+    faculty2: "https://randomuser.me/api/portraits/women/44.jpg",
+    faculty3: "https://randomuser.me/api/portraits/men/86.jpg",
+    faculty4: "https://randomuser.me/api/portraits/women/68.jpg",
 };
 
 // --- Animations ---
@@ -221,7 +222,7 @@ const Home = () => {
     const allBatches = [
         // JEE COURSES
         {
-            id: 1, cat: 'JEE', title: "Arjuna JEE 2.0 (Class 11)", tag: "BESTSELLER",
+            id: 1, cat: 'JEE', title: "Ignite JEE (Class 11)", tag: "BESTSELLER",
             image: ASSETS.batchJEE, price: "4,500", originalPrice: "8,000", date: "15th Aug 2025",
             validity: "JEE Adv 2027",
             description: "The most comprehensive course for Class 11 students aiming for IIT JEE. We start from basic NCERT level and go up to JEE Advanced. Includes daily practice papers, video solutions, and regular extensive testing.",
@@ -229,7 +230,7 @@ const Home = () => {
             color: "#3b82f6", popular: true
         },
         {
-            id: 2, cat: 'JEE', title: "Lakshya JEE 2.0 (Class 12)", tag: "FAST FILLING",
+            id: 2, cat: 'JEE', title: "Achiever JEE (Class 12)", tag: "FAST FILLING",
             image: ASSETS.batchJEE, price: "4,500", originalPrice: "8,000", date: "15th Aug 2025",
             validity: "JEE Adv 2026",
             description: "Targeted at Class 12 students to ensure high marks in Boards as well as a top rank in JEE Mains & Advanced. Complete syllabus coverage by Dec 2025, followed by rigorous revision.",
@@ -237,7 +238,7 @@ const Home = () => {
             color: "#3b82f6", popular: true
         },
         {
-            id: 3, cat: 'JEE', title: "Prayas JEE (Droppers)", tag: "LIVE",
+            id: 3, cat: 'JEE', title: "Warrior JEE (Droppers)", tag: "LIVE",
             image: ASSETS.crash, price: "3,800", originalPrice: "6,000", date: "1st Aug 2025",
             validity: "JEE Adv 2026",
             description: "A high-intensity course for repeaters. We focus on speed, accuracy, and filling conceptual gaps. Classes are longer and more problem-solving oriented.",
@@ -245,7 +246,7 @@ const Home = () => {
             color: "#ef4444", popular: false
         },
         {
-            id: 101, cat: 'JEE', title: "JEE FastTrack Crash Course", tag: "CRASH COURSE",
+            id: 101, cat: 'JEE', title: "JEE Final Lap Crash Course", tag: "CRASH COURSE",
             image: ASSETS.crash, price: "1,499", originalPrice: "3,000", date: "1st Dec 2025",
             validity: "JEE Main 2026",
             description: "Last minute booster for JEE Mains. Cover high-weightage topics in 45 days. Ideal for revision.",
@@ -255,7 +256,7 @@ const Home = () => {
 
         // NEET COURSES
         {
-            id: 4, cat: 'NEET', title: "Arjuna NEET 2.0 (Class 11)", tag: "NEW",
+            id: 4, cat: 'NEET', title: "Genesis NEET (Class 11)", tag: "NEW",
             image: ASSETS.batchNEET, price: "4,200", originalPrice: "7,500", date: "20th Aug 2025",
             validity: "NEET 2027",
             description: "Start your medical journey with a strong foundation. We cover PCB in extreme detail, with special focus on NCERT lines for Biology.",
@@ -263,7 +264,7 @@ const Home = () => {
             color: "#10b981", popular: true
         },
         {
-            id: 5, cat: 'NEET', title: "Lakshya NEET 2.0 (Class 12)", tag: "TRENDING",
+            id: 5, cat: 'NEET', title: "Zenith NEET (Class 12)", tag: "TRENDING",
             image: ASSETS.batchNEET, price: "4,200", originalPrice: "7,500", date: "20th Aug 2025",
             validity: "NEET 2026",
             description: "Balance your Board exams and NEET prep perfectly. We ensure you score 95%+ in Boards and 650+ in NEET.",
@@ -271,7 +272,7 @@ const Home = () => {
             color: "#10b981", popular: true
         },
         {
-            id: 6, cat: 'NEET', title: "Yakeen NEET (Droppers)", tag: "LEGENDARY",
+            id: 6, cat: 'NEET', title: "Sankalp NEET (Droppers)", tag: "LEGENDARY",
             image: ASSETS.testSeries, price: "3,800", originalPrice: "6,000", date: "5th Aug 2025",
             validity: "NEET 2026",
             description: "The batch that produces AIR 1. Designed for students taking a drop year. We start from zero and go to hero level.",
@@ -279,7 +280,7 @@ const Home = () => {
             color: "#8b5cf6", popular: true
         },
         {
-            id: 102, cat: 'NEET', title: "NEET Rank Booster (Bio Only)", tag: "SUBJECT",
+            id: 102, cat: 'NEET', title: "NEET Score Booster (Bio)", tag: "SUBJECT",
             image: ASSETS.batchNEET, price: "999", originalPrice: "1,500", date: "Anytime",
             validity: "NEET 2026",
             description: "Master Biology to score 360/360. Includes only Biology (Botany + Zoology) lectures and tests.",
@@ -289,7 +290,7 @@ const Home = () => {
 
         // FOUNDATION
         {
-            id: 7, cat: 'Foundation', title: "Udaan (Class 10)", tag: "BOARDS",
+            id: 7, cat: 'Foundation', title: "Prodigy (Class 10)", tag: "BOARDS",
             image: ASSETS.found, price: "2,999", originalPrice: "5,000", date: "1st Sep 2025",
             validity: "Mar 2026",
             description: "Ace your Class 10 Boards and build a base for JEE/NEET. Applicable for CBSE, ICSE and State Boards.",
@@ -297,7 +298,7 @@ const Home = () => {
             color: "#f59e0b", popular: true
         },
         {
-            id: 8, cat: 'Foundation', title: "Neev (Class 9)", tag: "EARLY STARTER",
+            id: 8, cat: 'Foundation', title: "Nurture (Class 9)", tag: "EARLY STARTER",
             image: ASSETS.found, price: "2,499", originalPrice: "4,500", date: "1st Sep 2025",
             validity: "Mar 2026",
             description: "Start early to stay ahead. Covers Class 9 syllabus with an introduction to Class 11 concepts in Physics and Math.",
@@ -307,7 +308,7 @@ const Home = () => {
 
         // TEST SERIES & OTHERS
         {
-            id: 9, cat: 'Test Series', title: "AITS - JEE Mains/Adv", tag: "PRACTICE",
+            id: 9, cat: 'Test Series', title: "All India Test Series (AITS)", tag: "PRACTICE",
             image: ASSETS.testSeries, price: "999", originalPrice: "2,000", date: "Starts Oct 1st",
             validity: "Until Exam",
             description: "Real exam simulation. 15 Part Tests + 10 Full Syllabus Tests. Analysis includes time management and weak area detection.",
@@ -315,7 +316,7 @@ const Home = () => {
             color: "#06b6d4", popular: false
         },
         {
-            id: 10, cat: 'Test Series', title: "NCERT Nichod (NEET Tests)", tag: "MUST BUY",
+            id: 10, cat: 'Test Series', title: "NCERT Master (NEET Tests)", tag: "MUST BUY",
             image: ASSETS.testSeries, price: "999", originalPrice: "1,500", date: "Starts Oct 1st",
             validity: "Until Exam",
             description: "Strictly NCERT based question bank and test series for NEET aspirants. If it's in NCERT, it's in this series.",
@@ -324,10 +325,10 @@ const Home = () => {
         }
     ];
 
-    const filteredBatches = (activeTab === 'All' ? allBatches : allBatches.filter(b => b.cat === activeTab || (activeTab === 'Dropper' && (b.title.includes('Dropper') || b.title.includes('Yakeen') || b.title.includes('Prayas'))))).slice(0, 6);
+    const filteredBatches = (activeTab === 'All' ? allBatches : allBatches.filter(b => b.cat === activeTab || (activeTab === 'Dropper' && (b.title.includes('Dropper') || b.title.includes('Sankalp') || b.title.includes('Warrior'))))).slice(0, 6);
 
     return (
-        <div style={{ background: '#09090b', minHeight: '100vh', fontFamily: '"Plus Jakarta Sans", sans-serif', color: 'white', paddingBottom: '80px', overflowX: 'hidden' }}>
+        <div style={{ background: '#050505', minHeight: '100vh', fontFamily: '"Inter", sans-serif', color: 'white', paddingBottom: '80px', overflowX: 'hidden' }}>
 
             {/* Modal for Details */}
             <AnimatePresence>
@@ -336,15 +337,16 @@ const Home = () => {
 
             {/* 1. Announcement Ticker */}
             {siteConfig.announcement && (
-                <div style={{ background: '#2563eb', color: 'white', textAlign: 'center', padding: '10px', fontSize: '0.9rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                    <Sparkles size={16} fill="white" /> {siteConfig.announcement}
+                <div style={{ background: 'linear-gradient(90deg, #f59e0b, #d97706)', color: 'black', textAlign: 'center', padding: '10px', fontSize: '0.9rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                    <Sparkles size={16} fill="black" /> {siteConfig.announcement}
                 </div>
             )}
 
             {/* 2. Commercial Hero Section */}
             <section style={{ position: 'relative', paddingTop: '100px', paddingBottom: '80px', overflow: 'hidden' }}>
-                {/* Clean Professional Background - No excessive glows */}
-                <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.08) 0%, transparent 50%)', pointerEvents: 'none' }} />
+                {/* Background Glows */}
+                <div style={{ position: 'absolute', top: '-20%', left: '10%', width: '600px', height: '600px', background: 'radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 60%)', filter: 'blur(80px)' }} />
+                <div style={{ position: 'absolute', bottom: '-20%', right: '10%', width: '500px', height: '500px', background: 'radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 60%)', filter: 'blur(80px)' }} />
 
                 <div className="container" style={{ position: 'relative', zIndex: 10 }}>
                     <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '4rem', alignItems: 'center' }}>
@@ -415,25 +417,89 @@ const Home = () => {
             </section>
 
             {/* 3. Goal Selection */}
-            <section style={{ padding: '60px 0' }}>
-                <div className="container">
-                    <h2 style={{ textAlign: 'center', fontSize: '2rem', fontWeight: '800', marginBottom: '3rem' }}>Select Your Target 🎯</h2>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
+            {/* 3. Goal Selection (Redesigned) */}
+            <section style={{ padding: '80px 0', position: 'relative' }}>
+                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '100%', height: '100%', background: 'radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.03) 0%, transparent 70%)', pointerEvents: 'none' }} />
+
+                <div className="container" style={{ position: 'relative', zIndex: 2 }}>
+                    <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            style={{ display: 'inline-block', background: 'rgba(255,255,255,0.05)', padding: '6px 16px', borderRadius: '100px', fontSize: '0.85rem', color: '#a1a1aa', marginBottom: '1rem', border: '1px solid rgba(255,255,255,0.05)' }}
+                        >
+                            START YOUR JOURNEY
+                        </motion.div>
+                        <h2 style={{ fontSize: '2.5rem', fontWeight: '800', marginBottom: '1rem' }}>Select Your <span style={{ color: '#3b82f6' }}>Target</span></h2>
+                        <p style={{ color: '#a1a1aa', maxWidth: '500px', margin: '0 auto', fontSize: '1.1rem' }}>
+                            Choose your exam category to explore curated courses and study material.
+                        </p>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '2rem' }}>
                         {[
-                            { title: 'JEE (Main+Adv)', subtitle: 'Class 11, 12 & Droppers', icon: '📐', color: '#3b82f6' },
-                            { title: 'NEET (UG)', subtitle: 'Class 11, 12 & Droppers', icon: '🩺', color: '#10b981' },
-                            { title: 'Foundation', subtitle: 'Class 8, 9 & 10th', icon: '📚', color: '#f59e0b' },
-                            { title: 'School Boards', subtitle: 'CBSE & ICSE', icon: '🏫', color: '#8b5cf6' }
+                            { title: 'JEE (Main+Adv)', subtitle: 'For Class 11, 12 & Droppers', icon: Atom, color: '#3b82f6', grad: 'linear-gradient(135deg, #3b82f6, #2563eb)' },
+                            { title: 'NEET (UG)', subtitle: 'For Class 11, 12 & Droppers', icon: Stethoscope, color: '#10b981', grad: 'linear-gradient(135deg, #10b981, #059669)' },
+                            { title: 'Foundation', subtitle: 'For Class 8, 9 & 10th', icon: Microscope, color: '#f59e0b', grad: 'linear-gradient(135deg, #f59e0b, #d97706)' },
+                            { title: 'School Boards', subtitle: 'CBSE, ICSE & State Boards', icon: School, color: '#8b5cf6', grad: 'linear-gradient(135deg, #8b5cf6, #7c3aed)' }
                         ].map((goal, idx) => (
                             <motion.div
                                 key={idx}
-                                whileHover={{ y: -5, background: 'rgba(255,255,255,0.08)' }}
-                                style={{ background: '#18181b', padding: '24px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.08)', textAlign: 'center', cursor: 'pointer', transition: 'background 0.2s', position: 'relative', overflow: 'hidden' }}
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                transition={{ delay: idx * 0.1 }}
+                                whileHover={{ y: -8 }}
+                                style={{
+                                    background: 'linear-gradient(145deg, #18181b, #0e0e11)',
+                                    padding: '3px', /* For border gradient */
+                                    borderRadius: '24px',
+                                    cursor: 'pointer',
+                                    position: 'relative',
+                                    overflow: 'hidden'
+                                }}
                             >
-                                <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '4px', background: goal.color }} />
-                                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>{goal.icon}</div>
-                                <h3 style={{ fontSize: '1.2rem', fontWeight: '700', marginBottom: '4px' }}>{goal.title}</h3>
-                                <p style={{ color: '#a1a1aa', fontSize: '0.8rem' }}>{goal.subtitle}</p>
+                                {/* Inner Card content */}
+                                <div style={{
+                                    background: '#131316',
+                                    borderRadius: '21px',
+                                    padding: '32px 24px',
+                                    height: '100%',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    textAlign: 'center',
+                                    position: 'relative',
+                                    zIndex: 1
+                                }}>
+                                    {/* Glowing Icon Background */}
+                                    <div style={{
+                                        width: '80px',
+                                        height: '80px',
+                                        background: goal.grad,
+                                        borderRadius: '50%',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        marginBottom: '1.5rem',
+                                        boxShadow: `0 10px 30px -10px ${goal.color}80`
+                                    }}>
+                                        <goal.icon size={36} color="white" strokeWidth={1.5} />
+                                    </div>
+
+                                    <h3 style={{ fontSize: '1.35rem', fontWeight: '700', marginBottom: '8px', color: 'white' }}>{goal.title}</h3>
+                                    <p style={{ color: '#a1a1aa', fontSize: '0.9rem', marginBottom: '20px', lineHeight: 1.5 }}>{goal.subtitle}</p>
+
+                                    <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: '6px', color: goal.color, fontWeight: '600', fontSize: '0.9rem' }}>
+                                        Explore <ChevronRightCircle size={16} />
+                                    </div>
+                                </div>
+
+                                {/* Hover Glow Effect (Border) */}
+                                <motion.div
+                                    style={{ position: 'absolute', inset: 0, background: goal.grad, opacity: 0, zIndex: 0 }}
+                                    whileHover={{ opacity: 1 }}
+                                />
                             </motion.div>
                         ))}
                     </div>
@@ -441,7 +507,7 @@ const Home = () => {
             </section>
 
             {/* 4. Live Batches with Filter */}
-            <section style={{ padding: '80px 0', background: '#121214' }}>
+            <section style={{ padding: '80px 0', background: '#0a0a0c' }}>
                 <div className="container">
                     <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
                         <h2 style={{ fontSize: '2.5rem', fontWeight: '800', marginBottom: '1.5rem' }}>Explore <span style={{ color: '#eab308' }}>Live Courses</span></h2>
@@ -486,37 +552,72 @@ const Home = () => {
                         </div>
                     </div>
                     <div style={{ display: 'flex', overflowX: 'auto', paddingBottom: '30px', gap: '0' }} className="hide-scrollbar">
-                        <ResultCard name="Aravind S." rank="1" exam="JEE Adv" image="https://randomuser.me/api/portraits/men/11.jpg" />
-                        <ResultCard name="Sneha P." rank="3" exam="NEET UG" image="https://randomuser.me/api/portraits/women/65.jpg" />
-                        <ResultCard name="Rahul K." rank="8" exam="JEE Main" image="https://randomuser.me/api/portraits/men/33.jpg" />
-                        <ResultCard name="Amitab B." rank="12" exam="NEET UG" image="https://randomuser.me/api/portraits/men/52.jpg" />
-                        <ResultCard name="Priya M." rank="15" exam="Foundation" image="https://randomuser.me/api/portraits/women/24.jpg" />
-                        <ResultCard name="Zoya A." rank="22" exam="JEE Adv" image="https://randomuser.me/api/portraits/women/42.jpg" />
+                        <ResultCard name="Aarav Sharma" rank="1" exam="JEE Adv" image="/assets/toppers/aarav.png" />
+                        <ResultCard name="Ishita Patel" rank="3" exam="NEET UG" image="/assets/toppers/ishita.png" />
+                        <ResultCard name="Rohan Verma" rank="8" exam="JEE Main" image="https://images.unsplash.com/photo-1627776880991-808c5996527b?fm=jpg&q=60&w=800" />
+                        <ResultCard name="Aditya Kumar" rank="12" exam="NEET UG" image="https://images.unsplash.com/photo-1721676743809-7a2d672e5cdf?fm=jpg&q=60&w=800" />
+                        <ResultCard name="Kavya Reddy" rank="15" exam="Foundation" image="https://images.unsplash.com/photo-1544456203-0af5a69f5789?fm=jpg&q=60&w=800" />
+                        <ResultCard name="Neha Malhotra" rank="22" exam="JEE Adv" image="https://images.unsplash.com/photo-1622964981066-a10fd0192462?fm=jpg&q=60&w=800" />
                     </div>
                 </div>
             </section>
 
             {/* Why Choose Us */}
-            <section style={{ padding: '80px 0', background: '#121214' }}>
+            <section style={{ padding: '80px 0', background: '#0e0e11' }}>
                 <div className="container">
-                    <h2 style={{ fontSize: '2.5rem', fontWeight: '800', marginBottom: '4rem', textAlign: 'center' }}>Why <span style={{ color: '#3b82f6' }}>Digimentors?</span></h2>
+                    <h2 style={{ fontSize: '2.8rem', fontWeight: '800', marginBottom: '4rem', textAlign: 'center' }}>Why <span style={{ color: '#3b82f6' }}>Digimentors?</span></h2>
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem' }}>
                         {[
-                            { title: 'Daily Live Classes', desc: 'Interactive classes with two-way communication.', icon: Video, color: '#3b82f6' },
-                            { title: 'Personal Mentorship', desc: 'Dedicated mentors to track your progress.', icon: UserCheck, color: '#10b981' },
-                            { title: 'Offline Material', desc: 'Printed study material delivered to your home.', icon: BookOpen, color: '#f59e0b' },
-                            { title: 'Institute Rank', desc: 'Real-time ranking among 1L+ students.', icon: Trophy, color: '#ec4899' }
+                            { title: 'Daily Live Classes', desc: 'Interactive classes with two-way communication.', icon: Video, color: '#3b82f6', grad: 'linear-gradient(135deg, #3b82f6, #2563eb)' },
+                            { title: 'Personal Mentorship', desc: 'Dedicated mentors to track your progress.', icon: UserCheck, color: '#10b981', grad: 'linear-gradient(135deg, #10b981, #059669)' },
+                            { title: 'Offline Material', desc: 'Printed study material delivered to your home.', icon: BookOpen, color: '#f59e0b', grad: 'linear-gradient(135deg, #f59e0b, #d97706)' },
+                            { title: 'Institute Rank', desc: 'Real-time ranking among 1L+ students.', icon: Trophy, color: '#ec4899', grad: 'linear-gradient(135deg, #ec4899, #db2777)' }
                         ].map((item, i) => (
                             <motion.div
-                                key={i} whileHover={{ y: -10 }}
-                                style={{ padding: '30px', background: '#18181b', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.05)' }}
+                                key={i}
+                                initial={{ opacity: 0, y: 30 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                transition={{ delay: i * 0.1 }}
+                                whileHover={{ y: -10 }}
+                                style={{
+                                    background: 'linear-gradient(145deg, #18181b, #0e0e11)',
+                                    borderRadius: '24px',
+                                    padding: '4px', /* Gradient border container */
+                                    position: 'relative',
+                                    overflow: 'hidden'
+                                }}
                             >
-                                <div style={{ width: '60px', height: '60px', borderRadius: '16px', background: `${item.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: item.color, marginBottom: '1.5rem' }}>
-                                    <item.icon size={28} />
+                                <div style={{
+                                    background: '#131316',
+                                    borderRadius: '22px',
+                                    padding: '36px',
+                                    height: '100%',
+                                    position: 'relative',
+                                    zIndex: 1
+                                }}>
+                                    <div style={{
+                                        width: '64px',
+                                        height: '64px',
+                                        borderRadius: '16px',
+                                        background: item.grad,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        marginBottom: '1.5rem',
+                                        boxShadow: `0 8px 24px -6px ${item.color}60`
+                                    }}>
+                                        <item.icon size={30} color="white" />
+                                    </div>
+                                    <h3 style={{ fontSize: '1.4rem', fontWeight: '700', marginBottom: '12px', color: 'white' }}>{item.title}</h3>
+                                    <p style={{ color: '#a1a1aa', lineHeight: 1.6, fontSize: '1rem' }}>{item.desc}</p>
                                 </div>
-                                <h3 style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '8px' }}>{item.title}</h3>
-                                <p style={{ color: '#a1a1aa', lineHeight: 1.6 }}>{item.desc}</p>
+
+                                {/* Hover Glow */}
+                                <motion.div
+                                    style={{ position: 'absolute', inset: 0, background: item.grad, opacity: 0, zIndex: 0 }}
+                                    whileHover={{ opacity: 0.6 }}
+                                />
                             </motion.div>
                         ))}
                     </div>
@@ -550,15 +651,43 @@ const Home = () => {
             {/* App CTA */}
             <section style={{ padding: '60px 0 100px 0' }}>
                 <div className="container">
-                    <div style={{ background: 'url("https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=2029&auto=format&fit=crop") no-repeat center center/cover', borderRadius: '32px', padding: '4rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '3rem', position: 'relative', overflow: 'hidden' }}>
-                        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, #000 0%, rgba(0,0,0,0.6) 100%)' }} />
-                        <div style={{ position: 'relative', zIndex: 1, maxWidth: '500px' }}>
-                            <h2 style={{ fontSize: '2.5rem', fontWeight: '800', color: 'white', marginBottom: '1rem', lineHeight: 1.2 }}>Download the App <br /> Start Learning Today.</h2>
-                            <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
-                                <button className="btn-reset" style={{ padding: '14px 28px', background: 'white', color: 'black', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '12px', fontWeight: '700', fontSize: '1rem' }}>Google Play</button>
-                                <button className="btn-reset" style={{ padding: '14px 28px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '12px', fontWeight: '700', fontSize: '1rem', backdropFilter: 'blur(10px)' }}>App Store</button>
+                    <div style={{ background: 'linear-gradient(135deg, #1e1e2b 0%, #0c0c10 100%)', borderRadius: '32px', padding: '0 4rem', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', position: 'relative', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)' }}>
+                        <div style={{ padding: '4rem 0', zIndex: 2, flex: '1 1 400px', minWidth: '300px' }}>
+                            <div style={{ display: 'inline-block', background: 'rgba(59, 130, 246, 0.15)', color: '#60a5fa', padding: '6px 12px', borderRadius: '100px', fontSize: '0.85rem', fontWeight: '700', marginBottom: '1.5rem' }}>
+                                MOBILE APP
+                            </div>
+                            <h2 style={{ fontSize: '3rem', fontWeight: '800', color: 'white', marginBottom: '1rem', lineHeight: 1.1 }}>
+                                Learning in Your Pocket. <br />
+                                <span className="gradient-text" style={{ background: 'linear-gradient(to right, #3b82f6, #a855f7)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Anytime, Anywhere.</span>
+                            </h2>
+                            <p style={{ color: '#a1a1aa', fontSize: '1.1rem', marginBottom: '2.5rem', lineHeight: 1.6, maxWidth: '500px' }}>
+                                Download the Digimentors app for seamless access to live classes, recorded lectures, and instant doubt resolution.
+                            </p>
+                            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                                <button className="btn-reset" style={{ padding: '14px 28px', background: 'white', color: 'black', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '12px', fontWeight: '700', fontSize: '1rem', transition: 'transform 0.2s' }}>
+                                    <img src="https://cdn-icons-png.flaticon.com/512/732/732205.png" alt="Play Store" style={{ width: '24px' }} /> Google Play
+                                </button>
+                                <button className="btn-reset" style={{ padding: '14px 28px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '12px', fontWeight: '700', fontSize: '1rem', backdropFilter: 'blur(10px)' }}>
+                                    <img src="https://cdn-icons-png.flaticon.com/512/0/747.png" alt="App Store" style={{ width: '24px', filter: 'invert(1)' }} /> App Store
+                                </button>
                             </div>
                         </div>
+
+                        <div style={{ flex: '1 1 400px', height: '550px', position: 'relative', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', minWidth: '300px' }}>
+                            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '450px', height: '450px', background: 'radial-gradient(circle, rgba(59, 130, 246, 0.25) 0%, transparent 70%)', filter: 'blur(60px)' }}></div>
+
+                            <motion.img
+                                initial={{ y: 50, opacity: 0 }}
+                                whileInView={{ y: 0, opacity: 1 }}
+                                transition={{ duration: 0.8 }}
+                                src="/assets/app_mockup.png"
+                                alt="Digimentors App"
+                                style={{ width: '100%', height: 'auto', maxHeight: '120%', objectFit: 'contain', position: 'relative', zIndex: 1, marginBottom: '-80px', transform: 'rotate(-5deg)' }}
+                            />
+                        </div>
+
+                        {/* Background Elements */}
+                        <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'radial-gradient(circle at 100% 0%, rgba(139, 92, 246, 0.15) 0%, transparent 50%)', pointerEvents: 'none' }}></div>
                     </div>
                 </div>
             </section>

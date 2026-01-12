@@ -31,11 +31,11 @@ const VisitTracker = () => {
   const location = useLocation();
 
   useEffect(() => {
-    // 1. Total Visits Counter
+    // 1. Total Visits Counter (Local)
     const currentVisits = parseInt(localStorage.getItem('digimentors_total_visits') || '0');
     localStorage.setItem('digimentors_total_visits', (currentVisits + 1).toString());
 
-    // 2. Track Unique Visitor (Pseudo-session)
+    // 2. Track Unique Visitor
     let visitorId = localStorage.getItem('digimentors_visitor_id');
     if (!visitorId) {
       visitorId = 'VISIT-' + Math.random().toString(36).substr(2, 9).toUpperCase();
@@ -52,8 +52,9 @@ const VisitTracker = () => {
     let city = localStorage.getItem('digimentors_user_city') || 'Unknown';
     let country = localStorage.getItem('digimentors_user_country') || 'Unknown';
 
-    if (city === 'Unknown' || country === 'Unknown') {
-      const fetchLocation = async () => {
+    const logVisit = async () => {
+      // Try getting location if unknown
+      if (city === 'Unknown') {
         try {
           const res = await fetch('https://ipapi.co/json/');
           const data = await res.json();
@@ -63,35 +64,43 @@ const VisitTracker = () => {
             localStorage.setItem('digimentors_user_city', city);
             localStorage.setItem('digimentors_user_country', country);
           }
-        } catch (e) {
-          console.error("Loc fetch failed", e);
-        }
+        } catch (e) { }
+      }
+
+      const referrer = document.referrer || 'Direct';
+      const user = JSON.parse(localStorage.getItem('digimentors_current_user') || 'null');
+
+      const newActivity = {
+        visitorId,
+        page: location.pathname,
+        time: new Date().toLocaleTimeString(),
+        timestamp: Date.now(),
+        isoDate: new Date().toISOString(),
+        city,
+        country,
+        device,
+        referrer,
+        user
       };
-      fetchLocation();
-    }
 
-    // Capture Referrer (limited in SPA but can try doc.referrer if external)
-    const referrer = document.referrer || 'Direct';
+      // Save Local (Legacy Support)
+      const activities = JSON.parse(localStorage.getItem('digimentors_recent_activities') || '[]');
+      const updatedActivities = [newActivity, ...activities].slice(0, 500);
+      localStorage.setItem('digimentors_recent_activities', JSON.stringify(updatedActivities));
 
-    // 3. Log Recent Activity (for Live View + Analytics)
-    const activities = JSON.parse(localStorage.getItem('digimentors_recent_activities') || '[]');
-    const newActivity = {
-      visitorId,
-      page: location.pathname,
-      time: new Date().toLocaleTimeString(),
-      timestamp: Date.now(),
-      isoDate: new Date().toISOString(), // For daily/weekly filtering
-      city: city,
-      country: country, // Added Country
-      device: device,
-      referrer: referrer,
-      // Try to get user info if logged in
-      user: JSON.parse(localStorage.getItem('digimentors_current_user') || 'null')
+      // SYNC TO BACKEND (Cross-Device Support)
+      try {
+        await fetch(`http://${window.location.hostname}:3000/api/visit`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newActivity)
+        });
+      } catch (e) {
+        console.error("Backend Sync Failed - ensure server.js is running");
+      }
     };
 
-    // Keep last 500 activities for better analytics (increased from 50)
-    const updatedActivities = [newActivity, ...activities].slice(0, 500);
-    localStorage.setItem('digimentors_recent_activities', JSON.stringify(updatedActivities));
+    logVisit();
 
   }, [location]);
 

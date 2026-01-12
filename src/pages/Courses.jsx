@@ -15,7 +15,7 @@ const Courses = () => {
     const allCourses = [
         // JEE
         {
-            id: 1, cat: 'JEE', title: "Arjuna JEE 2.0 (Class 11)", tag: "BESTSELLER",
+            id: 1, cat: 'JEE', title: "Ignite JEE (Class 11)", tag: "BESTSELLER",
             image: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=2070&auto=format&fit=crop",
             price: "4,500", originalPrice: "8,000", date: "15th Aug 2025", validity: "JEE Adv 2027",
             description: "Complete Class 11 PCM syllabus coverage from basic to advanced level. Includes daily practice papers and video solutions.",
@@ -23,7 +23,7 @@ const Courses = () => {
             color: "#3b82f6", popular: true
         },
         {
-            id: 2, cat: 'JEE', title: "Lakshya JEE 2.0 (Class 12)", tag: "FAST FILLING",
+            id: 2, cat: 'JEE', title: "Achiever JEE (Class 12)", tag: "FAST FILLING",
             image: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=2070&auto=format&fit=crop",
             price: "4,500", originalPrice: "8,000", date: "15th Aug 2025", validity: "JEE Adv 2026",
             description: "Targeted at Class 12 students for Boards + JEE Mains & Advanced. Complete syllabus by Dec 2025.",
@@ -31,7 +31,7 @@ const Courses = () => {
             color: "#3b82f6", popular: true
         },
         {
-            id: 3, cat: 'JEE', title: "Prayas JEE (Droppers)", tag: "LIVE",
+            id: 3, cat: 'JEE', title: "Warrior JEE (Droppers)", tag: "LIVE",
             image: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=2070&auto=format&fit=crop",
             price: "3,800", originalPrice: "6,000", date: "1st Aug 2025", validity: "JEE Adv 2026",
             description: "High-intensity course for repeaters focusing on speed, accuracy, and filling conceptual gaps.",
@@ -39,7 +39,7 @@ const Courses = () => {
             color: "#ef4444", popular: false
         },
         {
-            id: 101, cat: 'JEE', title: "JEE FastTrack Crash Course", tag: "CRASH COURSE",
+            id: 101, cat: 'JEE', title: "JEE Final Lap Crash Course", tag: "CRASH COURSE",
             image: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=2070&auto=format&fit=crop",
             price: "1,499", originalPrice: "3,000", date: "1st Dec 2025", validity: "JEE Main 2026",
             description: "Last minute booster for JEE Mains covering high-weightage topics in 45 days.",
@@ -49,7 +49,7 @@ const Courses = () => {
 
         // NEET
         {
-            id: 4, cat: 'NEET', title: "Arjuna NEET 2.0 (Class 11)", tag: "NEW",
+            id: 4, cat: 'NEET', title: "Genesis NEET (Class 11)", tag: "NEW",
             image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=2070&auto=format&fit=crop",
             price: "4,200", originalPrice: "7,500", date: "20th Aug 2025", validity: "NEET 2027",
             description: "Strong foundation for medical aspirants with extreme detail on NCERT Biology.",
@@ -57,7 +57,7 @@ const Courses = () => {
             color: "#10b981", popular: true
         },
         {
-            id: 5, cat: 'NEET', title: "Lakshya NEET 2.0 (Class 12)", tag: "TRENDING",
+            id: 5, cat: 'NEET', title: "Zenith NEET (Class 12)", tag: "TRENDING",
             image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=2070&auto=format&fit=crop",
             price: "4,200", originalPrice: "7,500", date: "20th Aug 2025", validity: "NEET 2026",
             description: "Balance Board exams and NEET prep perfectly. Aim for 650+ in NEET.",
@@ -65,7 +65,7 @@ const Courses = () => {
             color: "#10b981", popular: true
         },
         {
-            id: 6, cat: 'NEET', title: "Yakeen NEET (Droppers)", tag: "LEGENDARY",
+            id: 6, cat: 'NEET', title: "Sankalp NEET (Droppers)", tag: "LEGENDARY",
             image: "https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?q=80&w=2070&auto=format&fit=crop",
             price: "3,800", originalPrice: "6,000", date: "5th Aug 2025", validity: "NEET 2026",
             description: "Designed for drop year students. Start from zero and go to hero level.",
@@ -73,7 +73,7 @@ const Courses = () => {
             color: "#8b5cf6", popular: true
         },
         {
-            id: 102, cat: 'NEET', title: "NEET Rank Booster (Bio Only)", tag: "SUBJECT",
+            id: 102, cat: 'NEET', title: "NEET Score Booster (Bio)", tag: "SUBJECT",
             image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=2070&auto=format&fit=crop",
             price: "999", originalPrice: "1,500", date: "Anytime", validity: "NEET 2026",
             description: "Master Biology to score 360/360. Includes only Biology (Botany + Zoology) lectures and tests.",
@@ -83,7 +83,7 @@ const Courses = () => {
 
         // Foundation
         {
-            id: 7, cat: 'Foundation', title: "Udaan (Class 10)", tag: "BOARDS",
+            id: 7, cat: 'Foundation', title: "Prodigy (Class 10)", tag: "BOARDS",
             image: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=2022&auto=format&fit=crop",
             price: "2,999", originalPrice: "5,000", date: "1st Sep 2025", validity: "Mar 2026",
             description: "Ace Class 10 Boards and build a base for JEE/NEET. For CBSE, ICSE and State Boards.",
@@ -91,7 +91,7 @@ const Courses = () => {
             color: "#f59e0b", popular: true
         },
         {
-            id: 8, cat: 'Foundation', title: "Neev (Class 9)", tag: "EARLY STARTER",
+            id: 8, cat: 'Foundation', title: "Nurture (Class 9)", tag: "EARLY STARTER",
             image: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=2022&auto=format&fit=crop",
             price: "2,499", originalPrice: "4,500", date: "1st Sep 2025", validity: "Mar 2026",
             description: "Start early to stay ahead. Covers Class 9 syllabus with intro to Class 11 Physics/Math.",
@@ -101,7 +101,7 @@ const Courses = () => {
 
         // Test Series
         {
-            id: 9, cat: 'Test Series', title: "AITS - JEE Mains/Adv", tag: "PRACTICE",
+            id: 9, cat: 'Test Series', title: "All India Test Series (AITS)", tag: "PRACTICE",
             image: "https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?q=80&w=2070&auto=format&fit=crop",
             price: "999", originalPrice: "2,000", date: "Starts Oct 1st", validity: "Until Exam",
             description: "Real exam simulation. 15 Part Tests + 10 Full Syllabus Tests with detailed analysis.",
@@ -109,7 +109,7 @@ const Courses = () => {
             color: "#06b6d4", popular: false
         },
         {
-            id: 10, cat: 'Test Series', title: "NCERT Nichod (NEET Tests)", tag: "MUST BUY",
+            id: 10, cat: 'Test Series', title: "NCERT Master (NEET Tests)", tag: "MUST BUY",
             image: "https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?q=80&w=2070&auto=format&fit=crop",
             price: "999", originalPrice: "1,500", date: "Starts Oct 1st", validity: "Until Exam",
             description: "Strictly NCERT based question bank and test series for NEET aspirants.",
