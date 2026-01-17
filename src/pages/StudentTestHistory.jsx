@@ -1,6 +1,7 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { API_BASE } from '../utils/apiBase';
 import {
     FileText, CheckCircle, XCircle, AlertCircle,
     Clock, ChevronRight, BarChart2, PlayCircle,
@@ -14,8 +15,35 @@ const StudentTestHistory = () => {
     const [testHistory, setTestHistory] = useState([]);
 
     useEffect(() => {
-        const history = JSON.parse(localStorage.getItem('digimentors_test_history') || '[]');
-        setTestHistory(history);
+        const fallback = () => {
+            const history = JSON.parse(localStorage.getItem('digimentors_test_history') || '[]');
+            setTestHistory(history);
+        };
+        try {
+            const user = JSON.parse(localStorage.getItem('digimentors_current_user') || 'null');
+            if (!user?.email) return fallback();
+            const base = API_BASE || '';
+            fetch(`${base}/api/results?email=${encodeURIComponent(user.email)}`)
+                .then(r => r.ok ? r.json() : null)
+                .then(list => {
+                    if (Array.isArray(list)) {
+                        const mapped = list.map(r => ({
+                            id: r._id,
+                            name: r.name || 'Mock Test',
+                            status: 'Completed',
+                            date: new Date(r.createdAt).toLocaleDateString(),
+                            correct: r.correct,
+                            wrong: r.wrong,
+                            score: r.score,
+                            maxScore: r.maxScore,
+                            totalQuestions: Math.round((r.maxScore || 0) / 4) || undefined,
+                            timeSpent: r.timeSpent,
+                        }));
+                        setTestHistory(mapped);
+                    } else fallback();
+                })
+                .catch(fallback);
+        } catch { fallback(); }
     }, []);
 
     const filteredTests = filter === 'All'

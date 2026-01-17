@@ -7,6 +7,7 @@ import {
     HelpCircle
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { API_BASE } from '../utils/apiBase';
 
 // Import Real Questions
 import { realQuestions as questionPool } from '../data/realQuestions';
@@ -131,6 +132,12 @@ const TestPlayer = () => {
 
     // Responsive Check
     useEffect(() => {
+        // Save last test for resume
+        try {
+            const last = { link: `/attempt-test/${testId}`, name: testTitle, at: Date.now() };
+            localStorage.setItem('digimentors_last_test', JSON.stringify(last));
+        } catch { /* ignore */ }
+
         const handleResize = () => {
             const mobile = window.innerWidth <= 1024;
             setIsMobile(mobile);
@@ -269,6 +276,18 @@ const TestPlayer = () => {
         const history = JSON.parse(localStorage.getItem('digimentors_test_history') || '[]');
         history.unshift({ ...resultData, name: testTitle, status: 'Completed', date: new Date().toLocaleDateString() });
         localStorage.setItem('digimentors_test_history', JSON.stringify(history));
+
+        // Best-effort backend sync
+        try {
+            const current = JSON.parse(localStorage.getItem('digimentors_current_user') || '{}');
+            if (current && current.email) {
+                fetch(`${API_BASE}/api/results`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: current.email, result: { ...resultData, name: testTitle } })
+                }).catch(() => null);
+            }
+        } catch { /* ignore */ }
 
         navigate('/analysis', { state: { result: resultData } });
     };

@@ -1,9 +1,45 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Send } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { API_BASE } from '../utils/apiBase';
 
 const Contact = () => {
+    const [form, setForm] = useState({ firstName: '', lastName: '', email: '', queryType: 'General', message: '' });
+    const [sending, setSending] = useState(false);
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setForm(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (!form.email || !form.message) return;
+        setSending(true);
+        setTimeout(() => {
+            const entry = {
+                id: 'CONTACT-' + Math.random().toString(36).substr(2, 9),
+                ...form,
+                createdAt: new Date().toISOString(),
+                status: 'open'
+            };
+            const list = JSON.parse(localStorage.getItem('digimentors_contacts') || '[]');
+            localStorage.setItem('digimentors_contacts', JSON.stringify([entry, ...list]));
+            // Best-effort sync to backend if available
+            try {
+                fetch(`${API_BASE}/api/contacts`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(entry)
+                }).catch(() => null);
+            } catch { /* ignore */ }
+            setForm({ firstName: '', lastName: '', email: '', queryType: 'General', message: '' });
+            setSending(false);
+            alert('Message sent successfully!');
+        }, 500);
+    };
+
     return (
         <div style={{ minHeight: '100vh', background: 'var(--background)', paddingTop: '100px', paddingBottom: '60px' }}>
             <div className="container">
@@ -53,22 +89,22 @@ const Contact = () => {
                         style={{ padding: '2rem' }}
                     >
                         <h3 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '1.5rem' }}>Send Message</h3>
-                        <form style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.2rem' }}>
-                                <input type="text" placeholder="First Name" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', padding: '12px', borderRadius: '8px', color: 'white', outline: 'none' }} />
-                                <input type="text" placeholder="Last Name" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', padding: '12px', borderRadius: '8px', color: 'white', outline: 'none' }} />
+                        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1.2rem' }}>
+                                <input name="firstName" value={form.firstName} onChange={handleChange} type="text" placeholder="First Name" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', padding: '12px', borderRadius: '8px', color: 'white', outline: 'none' }} />
+                                <input name="lastName" value={form.lastName} onChange={handleChange} type="text" placeholder="Last Name" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', padding: '12px', borderRadius: '8px', color: 'white', outline: 'none' }} />
                             </div>
-                            <input type="email" placeholder="Email Address" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', padding: '12px', borderRadius: '8px', color: 'white', outline: 'none' }} />
-                            <select style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', padding: '12px', borderRadius: '8px', color: 'white', outline: 'none' }}>
-                                <option style={{ color: 'black' }}>Select Query Type</option>
-                                <option style={{ color: 'black' }}>Admission Enquiry</option>
-                                <option style={{ color: 'black' }}>Technical Support</option>
-                                <option style={{ color: 'black' }}>Mentorship</option>
+                            <input name="email" value={form.email} onChange={handleChange} type="email" placeholder="Email Address" required style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', padding: '12px', borderRadius: '8px', color: 'white', outline: 'none' }} />
+                            <select name="queryType" value={form.queryType} onChange={handleChange} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', padding: '12px', borderRadius: '8px', color: 'white', outline: 'none' }}>
+                                <option style={{ color: 'black' }} value="General">Select Query Type</option>
+                                <option style={{ color: 'black' }} value="Admission Enquiry">Admission Enquiry</option>
+                                <option style={{ color: 'black' }} value="Technical Support">Technical Support</option>
+                                <option style={{ color: 'black' }} value="Mentorship">Mentorship</option>
                             </select>
-                            <textarea rows="4" placeholder="Your Message" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', padding: '12px', borderRadius: '8px', color: 'white', outline: 'none', resize: 'vertical' }}></textarea>
+                            <textarea name="message" value={form.message} onChange={handleChange} rows="4" placeholder="Your Message" required style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', padding: '12px', borderRadius: '8px', color: 'white', outline: 'none', resize: 'vertical' }}></textarea>
 
-                            <button type="submit" className="btn-reset" style={{ background: 'var(--primary)', color: 'white', padding: '14px', borderRadius: '8px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: '0.5rem' }}>
-                                Send Message <Send size={18} />
+                            <button type="submit" disabled={sending} className="btn-reset" style={{ background: 'var(--primary)', color: 'white', padding: '14px', borderRadius: '8px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: '0.5rem', opacity: sending ? 0.7 : 1, cursor: sending ? 'not-allowed' : 'pointer' }}>
+                                {sending ? 'Sending...' : 'Send Message'} <Send size={18} />
                             </button>
                         </form>
                     </motion.div>

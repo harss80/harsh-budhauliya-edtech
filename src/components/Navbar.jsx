@@ -67,10 +67,7 @@ const Navbar = () => {
 
                     {/* Logo */}
                     <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
-                        <img src="/assets/logo.png" alt="Digimentors" style={{ height: '40px', objectFit: 'contain' }} />
-                        <span style={{ fontSize: '1.4rem', fontWeight: '800', letterSpacing: '-0.02em', color: 'white' }}>
-                            DIGIMENTORS
-                        </span>
+                        <img src="/assets/logo.png" alt="Digimentors" style={{ height: '64px', objectFit: 'contain' }} />
                     </Link>
 
                     {/* Desktop Links */}
@@ -131,7 +128,7 @@ const Navbar = () => {
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: '100vh' }}
                             exit={{ opacity: 0, height: 0 }}
-                            style={{ position: 'fixed', top: '72px', left: 0, right: 0, background: '#050505', padding: '2rem', overflowY: 'auto', borderTop: '1px solid rgba(255,255,255,0.1)' }}
+                            style={{ position: 'fixed', top: '96px', left: 0, right: 0, background: '#050505', padding: '2rem', overflowY: 'auto', borderTop: '1px solid rgba(255,255,255,0.1)' }}
                         >
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                                 {navLinks.map((link) => (

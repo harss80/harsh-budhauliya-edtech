@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { X, Mail, Lock, User, ArrowRight, Check } from 'lucide-react';
+import { API_BASE } from '../utils/apiBase';
 
 const Login = ({ onClose, defaultIsLogin = true }) => {
     const [isLogin, setIsLogin] = useState(defaultIsLogin);
@@ -13,7 +14,12 @@ const Login = ({ onClose, defaultIsLogin = true }) => {
         name: '',
         email: '',
         password: '',
-        confirmPassword: ''
+        confirmPassword: '',
+        phone: '',
+        targetExam: '',
+        grade: '',
+        schoolName: '',
+        city: ''
     });
 
     const handleChange = (e) => {
@@ -33,21 +39,85 @@ const Login = ({ onClose, defaultIsLogin = true }) => {
                 name: isLogin ? 'Student' : formData.name || 'New Student',
                 email: formData.email,
                 id: 'USER-' + Math.random().toString(36).substr(2, 9),
-                role: 'student'
+                role: 'student',
+                phone: formData.phone || '' ,
+                educationDetails: {
+                    targetExam: formData.targetExam || '',
+                    grade: formData.grade || '',
+                    schoolName: formData.schoolName || '',
+                    city: formData.city || ''
+                }
             };
 
             localStorage.setItem('digimentors_current_user', JSON.stringify(user));
 
+            // Ensure user list includes this user for Admin stats and Users tab
+            try {
+                const list = JSON.parse(localStorage.getItem('digimentors_users') || '[]');
+                const idx = list.findIndex(u => u.email === user.email);
+                const ensureAdmissionId = (u) => u.admissionId || ('ADM-' + Math.random().toString(36).substr(2, 6).toUpperCase());
+                if (idx === -1) {
+                    list.push({
+                        ...user,
+                        admissionId: ensureAdmissionId({}),
+                        joinDate: new Date().toLocaleDateString(),
+                        lastLogin: new Date().toLocaleString()
+                    });
+                } else {
+                    list[idx] = {
+                        ...list[idx],
+                        name: user.name || list[idx].name,
+                        phone: user.phone || list[idx].phone || '',
+                        educationDetails: {
+                            ...(list[idx].educationDetails || {}),
+                            ...(user.educationDetails || {})
+                        },
+                        admissionId: ensureAdmissionId(list[idx]),
+                        lastLogin: new Date().toLocaleString()
+                    };
+                }
+                localStorage.setItem('digimentors_users', JSON.stringify(list));
+            } catch { /* ignore */ }
+
             // Sync User to Backend
             try {
-                fetch(`http://${window.location.hostname}:3000/api/user`, {
+                fetch(`${API_BASE}/api/user`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(user)
                 });
-            } catch (e) {
+            } catch {
                 console.error("Backend Sync Failed");
             }
+
+            // Record Login Log (local and optional backend sync)
+            const ua = navigator.userAgent;
+            let device = 'Desktop';
+            if (/Mobi|Android/i.test(ua)) device = 'Mobile';
+            else if (/iPad|Tablet/i.test(ua)) device = 'Tablet';
+
+            const city = localStorage.getItem('digimentors_user_city') || 'Unknown';
+            const country = localStorage.getItem('digimentors_user_country') || 'Unknown';
+
+            const newLog = {
+                isoDate: new Date().toISOString(),
+                time: new Date().toLocaleString(),
+                device,
+                city,
+                country,
+                user
+            };
+
+            const logs = JSON.parse(localStorage.getItem('digimentors_login_logs') || '[]');
+            const updated = [newLog, ...logs].slice(0, 500);
+            localStorage.setItem('digimentors_login_logs', JSON.stringify(updated));
+
+            // Best-effort backend sync
+            fetch(`${API_BASE}/api/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newLog)
+            }).catch(() => null);
 
             // Dispatch event for Navbar to update
             window.dispatchEvent(new Event('storage'));
@@ -196,6 +266,13 @@ const Login = ({ onClose, defaultIsLogin = true }) => {
                                                 outline: 'none',
                                             }}
                                         />
+                                    </div>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', marginTop: '12px' }}>
+                                        <input type="tel" name="phone" placeholder="Phone" value={formData.phone} onChange={handleChange} style={{ background: '#15171e', border: '1px solid #2d2f39', padding: '12px', borderRadius: '12px', color: 'white' }} />
+                                        <input type="text" name="targetExam" placeholder="Target Exam (e.g., NEET/JEE)" value={formData.targetExam} onChange={handleChange} style={{ background: '#15171e', border: '1px solid #2d2f39', padding: '12px', borderRadius: '12px', color: 'white' }} />
+                                        <input type="text" name="grade" placeholder="Class/Grade" value={formData.grade} onChange={handleChange} style={{ background: '#15171e', border: '1px solid #2d2f39', padding: '12px', borderRadius: '12px', color: 'white' }} />
+                                        <input type="text" name="schoolName" placeholder="School/College" value={formData.schoolName} onChange={handleChange} style={{ background: '#15171e', border: '1px solid #2d2f39', padding: '12px', borderRadius: '12px', color: 'white' }} />
+                                        <input type="text" name="city" placeholder="City" value={formData.city} onChange={handleChange} style={{ background: '#15171e', border: '1px solid #2d2f39', padding: '12px', borderRadius: '12px', color: 'white' }} />
                                     </div>
                                 </motion.div>
                             )}

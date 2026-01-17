@@ -25,6 +25,7 @@ import Courses from './pages/Courses';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import Footer from './components/Footer';
+import { API_BASE } from './utils/apiBase';
 
 // --- Visit Tracker ---
 const VisitTracker = () => {
@@ -64,7 +65,7 @@ const VisitTracker = () => {
             localStorage.setItem('digimentors_user_city', city);
             localStorage.setItem('digimentors_user_country', country);
           }
-        } catch (e) { }
+        } catch { void 0; }
       }
 
       const referrer = document.referrer || 'Direct';
@@ -90,12 +91,12 @@ const VisitTracker = () => {
 
       // SYNC TO BACKEND (Cross-Device Support)
       try {
-        await fetch(`http://${window.location.hostname}:3000/api/visit`, {
+        await fetch(`${API_BASE}/api/visit`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(newActivity)
         });
-      } catch (e) {
+      } catch {
         console.error("Backend Sync Failed - ensure server.js is running");
       }
     };
@@ -127,7 +128,7 @@ const GlobalPopup = () => {
 
     const timer = setTimeout(checkLogin, 30000); // 30 seconds
     return () => clearTimeout(timer);
-  }, []);
+  }, [location.pathname]);
 
   if (!showPopup) return null;
 
@@ -147,6 +148,18 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
+// Admin Protected Route Component
+const ProtectedAdminRoute = ({ children }) => {
+  const user = JSON.parse(localStorage.getItem('digimentors_current_user') || 'null');
+  const config = JSON.parse(localStorage.getItem('digimentors_site_config') || '{}');
+  const adminEmails = Array.isArray(config.adminEmails) ? config.adminEmails : ['harshbudhauliya882@gmail.com'];
+  const isAllowed = user && adminEmails.map(e => (e || '').toLowerCase()).includes((user.email || '').toLowerCase());
+  if (!isAllowed) {
+    return <React.Fragment><Login onClose={() => window.location.href = '/'} /></React.Fragment>;
+  }
+  return children;
+};
+
 // Layout component to handle conditional rendering of Navbar/Footer
 const Layout = ({ children }) => {
   const location = useLocation();
@@ -155,6 +168,38 @@ const Layout = ({ children }) => {
   const isTestPlayer = location.pathname.startsWith('/attempt-test');
 
   const siteConfig = JSON.parse(localStorage.getItem('digimentors_site_config') || '{}');
+
+  const [bannerNtf, setBannerNtf] = React.useState(null);
+
+  React.useEffect(() => {
+    if (isAdmin || isTestPlayer) return;
+    try {
+      const list = JSON.parse(localStorage.getItem('digimentors_notifications') || '[]');
+      const unread = list.find(n => !n.read);
+      setBannerNtf(unread || null);
+    } catch { setBannerNtf(null); }
+  }, [location.pathname, isAdmin, isTestPlayer]);
+
+  const dismissBanner = () => {
+    try {
+      const list = JSON.parse(localStorage.getItem('digimentors_notifications') || '[]');
+      if (bannerNtf) {
+        const updated = list.map(n => n.id === bannerNtf.id ? { ...n, read: true } : n);
+        localStorage.setItem('digimentors_notifications', JSON.stringify(updated));
+        // Best-effort backend sync to mark read
+        const isMongo = bannerNtf.id && /^[a-f\d]{24}$/i.test(String(bannerNtf.id));
+        const user = JSON.parse(localStorage.getItem('digimentors_current_user') || 'null');
+        if (isMongo && user?.email) {
+          fetch(`${API_BASE}/api/notifications/${bannerNtf.id}/read`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: user.email })
+          }).catch(() => null);
+        }
+      }
+    } catch { /* ignore */ }
+    setBannerNtf(null);
+  };
 
   if (siteConfig.maintenanceMode && !isAdmin) {
     return (
@@ -178,6 +223,17 @@ const Layout = ({ children }) => {
   return (
     <div className="app-container" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Navbar />
+      {bannerNtf && (
+        <div style={{ background: 'linear-gradient(90deg, rgba(129,140,248,0.15), rgba(99,102,241,0.15))', borderBottom: '1px solid rgba(255,255,255,0.08)', color: 'white' }}>
+          <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{ fontWeight: 700 }}>{bannerNtf.title || 'Notice'}</span>
+              <span style={{ color: '#a1a1aa' }}>{bannerNtf.message}</span>
+            </div>
+            <button onClick={dismissBanner} className="btn-reset" style={{ padding: '6px 10px', background: 'rgba(255,255,255,0.1)', color: 'white', borderRadius: '6px', fontWeight: 600 }}>Dismiss</button>
+          </div>
+        </div>
+      )}
       <main style={{ flex: 1 }}>
         {children}
       </main>
@@ -215,7 +271,7 @@ function App() {
           <Route path="/study-material" element={<StudyMaterial />} />
           <Route path="/attempt-test/:testId" element={<ProtectedRoute><TestPlayer /></ProtectedRoute>} />
           <Route path="/login" element={<Login />} />
-          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin" element={<ProtectedAdminRoute><AdminDashboard /></ProtectedAdminRoute>} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/mentorship" element={<Mentorship />} />
           <Route path="/contact" element={<Contact />} />

@@ -5,9 +5,10 @@ import {
     LayoutDashboard, Users, Activity, BookOpen, Settings,
     Search, Bell, ChevronDown, MapPin, Smartphone,
     Globe, Clock, TrendingUp, DollarSign, Shield, LogOut, Menu, X,
-    FileText, Zap, AlertTriangle, Trash2
+    FileText, Zap, AlertTriangle, Trash2, LogIn, Mail
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { API_BASE } from '../utils/apiBase';
 import { realQuestions } from '../data/realQuestions';
 
 // --- Data Helpers ---
@@ -30,6 +31,25 @@ const getSystemStats = () => {
     return { totalVisits, totalUsers, totalTests, totalQuestions };
 };
 
+// Sidebar item component (top-level to avoid nested component lint)
+const SidebarItem = ({ id, icon: Icon, label, activeTab, isSidebarOpen, isMobile, onClick }) => (
+    <button
+        onClick={onClick}
+        className="btn-reset"
+        style={{
+            width: '100%', padding: '12px 16px', marginBottom: '8px',
+            borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '12px',
+            background: activeTab === id ? 'linear-gradient(90deg, rgba(99, 102, 241, 0.1), transparent)' : 'transparent',
+            borderLeft: activeTab === id ? '3px solid #6366f1' : '3px solid transparent',
+            color: activeTab === id ? 'white' : '#9ca3af',
+            transition: 'all 0.2s', cursor: 'pointer', border: 'none', textAlign: 'left'
+        }}
+    >
+        <Icon size={20} color={activeTab === id ? '#818cf8' : '#9ca3af'} />
+        {(isSidebarOpen || isMobile) && <span style={{ fontWeight: '500' }}>{label}</span>}
+    </button>
+);
+
 const getAllUsers = () => {
     const users = JSON.parse(localStorage.getItem('digimentors_users') || '[]');
     // Sort by join date desc (if available) or push valid ones
@@ -40,8 +60,32 @@ const getRecentActivity = () => {
     return JSON.parse(localStorage.getItem('digimentors_recent_activities') || '[]');
 };
 
+const getLoginLogs = () => {
+    return JSON.parse(localStorage.getItem('digimentors_login_logs') || '[]');
+};
+
 const getSiteConfig = () => {
-    return JSON.parse(localStorage.getItem('digimentors_site_config') || '{"maintenanceMode": false, "announcement": ""}');
+    return JSON.parse(localStorage.getItem('digimentors_site_config') || '{"maintenanceMode": false, "announcement": "", "adminEmails": ["harshbudhauliya882@gmail.com"]}');
+};
+
+const getContentLibrary = () => {
+    return JSON.parse(localStorage.getItem('digimentors_content_library') || '[]');
+};
+
+const getTests = () => {
+    return JSON.parse(localStorage.getItem('digimentors_tests') || '[]');
+};
+
+const getNotificationsList = () => {
+    return JSON.parse(localStorage.getItem('digimentors_notifications') || '[]');
+};
+
+const getPlans = () => {
+    return JSON.parse(localStorage.getItem('digimentors_billing_plans') || '[]');
+};
+
+const getContacts = () => {
+    return JSON.parse(localStorage.getItem('digimentors_contacts') || '[]');
 };
 
 const AnalyticsView = ({ activities }) => {
@@ -426,11 +470,29 @@ const AdminDashboard = () => {
     const [stats, setStats] = useState(getSystemStats());
     const [users, setUsers] = useState(getAllUsers());
     const [activities, setActivities] = useState(getRecentActivity());
+    const [loginLogs, setLoginLogs] = useState(getLoginLogs());
     const [siteConfig, setSiteConfig] = useState(getSiteConfig());
     const [selectedUser, setSelectedUser] = useState(null);
+    const [content, setContent] = useState(getContentLibrary());
+    const [tests, setTests] = useState(getTests());
+    const [notifications, setNotifications] = useState(getNotificationsList());
+    const [plans, setPlans] = useState(getPlans());
+    const [contacts, setContacts] = useState(getContacts());
 
     // Search
     const [searchTerm, setSearchTerm] = useState('');
+    const [newAdminEmail, setNewAdminEmail] = useState('');
+    const [newContent, setNewContent] = useState({ title: '', subject: '', type: 'pdf', url: '' });
+    const [newTest, setNewTest] = useState({ name: '', subject: '', date: '', duration: 60 });
+    const [newNotification, setNewNotification] = useState({ title: '', message: '' });
+    const [newPlan, setNewPlan] = useState({ name: '', price: '', features: '' });
+    const [contactFilter, setContactFilter] = useState('all');
+    const [contentSearch, setContentSearch] = useState('');
+    const [contentTypeFilter, setContentTypeFilter] = useState('all');
+    const [testsSearch, setTestsSearch] = useState('');
+    const [notificationsFilter, setNotificationsFilter] = useState('all');
+    const [contactPage, setContactPage] = useState(1);
+    const [contactPageSize] = useState(10);
 
     // Responsive
     useEffect(() => {
@@ -444,37 +506,80 @@ const AdminDashboard = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    // Live Refresh
     // Live Refresh (Hybrid: Backend + Local Fallback)
     useEffect(() => {
         const fetchData = async () => {
+            const base = API_BASE || '';
             try {
-                const res = await fetch(`http://${window.location.hostname}:3000/api/data`);
-                if (!res.ok) throw new Error('Backend Offline');
-                const db = await res.json();
+                const [usersRes, testsRes, notifsRes, contactsRes] = await Promise.all([
+                    fetch(`${base}/api/users`).catch(() => null),
+                    fetch(`${base}/api/tests`).catch(() => null),
+                    fetch(`${base}/api/notifications`).catch(() => null),
+                    fetch(`${base}/api/contacts`).catch(() => null),
+                ]);
 
-                // Update State from Backend
-                if (db.users) setUsers([...db.users].reverse());
-                if (db.activities) setActivities(db.activities);
+                // Users
+                if (usersRes && usersRes.ok) {
+                    const list = await usersRes.json();
+                    setUsers(list);
+                } else {
+                    setUsers(getAllUsers());
+                }
 
-                // Update Stats
-                setStats(prev => ({
-                    ...prev,
-                    totalVisits: db.stats?.totalVisits || prev.totalVisits,
-                    totalUsers: db.users?.length || prev.totalUsers
-                }));
+                // Tests
+                if (testsRes && testsRes.ok) {
+                    const list = await testsRes.json();
+                    const mapped = list.map(t => ({ id: t._id || t.id, name: t.name, subject: t.subject, duration: t.duration, scheduledAt: t.scheduledAt, published: !!t.published }));
+                    setTests(mapped);
+                    localStorage.setItem('digimentors_tests', JSON.stringify(mapped));
+                } else {
+                    setTests(getTests());
+                }
 
-            } catch (e) {
-                // Fallback to Local Storage if Backend is offline
+                // Notifications
+                if (notifsRes && notifsRes.ok) {
+                    const list = await notifsRes.json();
+                    const mapped = list.map(n => ({ id: n._id || n.id, title: n.title, message: n.message, createdAt: n.createdAt, read: false }));
+                    setNotifications(mapped);
+                    localStorage.setItem('digimentors_notifications', JSON.stringify(mapped));
+                } else {
+                    setNotifications(getNotificationsList());
+                }
+
+                // Contacts
+                if (contactsRes && contactsRes.ok) {
+                    const list = await contactsRes.json();
+                    const mapped = list.map(c => ({ id: c._id || c.id, firstName: c.firstName, lastName: c.lastName, email: c.email, queryType: c.queryType, message: c.message, status: c.status, createdAt: c.createdAt }));
+                    setContacts(mapped);
+                    localStorage.setItem('digimentors_contacts', JSON.stringify(mapped));
+                } else {
+                    setContacts(getContacts());
+                }
+
+                // Stats and other locals
+                setStats(getSystemStats());
+                setActivities(getRecentActivity());
+                setLoginLogs(getLoginLogs());
+                setSiteConfig(getSiteConfig());
+                setContent(getContentLibrary());
+                setPlans(getPlans());
+            } catch {
+                // Fallback
                 setStats(getSystemStats());
                 setUsers(getAllUsers());
                 setActivities(getRecentActivity());
+                setLoginLogs(getLoginLogs());
+                setSiteConfig(getSiteConfig());
+                setContent(getContentLibrary());
+                setTests(getTests());
+                setNotifications(getNotificationsList());
+                setPlans(getPlans());
+                setContacts(getContacts());
             }
-            setSiteConfig(getSiteConfig()); // Config is still local for now unless synced
         };
 
-        fetchData(); // Immediate fetch
-        const interval = setInterval(fetchData, 3000); // Poll every 3s
+        fetchData();
+        const interval = setInterval(fetchData, 5000);
         return () => clearInterval(interval);
     }, []);
 
@@ -510,32 +615,192 @@ const AdminDashboard = () => {
         if (currentUser && currentUser.email === updatedUser.email) {
             localStorage.setItem('digimentors_current_user', JSON.stringify(updatedUser));
         }
+
+        // Best-effort backend sync
+        try {
+            fetch(`${API_BASE}/api/user`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatedUser)
+            }).catch(() => null);
+        } catch { /* ignore */ }
+    };
+
+    const handleAddContent = () => {
+        const c = { id: 'CONT-' + Math.random().toString(36).substr(2, 9), ...newContent, createdAt: new Date().toISOString() };
+        const list = [c, ...content];
+        setContent(list);
+        localStorage.setItem('digimentors_content_library', JSON.stringify(list));
+        setNewContent({ title: '', subject: '', type: 'pdf', url: '' });
+    };
+
+    const handleDeleteContent = (id) => {
+        const list = content.filter(i => i.id !== id);
+        setContent(list);
+        localStorage.setItem('digimentors_content_library', JSON.stringify(list));
+    };
+
+    const handleAddTest = async () => {
+        const t = {
+            name: newTest.name,
+            subject: newTest.subject,
+            scheduledAt: newTest.date ? new Date(newTest.date).toISOString() : null,
+            duration: parseInt(newTest.duration || 60, 10),
+            published: false
+        };
+        try {
+            const res = await fetch(`${API_BASE}/api/tests`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(t)
+            });
+            const saved = res.ok ? await res.json() : null;
+            const mapped = saved ? { id: saved._id, ...t } : { id: 'TEST-' + Math.random().toString(36).substr(2, 9), ...t };
+            const list = [mapped, ...tests];
+            setTests(list);
+            localStorage.setItem('digimentors_tests', JSON.stringify(list));
+        } catch {
+            const mapped = { id: 'TEST-' + Math.random().toString(36).substr(2, 9), ...t };
+            const list = [mapped, ...tests];
+            setTests(list);
+            localStorage.setItem('digimentors_tests', JSON.stringify(list));
+        }
+        setNewTest({ name: '', subject: '', date: '', duration: 60 });
+    };
+
+    const handleDeleteTest = async (id) => {
+        const serverId = (id && /^[a-f\d]{24}$/i.test(String(id))) ? id : null;
+        if (serverId) {
+            try { await fetch(`${API_BASE}/api/tests/${serverId}`, { method: 'DELETE' }); } catch { /* ignore */ }
+        }
+        const list = tests.filter(i => i.id !== id);
+        setTests(list);
+        localStorage.setItem('digimentors_tests', JSON.stringify(list));
+    };
+
+    const handleAddNotification = async () => {
+        const payload = { title: newNotification.title, message: newNotification.message };
+        try {
+            const res = await fetch(`${API_BASE}/api/notifications`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+            });
+            const saved = res.ok ? await res.json() : null;
+            const n = saved ? { id: saved._id, title: saved.title, message: saved.message, createdAt: saved.createdAt, read: false } : { id: 'NTF-' + Math.random().toString(36).substr(2, 9), ...payload, createdAt: new Date().toISOString(), read: false };
+            const list = [n, ...notifications];
+            setNotifications(list);
+            localStorage.setItem('digimentors_notifications', JSON.stringify(list));
+        } catch {
+            const fallback = { id: 'NTF-' + Math.random().toString(36).substr(2, 9), ...payload, createdAt: new Date().toISOString(), read: false };
+            const list = [fallback, ...notifications];
+            setNotifications(list);
+            localStorage.setItem('digimentors_notifications', JSON.stringify(list));
+        }
+        setNewNotification({ title: '', message: '' });
+    };
+
+    const handleDeleteNotification = async (id) => {
+        const serverId = (id && /^[a-f\d]{24}$/i.test(String(id))) ? id : null;
+        if (serverId) {
+            try { await fetch(`${API_BASE}/api/notifications/${serverId}`, { method: 'DELETE' }); } catch { /* ignore */ }
+        }
+        const list = notifications.filter(i => i.id !== id);
+        setNotifications(list);
+        localStorage.setItem('digimentors_notifications', JSON.stringify(list));
+    };
+
+    const handleAddPlan = () => {
+        const p = {
+            id: 'PLAN-' + Math.random().toString(36).substr(2, 9),
+            name: newPlan.name,
+            price: parseFloat(newPlan.price || '0'),
+            features: newPlan.features.split(',').map(f => f.trim()).filter(Boolean)
+        };
+        const list = [p, ...plans];
+        setPlans(list);
+        localStorage.setItem('digimentors_billing_plans', JSON.stringify(list));
+        setNewPlan({ name: '', price: '', features: '' });
+    };
+
+    const handleDeletePlan = (id) => {
+        const list = plans.filter(i => i.id !== id);
+        setPlans(list);
+        localStorage.setItem('digimentors_billing_plans', JSON.stringify(list));
+    };
+
+    const handleToggleTestPublish = async (id) => {
+        const current = tests.find(t => t.id === id);
+        const nextPublished = !current?.published;
+        const serverId = (id && /^[a-f\d]{24}$/i.test(String(id))) ? id : null;
+        if (serverId) {
+            try {
+                await fetch(`${API_BASE}/api/tests/${serverId}`, {
+                    method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ published: nextPublished })
+                });
+            } catch { /* ignore */ }
+        }
+        const list = tests.map(t => t.id === id ? { ...t, published: nextPublished } : t);
+        setTests(list);
+        localStorage.setItem('digimentors_tests', JSON.stringify(list));
+    };
+
+    const handleMarkNotificationRead = (id) => {
+        const list = notifications.map(n => n.id === id ? { ...n, read: true } : n);
+        setNotifications(list);
+        localStorage.setItem('digimentors_notifications', JSON.stringify(list));
+    };
+
+    const exportContactsCSV = () => {
+        const header = ['Time','FirstName','LastName','Email','Type','Message','Status'];
+        const rows = contacts.map(c => [
+            c.createdAt ? new Date(c.createdAt).toLocaleString() : '',
+            c.firstName || '',
+            c.lastName || '',
+            c.email || '',
+            c.queryType || '',
+            (c.message || '').replace(/\n/g,' '),
+            c.status || ''
+        ]);
+        const csv = [header, ...rows].map(r => r.map(x => '"' + String(x).replaceAll('"','""') + '"').join(',')).join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'contacts.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
+
+    const handleDeleteContact = async (id) => {
+        const serverId = (id && /^[a-f\d]{24}$/i.test(String(id))) ? id : null;
+        if (serverId) {
+            try { await fetch(`${API_BASE}/api/contacts/${serverId}`, { method: 'DELETE' }); } catch { /* ignore */ }
+        }
+        const list = contacts.filter(c => c.id !== id);
+        setContacts(list);
+        localStorage.setItem('digimentors_contacts', JSON.stringify(list));
+    };
+
+    const handleToggleContactStatus = async (id) => {
+        const item = contacts.find(c => c.id === id);
+        if (!item) return;
+        const next = item.status === 'resolved' ? 'open' : 'resolved';
+        const serverId = (id && /^[a-f\d]{24}$/i.test(String(id))) ? id : null;
+        if (serverId) {
+            try {
+                await fetch(`${API_BASE}/api/contacts/${serverId}`, {
+                    method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: next })
+                });
+            } catch { /* ignore */ }
+        }
+        const list = contacts.map(x => x.id === id ? { ...x, status: next } : x);
+        setContacts(list);
+        localStorage.setItem('digimentors_contacts', JSON.stringify(list));
     };
 
     // Filtered Users
     const filteredUsers = users.filter(u =>
         u.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         u.email?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    // --- Components ---
-
-    const SidebarItem = ({ id, icon: Icon, label }) => (
-        <button
-            onClick={() => { setActiveTab(id); if (isMobile) setSidebarOpen(false); }}
-            className="btn-reset"
-            style={{
-                width: '100%', padding: '12px 16px', marginBottom: '8px',
-                borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '12px',
-                background: activeTab === id ? 'linear-gradient(90deg, rgba(99, 102, 241, 0.1), transparent)' : 'transparent',
-                borderLeft: activeTab === id ? '3px solid #6366f1' : '3px solid transparent',
-                color: activeTab === id ? 'white' : '#9ca3af',
-                transition: 'all 0.2s', cursor: 'pointer', border: 'none', textAlign: 'left'
-            }}
-        >
-            <Icon size={20} color={activeTab === id ? '#818cf8' : '#9ca3af'} />
-            {(isSidebarOpen || isMobile) && <span style={{ fontWeight: '500' }}>{label}</span>}
-        </button>
     );
 
     return (
@@ -563,15 +828,24 @@ const AdminDashboard = () => {
                             {isMobile && <button onClick={() => setSidebarOpen(false)} style={{ background: 'none', border: 'none', color: 'white' }}><X size={20} /></button>}
                         </div>
                     )}
+
+                    
                 </div>
 
-                <div style={{ padding: '16px', flex: 1 }}>
-                    <SidebarItem id="dashboard" icon={LayoutDashboard} label="Overview" />
-                    <SidebarItem id="analytics" icon={TrendingUp} label="Detailed Analytics" />
-                    <SidebarItem id="admissions" icon={Users} label="Admissions" />
-                    <SidebarItem id="users" icon={FileText} label="User Management" />
-                    <SidebarItem id="live" icon={Activity} label="Live Traffic" />
-                    <SidebarItem id="control" icon={Settings} label="Site Control" />
+                <div style={{ padding: '16px', flex: 1, overflowY: 'auto' }}>
+                    <SidebarItem id="dashboard" icon={LayoutDashboard} label="Overview" activeTab={activeTab} isSidebarOpen={isSidebarOpen} isMobile={isMobile} onClick={() => { setActiveTab('dashboard'); if (isMobile) setSidebarOpen(false); }} />
+                    <SidebarItem id="analytics" icon={TrendingUp} label="Detailed Analytics" activeTab={activeTab} isSidebarOpen={isSidebarOpen} isMobile={isMobile} onClick={() => { setActiveTab('analytics'); if (isMobile) setSidebarOpen(false); }} />
+                    <SidebarItem id="admissions" icon={Users} label="Admissions" activeTab={activeTab} isSidebarOpen={isSidebarOpen} isMobile={isMobile} onClick={() => { setActiveTab('admissions'); if (isMobile) setSidebarOpen(false); }} />
+                    <SidebarItem id="users" icon={FileText} label="User Management" activeTab={activeTab} isSidebarOpen={isSidebarOpen} isMobile={isMobile} onClick={() => { setActiveTab('users'); if (isMobile) setSidebarOpen(false); }} />
+                    <SidebarItem id="live" icon={Activity} label="Live Traffic" activeTab={activeTab} isSidebarOpen={isSidebarOpen} isMobile={isMobile} onClick={() => { setActiveTab('live'); if (isMobile) setSidebarOpen(false); }} />
+                    <SidebarItem id="logins" icon={LogIn} label="Login Logs" activeTab={activeTab} isSidebarOpen={isSidebarOpen} isMobile={isMobile} onClick={() => { setActiveTab('logins'); if (isMobile) setSidebarOpen(false); }} />
+                    <SidebarItem id="control" icon={Settings} label="Site Control" activeTab={activeTab} isSidebarOpen={isSidebarOpen} isMobile={isMobile} onClick={() => { setActiveTab('control'); if (isMobile) setSidebarOpen(false); }} />
+                    <SidebarItem id="content" icon={BookOpen} label="Content Library" activeTab={activeTab} isSidebarOpen={isSidebarOpen} isMobile={isMobile} onClick={() => { setActiveTab('content'); if (isMobile) setSidebarOpen(false); }} />
+                    <SidebarItem id="tests" icon={Activity} label="Test Management" activeTab={activeTab} isSidebarOpen={isSidebarOpen} isMobile={isMobile} onClick={() => { setActiveTab('tests'); if (isMobile) setSidebarOpen(false); }} />
+                    <SidebarItem id="notifications" icon={Bell} label="Notifications" activeTab={activeTab} isSidebarOpen={isSidebarOpen} isMobile={isMobile} onClick={() => { setActiveTab('notifications'); if (isMobile) setSidebarOpen(false); }} />
+                    <SidebarItem id="billing" icon={DollarSign} label="Billing" activeTab={activeTab} isSidebarOpen={isSidebarOpen} isMobile={isMobile} onClick={() => { setActiveTab('billing'); if (isMobile) setSidebarOpen(false); }} />
+                    <SidebarItem id="audit" icon={AlertTriangle} label="Audit Logs" activeTab={activeTab} isSidebarOpen={isSidebarOpen} isMobile={isMobile} onClick={() => { setActiveTab('audit'); if (isMobile) setSidebarOpen(false); }} />
+                    <SidebarItem id="contacts" icon={Mail} label="Contacts" activeTab={activeTab} isSidebarOpen={isSidebarOpen} isMobile={isMobile} onClick={() => { setActiveTab('contacts'); if (isMobile) setSidebarOpen(false); }} />
                 </div>
 
 
@@ -668,14 +942,14 @@ const AdminDashboard = () => {
                                                 <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#6366f1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{u.name?.[0]?.toUpperCase()}</div>
                                                 {u.name}
                                             </td>
-                                            <td style={{ padding: '16px', color: '#a1a1aa' }}>{u.phone || 'N/A'}</td>
+                                            <td style={{ padding: '16px', color: '#a1a1aa' }}>{u.admissionId || 'N/A'}</td>
                                             <td style={{ padding: '16px', color: '#a1a1aa' }}>{u.email}</td>
-                                            <td style={{ padding: '16px' }}>
-                                                {u.educationDetails ? (
-                                                    <span style={{ padding: '4px 8px', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', borderRadius: '4px', fontSize: '0.8rem' }}>
-                                                        {u.educationDetails.targetExam}
-                                                    </span>
-                                                ) : <span style={{ color: '#52525b' }}>N/A</span>}
+                                            <td style={{ padding: '16px' }}>{u.phone || 'N/A'}</td>
+                                            <td style={{ padding: '16px' }}>{u.educationDetails?.targetExam ? (
+                                                <span style={{ padding: '4px 8px', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', borderRadius: '4px', fontSize: '0.8rem' }}>
+                                                    {u.educationDetails.targetExam}
+                                                </span>
+                                            ) : <span style={{ color: '#52525b' }}>N/A</span>}
                                             </td>
                                             <td style={{ padding: '16px', color: '#a1a1aa' }}>{u.joinDate}</td>
                                             <td style={{ padding: '16px' }}>
@@ -716,6 +990,320 @@ const AdminDashboard = () => {
                             </div>
                         </div>
                     )}
+
+                    {activeTab === 'content' && (
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '24px' }}>
+                            <div style={{ padding: '24px', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
+                                    <input value={newContent.title} onChange={e => setNewContent({ ...newContent, title: e.target.value })} placeholder="Title" style={{ padding: '12px', background: '#000', border: '1px solid #333', borderRadius: '8px', color: 'white' }} />
+                                    <input value={newContent.subject} onChange={e => setNewContent({ ...newContent, subject: e.target.value })} placeholder="Subject" style={{ padding: '12px', background: '#000', border: '1px solid #333', borderRadius: '8px', color: 'white' }} />
+                                    <select value={newContent.type} onChange={e => setNewContent({ ...newContent, type: e.target.value })} style={{ padding: '12px', background: '#000', border: '1px solid #333', borderRadius: '8px', color: 'white' }}>
+                                        <option value="pdf">PDF</option>
+                                        <option value="video">Video</option>
+                                        <option value="link">Link</option>
+                                    </select>
+                                    <input value={newContent.url} onChange={e => setNewContent({ ...newContent, url: e.target.value })} placeholder="URL" style={{ padding: '12px', background: '#000', border: '1px solid #333', borderRadius: '8px', color: 'white' }} />
+                                    <button onClick={handleAddContent} style={{ padding: '12px', background: '#22c55e', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '700' }}>Add Content</button>
+                                </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', marginTop: '12px' }}>
+                                    <input value={contentSearch} onChange={e => setContentSearch(e.target.value)} placeholder="Search title/subject" style={{ padding: '12px', background: '#000', border: '1px solid #333', borderRadius: '8px', color: 'white' }} />
+                                    <select value={contentTypeFilter} onChange={e => setContentTypeFilter(e.target.value)} style={{ padding: '12px', background: '#000', border: '1px solid #333', borderRadius: '8px', color: 'white' }}>
+                                        <option value="all">All Types</option>
+                                        <option value="pdf">PDF</option>
+                                        <option value="video">Video</option>
+                                        <option value="link">Link</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', overflow: 'hidden' }}>
+                                <div style={{ width: '100%', overflowX: 'auto' }}>
+                                <table style={{ width: '100%', minWidth: '800px', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+                                    <thead>
+                                        <tr style={{ textAlign: 'left', color: '#a1a1aa', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                            <th style={{ padding: '16px' }}>Title</th>
+                                            <th style={{ padding: '16px' }}>Subject</th>
+                                            <th style={{ padding: '16px' }}>Type</th>
+                                            <th style={{ padding: '16px' }}>URL</th>
+                                            <th style={{ padding: '16px' }}>Added</th>
+                                            <th style={{ padding: '16px' }}>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {(content.filter(c => (
+                                            (!contentSearch || (c.title || '').toLowerCase().includes(contentSearch.toLowerCase()) || (c.subject || '').toLowerCase().includes(contentSearch.toLowerCase())) &&
+                                            (contentTypeFilter === 'all' || c.type === contentTypeFilter)
+                                        ))).length > 0 ? content.filter(c => (
+                                            (!contentSearch || (c.title || '').toLowerCase().includes(contentSearch.toLowerCase()) || (c.subject || '').toLowerCase().includes(contentSearch.toLowerCase())) &&
+                                            (contentTypeFilter === 'all' || c.type === contentTypeFilter)
+                                        )).map((c) => (
+                                            <tr key={c.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
+                                                <td style={{ padding: '16px' }}>{c.title}</td>
+                                                <td style={{ padding: '16px', color: '#a1a1aa' }}>{c.subject}</td>
+                                                <td style={{ padding: '16px' }}>{c.type}</td>
+                                                <td style={{ padding: '16px' }}><a href={c.url} target="_blank" rel="noreferrer" style={{ color: '#818cf8' }}>Open</a></td>
+                                                <td style={{ padding: '16px', color: '#a1a1aa' }}>{c.createdAt ? new Date(c.createdAt).toLocaleString() : ''}</td>
+                                                <td style={{ padding: '16px' }}>
+                                                    <button onClick={() => handleDeleteContent(c.id)} style={{ padding: '6px 10px', background: 'rgba(239,68,68,0.15)', color: '#ef4444', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Delete</button>
+                                                </td>
+                                            </tr>
+                                        )) : (
+                                            <tr><td colSpan="6" style={{ padding: '24px', textAlign: 'center', color: '#52525b' }}>No content added</td></tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'tests' && (
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '24px' }}>
+                            <div style={{ padding: '24px', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
+                                    <input value={newTest.name} onChange={e => setNewTest({ ...newTest, name: e.target.value })} placeholder="Test Name" style={{ padding: '12px', background: '#000', border: '1px solid #333', borderRadius: '8px', color: 'white' }} />
+                                    <input value={newTest.subject} onChange={e => setNewTest({ ...newTest, subject: e.target.value })} placeholder="Subject" style={{ padding: '12px', background: '#000', border: '1px solid #333', borderRadius: '8px', color: 'white' }} />
+                                    <input type="datetime-local" value={newTest.date} onChange={e => setNewTest({ ...newTest, date: e.target.value })} style={{ padding: '12px', background: '#000', border: '1px solid #333', borderRadius: '8px', color: 'white' }} />
+                                    <input type="number" min="1" value={newTest.duration} onChange={e => setNewTest({ ...newTest, duration: e.target.value })} placeholder="Duration (mins)" style={{ padding: '12px', background: '#000', border: '1px solid #333', borderRadius: '8px', color: 'white' }} />
+                                    <button onClick={handleAddTest} style={{ padding: '12px', background: '#f59e0b', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '700' }}>Add Test</button>
+                                </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '12px', marginTop: '12px' }}>
+                                    <input value={testsSearch} onChange={e => setTestsSearch(e.target.value)} placeholder="Search by name or subject" style={{ padding: '12px', background: '#000', border: '1px solid #333', borderRadius: '8px', color: 'white' }} />
+                                </div>
+                            </div>
+                            <div style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', overflow: 'hidden' }}>
+                                <div style={{ width: '100%', overflowX: 'auto' }}>
+                                <table style={{ width: '100%', minWidth: '900px', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+                                    <thead>
+                                        <tr style={{ textAlign: 'left', color: '#a1a1aa', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                            <th style={{ padding: '16px' }}>Name</th>
+                                            <th style={{ padding: '16px' }}>Subject</th>
+                                            <th style={{ padding: '16px' }}>Schedule</th>
+                                            <th style={{ padding: '16px' }}>Duration</th>
+                                            <th style={{ padding: '16px' }}>Status</th>
+                                            <th style={{ padding: '16px' }}>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {(tests.filter(t => (
+                                            !testsSearch || (t.name || '').toLowerCase().includes(testsSearch.toLowerCase()) || (t.subject || '').toLowerCase().includes(testsSearch.toLowerCase())
+                                        ))).length > 0 ? tests.filter(t => (
+                                            !testsSearch || (t.name || '').toLowerCase().includes(testsSearch.toLowerCase()) || (t.subject || '').toLowerCase().includes(testsSearch.toLowerCase())
+                                        )).map((t) => (
+                                            <tr key={t.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
+                                                <td style={{ padding: '16px' }}>{t.name}</td>
+                                                <td style={{ padding: '16px', color: '#a1a1aa' }}>{t.subject}</td>
+                                                <td style={{ padding: '16px', color: '#a1a1aa' }}>{t.scheduledAt ? new Date(t.scheduledAt).toLocaleString() : 'Not set'}</td>
+                                                <td style={{ padding: '16px' }}>{t.duration} mins</td>
+                                                <td style={{ padding: '16px' }}>
+                                                    <span style={{ padding: '4px 8px', borderRadius: '4px', background: t.published ? 'rgba(16,185,129,0.12)' : 'rgba(244,63,94,0.12)', color: t.published ? '#10b981' : '#f43f5e', fontSize: '0.8rem' }}>{t.published ? 'Published' : 'Draft'}</span>
+                                                </td>
+                                                <td style={{ padding: '16px' }}>
+                                                    <button onClick={() => handleToggleTestPublish(t.id)} style={{ marginRight: '8px', padding: '6px 10px', background: 'rgba(129,140,248,0.15)', color: '#818cf8', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>{t.published ? 'Unpublish' : 'Publish'}</button>
+                                                    <button onClick={() => handleDeleteTest(t.id)} style={{ padding: '6px 10px', background: 'rgba(239,68,68,0.15)', color: '#ef4444', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Delete</button>
+                                                </td>
+                                            </tr>
+                                        )) : (
+                                            <tr><td colSpan="5" style={{ padding: '24px', textAlign: 'center', color: '#52525b' }}>No tests added</td></tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'notifications' && (
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '24px' }}>
+                            <div style={{ padding: '24px', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '12px' }}>
+                                    <input value={newNotification.title} onChange={e => setNewNotification({ ...newNotification, title: e.target.value })} placeholder="Title" style={{ padding: '12px', background: '#000', border: '1px solid #333', borderRadius: '8px', color: 'white' }} />
+                                    <textarea value={newNotification.message} onChange={e => setNewNotification({ ...newNotification, message: e.target.value })} placeholder="Message" rows="2" style={{ padding: '12px', background: '#000', border: '1px solid #333', borderRadius: '8px', color: 'white', resize: 'vertical' }} />
+                                    <button onClick={handleAddNotification} style={{ padding: '12px', background: '#818cf8', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '700' }}>Add Notification</button>
+                                </div>
+                            </div>
+                            <div style={{ padding: '12px 16px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', gap: '12px', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                                <span style={{ color: '#a1a1aa', fontSize: '0.95rem' }}>Filter</span>
+                                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                    <select value={notificationsFilter} onChange={(e) => setNotificationsFilter(e.target.value)} style={{ padding: '10px 12px', background: '#000', border: '1px solid #333', borderRadius: '8px', color: 'white' }}>
+                                        <option value="all">All</option>
+                                        <option value="unread">Unread</option>
+                                        <option value="read">Read</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', overflow: 'hidden' }}>
+                                <div style={{ width: '100%', overflowX: 'auto' }}>
+                                <table style={{ width: '100%', minWidth: '900px', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+                                    <thead>
+                                        <tr style={{ textAlign: 'left', color: '#a1a1aa', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                            <th style={{ padding: '16px' }}>Time</th>
+                                            <th style={{ padding: '16px' }}>Title</th>
+                                            <th style={{ padding: '16px' }}>Message</th>
+                                            <th style={{ padding: '16px' }}>Status</th>
+                                            <th style={{ padding: '16px' }}>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {(notifications.filter(n => notificationsFilter === 'all' || (notificationsFilter === 'unread' ? !n.read : n.read))).length > 0 ? notifications.filter(n => notificationsFilter === 'all' || (notificationsFilter === 'unread' ? !n.read : n.read)).map((n) => (
+                                            <tr key={n.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
+                                                <td style={{ padding: '16px', color: '#a1a1aa' }}>{n.createdAt ? new Date(n.createdAt).toLocaleString() : ''}</td>
+                                                <td style={{ padding: '16px' }}>{n.title}</td>
+                                                <td style={{ padding: '16px', color: '#a1a1aa' }}>{n.message}</td>
+                                                <td style={{ padding: '16px' }}>
+                                                    <span style={{ padding: '4px 8px', borderRadius: '4px', background: !n.read ? 'rgba(245,158,11,0.12)' : 'rgba(16,185,129,0.12)', color: !n.read ? '#f59e0b' : '#10b981', fontSize: '0.8rem' }}>{n.read ? 'Read' : 'Unread'}</span>
+                                                </td>
+                                                <td style={{ padding: '16px' }}>
+                                                    {!n.read && <button onClick={() => handleMarkNotificationRead(n.id)} style={{ marginRight: '8px', padding: '6px 10px', background: 'rgba(129,140,248,0.15)', color: '#818cf8', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Mark Read</button>}
+                                                    <button onClick={() => handleDeleteNotification(n.id)} style={{ padding: '6px 10px', background: 'rgba(239,68,68,0.15)', color: '#ef4444', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Delete</button>
+                                                </td>
+                                            </tr>
+                                        )) : (
+                                            <tr><td colSpan="4" style={{ padding: '24px', textAlign: 'center', color: '#52525b' }}>No notifications</td></tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'billing' && (
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '24px' }}>
+                            <div style={{ padding: '24px', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
+                                    <input value={newPlan.name} onChange={e => setNewPlan({ ...newPlan, name: e.target.value })} placeholder="Plan Name" style={{ padding: '12px', background: '#000', border: '1px solid #333', borderRadius: '8px', color: 'white' }} />
+                                    <input type="number" min="0" value={newPlan.price} onChange={e => setNewPlan({ ...newPlan, price: e.target.value })} placeholder="Price" style={{ padding: '12px', background: '#000', border: '1px solid #333', borderRadius: '8px', color: 'white' }} />
+                                    <input value={newPlan.features} onChange={e => setNewPlan({ ...newPlan, features: e.target.value })} placeholder="Features (comma separated)" style={{ padding: '12px', background: '#000', border: '1px solid #333', borderRadius: '8px', color: 'white' }} />
+                                    <button onClick={handleAddPlan} style={{ padding: '12px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '700' }}>Add Plan</button>
+                                </div>
+                            </div>
+                            <div style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', overflow: 'hidden' }}>
+                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+                                    <thead>
+                                        <tr style={{ textAlign: 'left', color: '#a1a1aa', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                            <th style={{ padding: '16px' }}>Plan</th>
+                                            <th style={{ padding: '16px' }}>Price</th>
+                                            <th style={{ padding: '16px' }}>Features</th>
+                                            <th style={{ padding: '16px' }}>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {plans.length > 0 ? plans.map((p) => (
+                                            <tr key={p.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
+                                                <td style={{ padding: '16px' }}>{p.name}</td>
+                                                <td style={{ padding: '16px', color: '#a1a1aa' }}>₹{(p.price || 0).toFixed(2)}</td>
+                                                <td style={{ padding: '16px' }}>{Array.isArray(p.features) ? p.features.join(', ') : ''}</td>
+                                                <td style={{ padding: '16px' }}>
+                                                    <button onClick={() => handleDeletePlan(p.id)} style={{ padding: '6px 10px', background: 'rgba(239,68,68,0.15)', color: '#ef4444', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Delete</button>
+                                                </td>
+                                            </tr>
+                                        )) : (
+                                            <tr><td colSpan="4" style={{ padding: '24px', textAlign: 'center', color: '#52525b' }}>No plans</td></tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'contacts' && (
+                        <div style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', overflow: 'hidden' }}>
+                            <div style={{ padding: '16px', borderBottom: '1px solid rgba(255,255,255,0.05)', fontWeight: '600', display: 'flex', gap: '12px', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                                <span>Contact Submissions</span>
+                                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                                    <select value={contactFilter} onChange={(e) => { setContactFilter(e.target.value); setContactPage(1); }} style={{ padding: '8px 12px', background: '#000', border: '1px solid #333', borderRadius: '8px', color: 'white' }}>
+                                        <option value="all">All</option>
+                                        <option value="open">Open</option>
+                                        <option value="resolved">Resolved</option>
+                                    </select>
+                                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                                        <button onClick={() => setContactPage(p => Math.max(1, p - 1))} className="btn-reset" style={{ padding: '6px 10px', background: 'rgba(255,255,255,0.08)', borderRadius: '6px', color: 'white' }}>Prev</button>
+                                        <span style={{ color: '#a1a1aa', fontSize: '0.85rem' }}>{(() => { const filtered = contacts.filter(c => contactFilter === 'all' || (contactFilter === 'open' ? (c.status !== 'resolved') : c.status === 'resolved')); const total = Math.max(1, Math.ceil(filtered.length / contactPageSize)); const current = Math.min(contactPage, total); return `Page ${current} of ${total}`; })()}</span>
+                                        <button onClick={() => setContactPage(p => { const total = Math.max(1, Math.ceil(contacts.filter(c => contactFilter === 'all' || (contactFilter === 'open' ? (c.status !== 'resolved') : c.status === 'resolved')).length / contactPageSize)); return Math.min(total, p + 1); })} className="btn-reset" style={{ padding: '6px 10px', background: 'rgba(255,255,255,0.08)', borderRadius: '6px', color: 'white' }}>Next</button>
+                                    </div>
+                                    <button onClick={exportContactsCSV} style={{ padding: '8px 12px', background: 'rgba(129,140,248,0.15)', color: '#818cf8', border: '1px solid rgba(129,140,248,0.2)', borderRadius: '8px', fontWeight: '600' }}>Export CSV</button>
+                                </div>
+                            </div>
+                            <div style={{ maxHeight: '600px', overflowY: 'auto' }}>
+                                <div style={{ width: '100%', overflowX: 'auto' }}>
+                                <table style={{ width: '100%', minWidth: '900px', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+                                    <thead style={{ position: 'sticky', top: 0, background: '#09090b', zIndex: 10 }}>
+                                        <tr style={{ color: '#a1a1aa', textAlign: 'left' }}>
+                                            <th style={{ padding: '12px 16px' }}>Time</th>
+                                            <th style={{ padding: '12px 16px' }}>Name</th>
+                                            <th style={{ padding: '12px 16px' }}>Email</th>
+                                            <th style={{ padding: '12px 16px' }}>Type</th>
+                                            <th style={{ padding: '12px 16px' }}>Message</th>
+                                            <th style={{ padding: '12px 16px' }}>Status</th>
+                                            <th style={{ padding: '12px 16px' }}>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {(() => {
+                                            const filtered = contacts.filter(c => contactFilter === 'all' || (contactFilter === 'open' ? (c.status !== 'resolved') : c.status === 'resolved'));
+                                            const totalPages = Math.max(1, Math.ceil(filtered.length / contactPageSize));
+                                            const currentPage = Math.min(contactPage, totalPages);
+                                            const pageItems = filtered.slice((currentPage - 1) * contactPageSize, currentPage * contactPageSize);
+                                            if (pageItems.length === 0) return (
+                                                <tr><td colSpan="6" style={{ padding: '24px', textAlign: 'center', color: '#52525b' }}>No contacts yet</td></tr>
+                                            );
+                                            return pageItems.map((c) => (
+                                            <tr key={c.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
+                                                <td style={{ padding: '12px 16px', color: '#a1a1aa' }}>{c.createdAt ? new Date(c.createdAt).toLocaleString() : ''}</td>
+                                                <td style={{ padding: '12px 16px' }}>{[c.firstName, c.lastName].filter(Boolean).join(' ')}</td>
+                                                <td style={{ padding: '12px 16px', color: '#a1a1aa' }}>{c.email}</td>
+                                                <td style={{ padding: '12px 16px' }}>{c.queryType || 'General'}</td>
+                                                <td style={{ padding: '12px 16px', color: '#a1a1aa', maxWidth: '400px' }}>{c.message}</td>
+                                                <td style={{ padding: '12px 16px' }}>
+                                                    <span style={{ padding: '4px 8px', borderRadius: '4px', background: c.status === 'resolved' ? 'rgba(16,185,129,0.12)' : 'rgba(245,158,11,0.12)', color: c.status === 'resolved' ? '#10b981' : '#f59e0b', fontSize: '0.8rem' }}>{c.status === 'resolved' ? 'Resolved' : 'Open'}</span>
+                                                </td>
+                                                <td style={{ padding: '12px 16px' }}>
+                                                    <button onClick={() => handleToggleContactStatus(c.id)} style={{ marginRight: '8px', padding: '6px 10px', background: 'rgba(129,140,248,0.15)', color: '#818cf8', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>{c.status === 'resolved' ? 'Reopen' : 'Resolve'}</button>
+                                                    <button onClick={() => handleDeleteContact(c.id)} style={{ padding: '6px 10px', background: 'rgba(239,68,68,0.15)', color: '#ef4444', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Delete</button>
+                                                </td>
+                                            </tr>
+                                            ));
+                                        })()}
+                                    </tbody>
+                                </table>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'audit' && (
+                        <div style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', overflow: 'hidden' }}>
+                            <div style={{ padding: '16px', borderBottom: '1px solid rgba(255,255,255,0.05)', fontWeight: '600' }}>Recent System Events</div>
+                            <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
+                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+                                    <thead style={{ position: 'sticky', top: 0, background: '#09090b', zIndex: 10 }}>
+                                        <tr style={{ color: '#a1a1aa', textAlign: 'left' }}>
+                                            <th style={{ padding: '12px 16px' }}>Time</th>
+                                            <th style={{ padding: '12px 16px' }}>Event</th>
+                                            <th style={{ padding: '12px 16px' }}>Details</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {[
+                                            ...loginLogs.map(l => ({ t: l.isoDate || l.timestamp, time: l.isoDate ? new Date(l.isoDate).toLocaleString() : l.time, event: 'Login', details: l.user ? l.user.email : 'Unknown' })),
+                                            ...activities.map(a => ({ t: a.isoDate || a.timestamp, time: a.isoDate ? new Date(a.isoDate).toLocaleString() : a.time, event: 'Visit', details: a.page }))
+                                        ]
+                                        .sort((a,b) => new Date(b.t) - new Date(a.t))
+                                        .slice(0, 50)
+                                        .map((row, i) => (
+                                            <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
+                                                <td style={{ padding: '12px 16px', color: '#a1a1aa' }}>{row.time}</td>
+                                                <td style={{ padding: '12px 16px' }}>{row.event}</td>
+                                                <td style={{ padding: '12px 16px', color: '#a1a1aa' }}>{row.details}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+
+                    
 
                     {/* CONTROL TAB */}
                     {activeTab === 'control' && (
@@ -795,6 +1383,61 @@ const AdminDashboard = () => {
                                 }} style={{ width: '100%', padding: '14px', background: 'rgba(129, 140, 248, 0.1)', color: '#818cf8', border: '1px solid rgba(129, 140, 248, 0.2)', borderRadius: '12px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                                     <FileText size={18} /> Export User Data (CSV)
                                 </button>
+                            </div>
+
+                            {/* Admin Access Management */}
+                            <div style={{ padding: '32px', background: 'rgba(255,255,255,0.02)', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}><Shield size={24} color="#22c55e" /> Admin Access</h3>
+                                <p style={{ color: '#a1a1aa', marginBottom: '16px' }}>Add or remove admin emails who can access this panel.</p>
+
+                                <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+                                    <input
+                                        type="email"
+                                        placeholder="Enter admin email"
+                                        value={newAdminEmail}
+                                        onChange={(e) => setNewAdminEmail(e.target.value)}
+                                        style={{ flex: 1, padding: '12px', background: '#000', border: '1px solid #333', borderRadius: '8px', color: 'white' }}
+                                    />
+                                    <button
+                                        onClick={() => {
+                                            const email = newAdminEmail.trim().toLowerCase();
+                                            if (!email) return;
+                                            const current = Array.isArray(siteConfig.adminEmails) ? siteConfig.adminEmails : [];
+                                            if (current.includes(email)) { setNewAdminEmail(''); return; }
+                                            const updated = [...current, email];
+                                            handleConfigChange('adminEmails', updated);
+                                            setNewAdminEmail('');
+                                        }}
+                                        className="btn-reset"
+                                        style={{ padding: '12px 16px', background: '#22c55e', color: 'white', borderRadius: '8px', fontWeight: '600' }}
+                                    >
+                                        Add
+                                    </button>
+                                </div>
+
+                                <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '12px' }}>
+                                    {(siteConfig.adminEmails || []).length === 0 ? (
+                                        <div style={{ color: '#52525b' }}>No admin emails added yet.</div>
+                                    ) : (
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                            {(siteConfig.adminEmails || []).map((email) => (
+                                                <div key={email} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', padding: '10px 12px', borderRadius: '8px' }}>
+                                                    <span style={{ fontFamily: 'monospace' }}>{email}</span>
+                                                    <button
+                                                        onClick={() => {
+                                                            const current = Array.isArray(siteConfig.adminEmails) ? siteConfig.adminEmails : [];
+                                                            const updated = current.filter(e => e !== email);
+                                                            handleConfigChange('adminEmails', updated);
+                                                        }}
+                                                        style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', border: 'none', borderRadius: '6px', padding: '6px 10px', cursor: 'pointer' }}
+                                                    >
+                                                        Remove
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     )}
