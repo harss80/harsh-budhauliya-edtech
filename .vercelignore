@@ -1,0 +1,6 @@
+api/
+server/
+scripts/
+.env
+.env.*
+*.md
