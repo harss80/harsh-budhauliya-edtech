@@ -1,12 +1,11 @@
-
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
 import {
     Briefcase, Users, Zap, Search,
     ArrowRight, Star, Heart, Coffee,
     Monitor, Video, CheckCircle
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { API_BASE } from '../utils/apiBase';
 
 const Careers = () => {
 
@@ -25,6 +24,37 @@ const Careers = () => {
         { title: "Academic Counselor", team: "Sales", type: "Noida", link: "#" },
         { title: "Social Media Manager", team: "Marketing", type: "Remote", link: "#" }
     ];
+
+    const [form, setForm] = useState({ name: '', email: '', phone: '', city: '', role: '', message: '' });
+    const [resumeFile, setResumeFile] = useState(null);
+    const [submitting, setSubmitting] = useState(false);
+    const [submitted, setSubmitted] = useState(false);
+    const [error, setError] = useState('');
+
+    const handleApply = async (e) => {
+        e.preventDefault();
+        setError('');
+        if (!form.name || !form.email) { setError('Name and Email are required'); return; }
+        if (!resumeFile) { setError('Please attach your resume (PDF/DOC/DOCX)'); return; }
+        try {
+            setSubmitting(true);
+            const fd = new FormData();
+            Object.entries(form).forEach(([k, v]) => fd.append(k, v));
+            fd.append('resume', resumeFile);
+            const res = await fetch(`${API_BASE}/api/careers/apply`, { method: 'POST', body: fd });
+            if (!res.ok) {
+                const j = await res.json().catch(() => ({}));
+                throw new Error(j.error || 'Failed to submit');
+            }
+            setSubmitted(true);
+            setForm({ name: '', email: '', phone: '', city: '', role: '', message: '' });
+            setResumeFile(null);
+        } catch (e) {
+            setError(e.message || 'Something went wrong');
+        } finally {
+            setSubmitting(false);
+        }
+    };
 
     return (
         <div style={{ background: '#050505', minHeight: '100vh', fontFamily: '"Inter", sans-serif', color: 'white', paddingTop: '80px' }}>
@@ -130,6 +160,36 @@ const Careers = () => {
                             </div>
                         ))}
                     </div>
+                </div>
+            </section>
+
+            {/* Apply Now */}
+            <section style={{ padding: '80px 0' }}>
+                <div className="container" style={{ maxWidth: '900px', margin: '0 auto', padding: '0 24px' }}>
+                    <h2 style={{ fontSize: '2rem', fontWeight: '800', marginBottom: '1.5rem' }}>Apply Now</h2>
+                    <p style={{ color: '#a1a1aa', marginBottom: '24px' }}>Share your details and upload your resume. Our team will get back to you.</p>
+
+                    {submitted ? (
+                        <div style={{ padding: '16px', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: '12px', color: '#34d399', fontWeight: 600 }}>
+                            Application submitted successfully. We will contact you soon.
+                        </div>
+                    ) : (
+                        <form onSubmit={handleApply} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', background: '#0b0b0f', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '16px', padding: '24px' }}>
+                            <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Full Name" style={{ padding: '14px', background: '#15171e', border: '1px solid #2d2f39', borderRadius: '10px', color: 'white' }} />
+                            <input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="Email" style={{ padding: '14px', background: '#15171e', border: '1px solid #2d2f39', borderRadius: '10px', color: 'white' }} />
+                            <input value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="Phone" style={{ padding: '14px', background: '#15171e', border: '1px solid #2d2f39', borderRadius: '10px', color: 'white' }} />
+                            <input value={form.city} onChange={e => setForm({ ...form, city: e.target.value })} placeholder="City" style={{ padding: '14px', background: '#15171e', border: '1px solid #2d2f39', borderRadius: '10px', color: 'white' }} />
+                            <input value={form.role} onChange={e => setForm({ ...form, role: e.target.value })} placeholder="Role (e.g., React Dev)" style={{ padding: '14px', background: '#15171e', border: '1px solid #2d2f39', borderRadius: '10px', color: 'white' }} />
+                            <div style={{ gridColumn: '1/-1' }}>
+                                <textarea value={form.message} onChange={e => setForm({ ...form, message: e.target.value })} placeholder="Short Note" rows={4} style={{ width: '100%', padding: '14px', background: '#15171e', border: '1px solid #2d2f39', borderRadius: '10px', color: 'white' }} />
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', gridColumn: '1/-1', flexWrap: 'wrap' }}>
+                                <input onChange={e => setResumeFile(e.target.files?.[0] || null)} type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" style={{ color: '#a1a1aa' }} />
+                                <button type="submit" disabled={submitting} className="btn-reset" style={{ padding: '12px 24px', background: 'white', color: 'black', borderRadius: '10px', fontWeight: '700', cursor: submitting ? 'not-allowed' : 'pointer' }}>{submitting ? 'Submitting...' : 'Submit Application'}</button>
+                                {error && <span style={{ color: '#ef4444', fontSize: '0.9rem' }}>{error}</span>}
+                            </div>
+                        </form>
+                    )}
                 </div>
             </section>
 

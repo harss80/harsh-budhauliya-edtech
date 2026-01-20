@@ -5,7 +5,7 @@ import {
     LayoutDashboard, Users, Activity, BookOpen, Settings,
     Search, Bell, ChevronDown, MapPin, Smartphone,
     Globe, Clock, TrendingUp, DollarSign, Shield, LogOut, Menu, X,
-    FileText, Zap, AlertTriangle, Trash2, LogIn, Mail
+    FileText, Zap, AlertTriangle, Trash2, LogIn, Mail, Briefcase
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { API_BASE } from '../utils/apiBase';
@@ -86,6 +86,10 @@ const getPlans = () => {
 
 const getContacts = () => {
     return JSON.parse(localStorage.getItem('digimentors_contacts') || '[]');
+};
+
+const getCareers = () => {
+    return JSON.parse(localStorage.getItem('digimentors_careers') || '[]');
 };
 
 const AnalyticsView = ({ activities }) => {
@@ -478,6 +482,7 @@ const AdminDashboard = () => {
     const [notifications, setNotifications] = useState(getNotificationsList());
     const [plans, setPlans] = useState(getPlans());
     const [contacts, setContacts] = useState(getContacts());
+    const [careers, setCareers] = useState(getCareers());
 
     // Search
     const [searchTerm, setSearchTerm] = useState('');
@@ -511,11 +516,12 @@ const AdminDashboard = () => {
         const fetchData = async () => {
             const base = API_BASE || '';
             try {
-                const [usersRes, testsRes, notifsRes, contactsRes] = await Promise.all([
+                const [usersRes, testsRes, notifsRes, contactsRes, careersRes] = await Promise.all([
                     fetch(`${base}/api/users`).catch(() => null),
                     fetch(`${base}/api/tests`).catch(() => null),
                     fetch(`${base}/api/notifications`).catch(() => null),
                     fetch(`${base}/api/contacts`).catch(() => null),
+                    fetch(`${base}/api/careers`).catch(() => null),
                 ]);
 
                 // Users
@@ -556,6 +562,15 @@ const AdminDashboard = () => {
                     setContacts(getContacts());
                 }
 
+                // Careers
+                if (careersRes && careersRes.ok) {
+                    const list = await careersRes.json();
+                    setCareers(list);
+                    localStorage.setItem('digimentors_careers', JSON.stringify(list));
+                } else {
+                    setCareers(getCareers());
+                }
+
                 // Stats and other locals
                 setStats(getSystemStats());
                 setActivities(getRecentActivity());
@@ -575,6 +590,7 @@ const AdminDashboard = () => {
                 setNotifications(getNotificationsList());
                 setPlans(getPlans());
                 setContacts(getContacts());
+                setCareers(getCareers());
             }
         };
 
@@ -845,6 +861,7 @@ const AdminDashboard = () => {
                     <SidebarItem id="notifications" icon={Bell} label="Notifications" activeTab={activeTab} isSidebarOpen={isSidebarOpen} isMobile={isMobile} onClick={() => { setActiveTab('notifications'); if (isMobile) setSidebarOpen(false); }} />
                     <SidebarItem id="billing" icon={DollarSign} label="Billing" activeTab={activeTab} isSidebarOpen={isSidebarOpen} isMobile={isMobile} onClick={() => { setActiveTab('billing'); if (isMobile) setSidebarOpen(false); }} />
                     <SidebarItem id="audit" icon={AlertTriangle} label="Audit Logs" activeTab={activeTab} isSidebarOpen={isSidebarOpen} isMobile={isMobile} onClick={() => { setActiveTab('audit'); if (isMobile) setSidebarOpen(false); }} />
+                    <SidebarItem id="careers" icon={Briefcase} label="Careers" activeTab={activeTab} isSidebarOpen={isSidebarOpen} isMobile={isMobile} onClick={() => { setActiveTab('careers'); if (isMobile) setSidebarOpen(false); }} />
                     <SidebarItem id="contacts" icon={Mail} label="Contacts" activeTab={activeTab} isSidebarOpen={isSidebarOpen} isMobile={isMobile} onClick={() => { setActiveTab('contacts'); if (isMobile) setSidebarOpen(false); }} />
                 </div>
 

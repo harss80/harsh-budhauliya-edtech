@@ -11,6 +11,7 @@ const notificationsRouter = require('./routes/notifications');
 const contactsRouter = require('./routes/contacts');
 const testsRouter = require('./routes/tests');
 const resultsRouter = require('./routes/results');
+const careersRouter = require('./routes/careers');
 
 const app = express();
 
@@ -42,6 +43,7 @@ app.use('/api/notifications', notificationsRouter);
 app.use('/api/contacts', contactsRouter);
 app.use('/api/tests', testsRouter);
 app.use('/api/results', resultsRouter);
+app.use('/api/careers', careersRouter);
 
 // Compatibility endpoint for login logs (no-op store for now)
 app.post('/api/login', (req, res) => {
