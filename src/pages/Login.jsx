@@ -48,6 +48,15 @@ const Login = ({ onClose, defaultIsLogin = true }) => {
                     city: formData.city || ''
                 }
             };
+            // Ensure admissionId is generated and attached to current user
+            try {
+                const list = JSON.parse(localStorage.getItem('digimentors_users') || '[]');
+                const idxExisting = list.findIndex(u => u.email === user.email);
+                const pickAdmissionId = (u) => (u && u.admissionId) ? u.admissionId : ('ADM-' + Math.random().toString(36).substr(2, 6).toUpperCase());
+                user.admissionId = pickAdmissionId(idxExisting === -1 ? null : list[idxExisting]);
+            } catch {
+                user.admissionId = 'ADM-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+            }
 
             localStorage.setItem('digimentors_current_user', JSON.stringify(user));
 
@@ -55,11 +64,11 @@ const Login = ({ onClose, defaultIsLogin = true }) => {
             try {
                 const list = JSON.parse(localStorage.getItem('digimentors_users') || '[]');
                 const idx = list.findIndex(u => u.email === user.email);
-                const ensureAdmissionId = (u) => u.admissionId || ('ADM-' + Math.random().toString(36).substr(2, 6).toUpperCase());
+                const ensureAdmissionId = (u) => (u && u.admissionId) ? u.admissionId : (user.admissionId || ('ADM-' + Math.random().toString(36).substr(2, 6).toUpperCase()));
                 if (idx === -1) {
                     list.push({
                         ...user,
-                        admissionId: ensureAdmissionId({}),
+                        admissionId: ensureAdmissionId(null),
                         joinDate: new Date().toLocaleDateString(),
                         lastLogin: new Date().toLocaleString()
                     });

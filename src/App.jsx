@@ -54,20 +54,64 @@ const VisitTracker = () => {
     let country = localStorage.getItem('digimentors_user_country') || 'Unknown';
 
     const logVisit = async () => {
-      // Try getting location if unknown
-      if (city === 'Unknown') {
+      const resolveLocation = async () => {
         try {
-          const res = await fetch('https://ipapi.co/json/');
-          const data = await res.json();
-          if (data.city) {
-            city = data.city;
-            country = data.country_name;
-            localStorage.setItem('digimentors_user_city', city);
-            localStorage.setItem('digimentors_user_country', country);
+          const cachedCity = localStorage.getItem('digimentors_user_city') || 'Unknown';
+          const cachedCountry = localStorage.getItem('digimentors_user_country') || 'Unknown';
+          const ts = parseInt(localStorage.getItem('digimentors_user_location_ts') || '0', 10);
+          const fresh = cachedCity !== 'Unknown' && (Date.now() - ts) < 21600000;
+          if (fresh) {
+            return { city: cachedCity, country: cachedCountry, lat: localStorage.getItem('digimentors_user_lat') || null, lon: localStorage.getItem('digimentors_user_lon') || null };
           }
-        } catch { void 0; }
-      }
+          const setLoc = (c, co, la, lo) => {
+            const cc = c || 'Unknown';
+            const cn = co || 'Unknown';
+            if (la != null && lo != null) {
+              localStorage.setItem('digimentors_user_lat', String(la));
+              localStorage.setItem('digimentors_user_lon', String(lo));
+            }
+            localStorage.setItem('digimentors_user_city', cc);
+            localStorage.setItem('digimentors_user_country', cn);
+            localStorage.setItem('digimentors_user_location_ts', Date.now().toString());
+            return { city: cc, country: cn, lat: la || null, lon: lo || null };
+          };
+          const tryIp = async () => {
+            try {
+              const res = await fetch('https://ipapi.co/json/');
+              const data = await res.json();
+              return setLoc(data.city, data.country_name, data.latitude, data.longitude);
+            } catch {
+              return setLoc(cachedCity, cachedCountry, null, null);
+            }
+          };
+          if (navigator.geolocation) {
+            try {
+              const pos = await new Promise((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }));
+              const la = pos.coords.latitude;
+              const lo = pos.coords.longitude;
+              try {
+                const resp = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${la}&lon=${lo}&format=json&zoom=10&addressdetails=1`);
+                const j = await resp.json();
+                const a = j.address || {};
+                const cityName = a.city || a.town || a.village || a.suburb || a.state_district || a.state || (j.display_name ? j.display_name.split(',')[0] : 'Unknown');
+                const countryName = a.country || 'Unknown';
+                return setLoc(cityName, countryName, la, lo);
+              } catch {
+                return await tryIp();
+              }
+            } catch {
+              return await tryIp();
+            }
+          }
+          return await tryIp();
+        } catch {
+          return { city: localStorage.getItem('digimentors_user_city') || 'Unknown', country: localStorage.getItem('digimentors_user_country') || 'Unknown', lat: localStorage.getItem('digimentors_user_lat') || null, lon: localStorage.getItem('digimentors_user_lon') || null };
+        }
+      };
 
+      const loc = await resolveLocation();
+      city = loc.city;
+      country = loc.country;
       const referrer = document.referrer || 'Direct';
       const user = JSON.parse(localStorage.getItem('digimentors_current_user') || 'null');
 
@@ -81,15 +125,15 @@ const VisitTracker = () => {
         country,
         device,
         referrer,
-        user
+        user,
+        lat: loc.lat,
+        lon: loc.lon
       };
 
-      // Save Local (Legacy Support)
       const activities = JSON.parse(localStorage.getItem('digimentors_recent_activities') || '[]');
       const updatedActivities = [newActivity, ...activities].slice(0, 500);
       localStorage.setItem('digimentors_recent_activities', JSON.stringify(updatedActivities));
 
-      // SYNC TO BACKEND (Cross-Device Support)
       try {
         await fetch(`${API_BASE}/api/visit`, {
           method: 'POST',
