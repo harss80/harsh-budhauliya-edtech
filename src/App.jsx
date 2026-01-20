@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import QuestionBank from './pages/QuestionBank';
@@ -130,11 +130,23 @@ const GlobalPopup = () => {
     return () => clearTimeout(timer);
   }, [location.pathname]);
 
+  // Close popup automatically when user logs in (from modal)
+  useEffect(() => {
+    const handleStorage = () => {
+      const user = localStorage.getItem('digimentors_current_user');
+      if (user) setShowPopup(false);
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
+
+  // Never render popup on explicit login page or test attempt page
+  if (location.pathname === '/login' || location.pathname.startsWith('/attempt-test')) return null;
   if (!showPopup) return null;
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 10000 }}>
-      <Login onClose={() => setShowPopup(false)} defaultIsLogin={false} />
+    <div style={{ position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)' }}>
+      <Login defaultIsLogin={false} />
     </div>
   );
 };
@@ -143,7 +155,7 @@ const GlobalPopup = () => {
 const ProtectedRoute = ({ children }) => {
   const user = JSON.parse(localStorage.getItem('digimentors_current_user') || 'null');
   if (!user) {
-    return <React.Fragment><Login onClose={() => window.location.href = '/'} /></React.Fragment>;
+    return <Navigate to="/login" replace />;
   }
   return children;
 };
@@ -155,7 +167,7 @@ const ProtectedAdminRoute = ({ children }) => {
   const adminEmails = Array.isArray(config.adminEmails) ? config.adminEmails : ['harshbudhauliya882@gmail.com'];
   const isAllowed = user && adminEmails.map(e => (e || '').toLowerCase()).includes((user.email || '').toLowerCase());
   if (!isAllowed) {
-    return <React.Fragment><Login onClose={() => window.location.href = '/'} /></React.Fragment>;
+    return <Navigate to="/login" replace />;
   }
   return children;
 };

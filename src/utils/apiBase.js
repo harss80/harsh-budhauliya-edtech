@@ -1,7 +1,7 @@
 let base = '';
 try {
   if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_BASE) {
-    base = import.meta.env.VITE_API_BASE;
+    base = String(import.meta.env.VITE_API_BASE || '').replace(/\/$/, '');
   } else if (typeof window !== 'undefined') {
     const host = window.location.hostname;
     if (host === 'localhost' || host === '127.0.0.1') {

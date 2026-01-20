@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: digimentors-api
+    env: node
+    rootDir: server
+    plan: free
+    buildCommand: npm install
+    startCommand: node src/index.js
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: 18
+      - key: DB_NAME
+        value: digimentors
+      # Set these in Render Dashboard after creation (keep secrets out of git):
+      # - key: MONGODB_URI
+      #   value: "<paste your MongoDB SRV URI here>"
+      # - key: CORS_ORIGIN
+      #   value: "https://www.digimentors.in,http://localhost:5173"
