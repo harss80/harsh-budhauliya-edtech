@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Clock, ChevronLeft, ChevronRight, AlertCircle,
@@ -20,19 +20,21 @@ const TestPlayer = () => {
     const isMedical = testId?.includes('medical') || testId?.includes('neet') || testId?.includes('biology');
     const isEngineering = testId?.includes('jee') || testId?.includes('math') || testId?.includes('engineering');
 
-    // Fallback: If unknown, show all
-    const relevantSubjects = isMedical
-        ? ['Physics', 'Chemistry', 'Biology']
-        : isEngineering
-            ? ['Physics', 'Chemistry', 'Mathematics']
-            : ['Physics', 'Chemistry', 'Mathematics', 'Biology'];
+    // Fallback: If unknown, show all (memoized)
+    const relevantSubjects = useMemo(() => (
+        isMedical
+            ? ['Physics', 'Chemistry', 'Biology']
+            : isEngineering
+                ? ['Physics', 'Chemistry', 'Mathematics']
+                : ['Physics', 'Chemistry', 'Mathematics', 'Biology']
+    ), [isMedical, isEngineering]);
 
-    // Configuration
-    const DURATION_MINUTES = 60; // 1 hour standard
+    // Configuration (dynamic when loading server tests)
+    const [durationMinutes, setDurationMinutes] = useState(60);
 
     // State
     const [currentQuestion, setCurrentQuestion] = useState(0);
-    const [timeLeft, setTimeLeft] = useState(DURATION_MINUTES * 60);
+    const [timeLeft, setTimeLeft] = useState(60 * 60);
     const [timePerQuestion, setTimePerQuestion] = useState({});
     const [answers, setAnswers] = useState({});
     const [visited, setVisited] = useState(new Set([0]));
@@ -40,57 +42,80 @@ const TestPlayer = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 1024);
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 1024);
 
-    // Load and Shuffle Questions
-    const [questions] = useState(() => {
-        let filtered = [];
+    const [questions, setQuestions] = useState([]);
+    const [testTitle, setTestTitle] = useState('Loading Test...');
 
-        if (testId === 'custom-generated') {
-            const config = JSON.parse(localStorage.getItem('custom_test_config') || '{}');
-            if (config.chapters && config.chapters.length > 0) {
-                // Filter by selected chapters
-                filtered = questionPool.filter(q => config.chapters.includes(q.chapter));
-                // Optional: Filter by class
-                if (config.class && config.class.length > 0) {
-                    filtered = filtered.filter(q => config.class.includes(q.class));
-                }
-            } else {
-                // Fallback for custom if no config (e.g. direct link)
-                filtered = questionPool;
+    // Load questions: prefer server test if available, else local pools
+    useEffect(() => {
+        let cancelled = false;
+        const load = async () => {
+            // Try server test first (any non-custom id)
+            if (testId && testId !== 'custom-generated') {
+                try {
+                    const res = await fetch(`${API_BASE}/api/tests/${testId}`);
+                    if (res.ok) {
+                        const t = await res.json();
+                        if (!cancelled && t && Array.isArray(t.questions) && t.questions.length > 0) {
+                            const mapped = t.questions.map((q, idx) => ({
+                                id: idx + 1,
+                                originalId: q.id || idx + 1,
+                                subject: q.subject || t.subject || 'General',
+                                text: q.text,
+                                options: q.options || [],
+                                correctAnswer: q.correctAnswer,
+                                explanation: q.explanation,
+                                chapter: q.chapter,
+                                class: q.class
+                            }));
+                            setQuestions(mapped);
+                            setTestTitle(t.name || 'Scheduled Test');
+                            setDurationMinutes(parseInt(t.duration || 60, 10));
+                            return;
+                        }
+                    }
+                } catch { /* ignore and fallback */ }
             }
-        } else {
-            // Standard Exam Logic
-            filtered = questionPool.filter(q => relevantSubjects.includes(q.subject));
-        }
 
-        // Shuffle (Fisher-Yates) for randomness
-        for (let i = filtered.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [filtered[i], filtered[j]] = [filtered[j], filtered[i]];
-        }
+            // Fallback to local selection
+            let filtered = [];
+            if (testId === 'custom-generated') {
+                const config = JSON.parse(localStorage.getItem('custom_test_config') || '{}');
+                if (config.chapters && config.chapters.length > 0) {
+                    filtered = questionPool.filter(q => config.chapters.includes(q.chapter));
+                    if (config.class && config.class.length > 0) {
+                        filtered = filtered.filter(q => config.class.includes(q.class));
+                    }
+                } else {
+                    filtered = questionPool;
+                }
+                setTestTitle('Custom Practice Session');
+            } else {
+                filtered = questionPool.filter(q => relevantSubjects.includes(q.subject));
+                setTestTitle(isMedical ? 'Medical Diagnostic Test' : isEngineering ? 'JEE Diagnostic Test' : 'Comprehensive Assessment');
+            }
 
-        // Limit Questions
-        // For custom: use all matching questions (max 100 to be safe)
-        // For standard: use 50
-        const MAX_QS = testId === 'custom-generated' ? 100 : 50;
-        const selected = filtered.slice(0, MAX_QS);
-
-        // Map to display format
-        return selected.map((q, i) => ({
-            id: i + 1, // Display ID (1, 2, 3...)
-            originalId: q.id,
-            subject: q.subject,
-            text: q.question,
-            options: q.options,
-            correctAnswer: q.correctAnswer,
-            explanation: q.explanation,
-            chapter: q.chapter,
-            class: q.class
-        }));
-    });
-
-    const testTitle = testId === 'custom-generated'
-        ? 'Custom Practice Session'
-        : (isMedical ? 'Medical Diagnostic Test' : isEngineering ? 'JEE Diagnostic Test' : 'Comprehensive Assessment');
+            for (let i = filtered.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [filtered[i], filtered[j]] = [filtered[j], filtered[i]];
+            }
+            const MAX_QS = testId === 'custom-generated' ? 100 : 50;
+            const selected = filtered.slice(0, MAX_QS);
+            const mapped = selected.map((q, i) => ({
+                id: i + 1,
+                originalId: q.id,
+                subject: q.subject,
+                text: q.question,
+                options: q.options,
+                correctAnswer: q.correctAnswer,
+                explanation: q.explanation,
+                chapter: q.chapter,
+                class: q.class
+            }));
+            if (!cancelled) setQuestions(mapped);
+        };
+        load();
+        return () => { cancelled = true; };
+    }, [testId, isMedical, isEngineering, relevantSubjects]);
 
     // Question Timer (60s per question)
     const [questionTimer, setQuestionTimer] = useState(60);
@@ -146,7 +171,12 @@ const TestPlayer = () => {
         };
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
-    }, []);
+    }, [testId, testTitle]);
+
+    // Reset timeLeft when duration changes
+    useEffect(() => {
+        setTimeLeft(durationMinutes * 60);
+    }, [durationMinutes]);
 
     // Global Timer
     useEffect(() => {
@@ -267,7 +297,7 @@ const TestPlayer = () => {
             score: (correctCount * 4) - ((attemptedCount - correctCount) * 1),
             maxScore: questions.length * 4,
             accuracy: attemptedCount > 0 ? Math.round((correctCount / attemptedCount) * 100) : 0,
-            timeSpent: formatTime((DURATION_MINUTES * 60) - timeLeft),
+            timeSpent: formatTime((durationMinutes * 60) - timeLeft),
             timestamp: new Date().toLocaleDateString(),
             subjectAnalysis,
             questionData

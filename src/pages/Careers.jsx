@@ -31,6 +31,25 @@ const Careers = () => {
     const [submitted, setSubmitted] = useState(false);
     const [error, setError] = useState('');
 
+    const persistLocal = (file) => {
+        try {
+            const list = JSON.parse(localStorage.getItem('digimentors_careers') || '[]');
+            const item = {
+                id: 'CAR-' + Math.random().toString(36).substr(2, 9),
+                name: form.name,
+                email: form.email,
+                phone: form.phone,
+                role: form.role,
+                city: form.city,
+                message: form.message,
+                createdAt: new Date().toISOString(),
+                status: 'new',
+                resume: file ? { fileName: file.name, mimeType: file.type, size: file.size } : null,
+            };
+            localStorage.setItem('digimentors_careers', JSON.stringify([item, ...list]));
+        } catch { /* ignore */ }
+    };
+
     const handleApply = async (e) => {
         e.preventDefault();
         setError('');
@@ -46,10 +65,14 @@ const Careers = () => {
                 const j = await res.json().catch(() => ({}));
                 throw new Error(j.error || 'Failed to submit');
             }
+            // Local fallback cache to surface in Admin immediately
+            persistLocal(resumeFile);
             setSubmitted(true);
             setForm({ name: '', email: '', phone: '', city: '', role: '', message: '' });
             setResumeFile(null);
         } catch (e) {
+            // Still cache locally so Admin shows the request even if backend unreachable
+            persistLocal(resumeFile);
             setError(e.message || 'Something went wrong');
         } finally {
             setSubmitting(false);

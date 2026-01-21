@@ -479,6 +479,7 @@ const AdminDashboard = () => {
     const [selectedUser, setSelectedUser] = useState(null);
     const [content, setContent] = useState(getContentLibrary());
     const [tests, setTests] = useState(getTests());
+    const [newPdf, setNewPdf] = useState({ name: '', subject: '', duration: 60, date: '', file: null });
     const [notifications, setNotifications] = useState(getNotificationsList());
     const [plans, setPlans] = useState(getPlans());
     const [contacts, setContacts] = useState(getContacts());
@@ -535,7 +536,7 @@ const AdminDashboard = () => {
                 // Tests
                 if (testsRes && testsRes.ok) {
                     const list = await testsRes.json();
-                    const mapped = list.map(t => ({ id: t._id || t.id, name: t.name, subject: t.subject, duration: t.duration, scheduledAt: t.scheduledAt, published: !!t.published }));
+                    const mapped = list.map(t => ({ id: t._id || t.id, name: t.name, subject: t.subject, duration: t.duration, scheduledAt: t.scheduledAt, published: !!t.published, visibleFrom: t.visibleFrom, visibleUntil: t.visibleUntil, generated: !!t.generated }));
                     setTests(mapped);
                     localStorage.setItem('digimentors_tests', JSON.stringify(mapped));
                 } else {
@@ -562,11 +563,13 @@ const AdminDashboard = () => {
                     setContacts(getContacts());
                 }
 
-                // Careers
+                // Careers (merge server + local drafts)
                 if (careersRes && careersRes.ok) {
-                    const list = await careersRes.json();
-                    setCareers(list);
-                    localStorage.setItem('digimentors_careers', JSON.stringify(list));
+                    const serverList = await careersRes.json();
+                    const drafts = getCareers();
+                    const merged = [...drafts, ...serverList];
+                    setCareers(merged);
+                    localStorage.setItem('digimentors_careers', JSON.stringify(merged));
                 } else {
                     setCareers(getCareers());
                 }
@@ -690,6 +693,46 @@ const AdminDashboard = () => {
         const list = tests.filter(i => i.id !== id);
         setTests(list);
         localStorage.setItem('digimentors_tests', JSON.stringify(list));
+    };
+
+    const handleGenerateFromPdf = async () => {
+        if (!newPdf.file) { alert('Select a PDF file'); return; }
+        const fd = new FormData();
+        fd.append('file', newPdf.file);
+        if (newPdf.name) fd.append('name', newPdf.name);
+        if (newPdf.subject) fd.append('subject', newPdf.subject);
+        if (newPdf.duration) fd.append('duration', String(newPdf.duration));
+        if (newPdf.date) fd.append('scheduleAt', new Date(newPdf.date).toISOString());
+        try {
+            const res = await fetch(`${API_BASE}/api/tests/generate-from-pdf`, { method: 'POST', body: fd });
+            if (!res.ok) throw new Error('Upload failed');
+            const saved = await res.json();
+            const mapped = { id: saved._id, name: saved.name, subject: saved.subject, duration: saved.duration, scheduledAt: saved.scheduledAt, published: !!saved.published, visibleFrom: saved.visibleFrom, visibleUntil: saved.visibleUntil, generated: !!saved.generated };
+            const list = [mapped, ...tests];
+            setTests(list);
+            localStorage.setItem('digimentors_tests', JSON.stringify(list));
+            setNewPdf({ name: '', subject: '', duration: 60, date: '', file: null });
+        } catch (e) {
+            alert('Could not generate test from PDF. Please try again.');
+        }
+    };
+
+    const handleMakeLiveOneDay = async (id) => {
+        const now = new Date();
+        const until = new Date(now.getTime() + 24*60*60*1000);
+        const serverId = (id && /^[a-f\d]{24}$/i.test(String(id))) ? id : null;
+        if (serverId) {
+            try {
+                await fetch(`${API_BASE}/api/tests/${serverId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ published: true, visibleFrom: now.toISOString(), visibleUntil: until.toISOString() })
+                });
+            } catch { /* ignore */ }
+        }
+        const updated = tests.map(t => t.id === id ? { ...t, published: true, visibleFrom: now.toISOString(), visibleUntil: until.toISOString() } : t);
+        setTests(updated);
+        localStorage.setItem('digimentors_tests', JSON.stringify(updated));
     };
 
     const handleAddNotification = async () => {
@@ -1076,12 +1119,20 @@ const AdminDashboard = () => {
                     {activeTab === 'tests' && (
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '24px' }}>
                             <div style={{ padding: '24px', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', marginBottom: '12px' }}>
                                     <input value={newTest.name} onChange={e => setNewTest({ ...newTest, name: e.target.value })} placeholder="Test Name" style={{ padding: '12px', background: '#000', border: '1px solid #333', borderRadius: '8px', color: 'white' }} />
                                     <input value={newTest.subject} onChange={e => setNewTest({ ...newTest, subject: e.target.value })} placeholder="Subject" style={{ padding: '12px', background: '#000', border: '1px solid #333', borderRadius: '8px', color: 'white' }} />
                                     <input type="datetime-local" value={newTest.date} onChange={e => setNewTest({ ...newTest, date: e.target.value })} style={{ padding: '12px', background: '#000', border: '1px solid #333', borderRadius: '8px', color: 'white' }} />
                                     <input type="number" min="1" value={newTest.duration} onChange={e => setNewTest({ ...newTest, duration: e.target.value })} placeholder="Duration (mins)" style={{ padding: '12px', background: '#000', border: '1px solid #333', borderRadius: '8px', color: 'white' }} />
                                     <button onClick={handleAddTest} style={{ padding: '12px', background: '#f59e0b', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '700' }}>Add Test</button>
+                                </div>
+                                <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', marginTop: '16px', paddingTop: '16px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
+                                    <input value={newPdf.name} onChange={e => setNewPdf({ ...newPdf, name: e.target.value })} placeholder="PDF Test Name" style={{ padding: '12px', background: '#000', border: '1px solid #333', borderRadius: '8px', color: 'white' }} />
+                                    <input value={newPdf.subject} onChange={e => setNewPdf({ ...newPdf, subject: e.target.value })} placeholder="Subject" style={{ padding: '12px', background: '#000', border: '1px solid #333', borderRadius: '8px', color: 'white' }} />
+                                    <input type="datetime-local" value={newPdf.date} onChange={e => setNewPdf({ ...newPdf, date: e.target.value })} style={{ padding: '12px', background: '#000', border: '1px solid #333', borderRadius: '8px', color: 'white' }} />
+                                    <input type="number" min="1" value={newPdf.duration} onChange={e => setNewPdf({ ...newPdf, duration: Number(e.target.value) })} placeholder="Duration (mins)" style={{ padding: '12px', background: '#000', border: '1px solid #333', borderRadius: '8px', color: 'white' }} />
+                                    <input type="file" accept="application/pdf" onChange={e => setNewPdf({ ...newPdf, file: e.target.files?.[0] || null })} style={{ padding: '10px', background: '#000', border: '1px solid #333', borderRadius: '8px', color: '#a1a1aa' }} />
+                                    <button onClick={handleGenerateFromPdf} style={{ padding: '12px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '700' }}>Generate Test from PDF</button>
                                 </div>
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '12px', marginTop: '12px' }}>
                                     <input value={testsSearch} onChange={e => setTestsSearch(e.target.value)} placeholder="Search by name or subject" style={{ padding: '12px', background: '#000', border: '1px solid #333', borderRadius: '8px', color: 'white' }} />
@@ -1089,12 +1140,13 @@ const AdminDashboard = () => {
                             </div>
                             <div style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', overflow: 'hidden' }}>
                                 <div style={{ width: '100%', overflowX: 'auto' }}>
-                                <table style={{ width: '100%', minWidth: '900px', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+                                <table style={{ width: '100%', minWidth: '1100px', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
                                     <thead>
                                         <tr style={{ textAlign: 'left', color: '#a1a1aa', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                                             <th style={{ padding: '16px' }}>Name</th>
                                             <th style={{ padding: '16px' }}>Subject</th>
                                             <th style={{ padding: '16px' }}>Schedule</th>
+                                            <th style={{ padding: '16px' }}>Visible</th>
                                             <th style={{ padding: '16px' }}>Duration</th>
                                             <th style={{ padding: '16px' }}>Status</th>
                                             <th style={{ padding: '16px' }}>Actions</th>
@@ -1110,17 +1162,20 @@ const AdminDashboard = () => {
                                                 <td style={{ padding: '16px' }}>{t.name}</td>
                                                 <td style={{ padding: '16px', color: '#a1a1aa' }}>{t.subject}</td>
                                                 <td style={{ padding: '16px', color: '#a1a1aa' }}>{t.scheduledAt ? new Date(t.scheduledAt).toLocaleString() : 'Not set'}</td>
+                                                <td style={{ padding: '16px', color: '#a1a1aa' }}>{t.visibleFrom && t.visibleUntil ? `${new Date(t.visibleFrom).toLocaleString()} → ${new Date(t.visibleUntil).toLocaleString()}` : '—'}</td>
                                                 <td style={{ padding: '16px' }}>{t.duration} mins</td>
                                                 <td style={{ padding: '16px' }}>
                                                     <span style={{ padding: '4px 8px', borderRadius: '4px', background: t.published ? 'rgba(16,185,129,0.12)' : 'rgba(244,63,94,0.12)', color: t.published ? '#10b981' : '#f43f5e', fontSize: '0.8rem' }}>{t.published ? 'Published' : 'Draft'}</span>
                                                 </td>
-                                                <td style={{ padding: '16px' }}>
+                                                <td style={{ padding: '16px', whiteSpace: 'nowrap' }}>
                                                     <button onClick={() => handleToggleTestPublish(t.id)} style={{ marginRight: '8px', padding: '6px 10px', background: 'rgba(129,140,248,0.15)', color: '#818cf8', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>{t.published ? 'Unpublish' : 'Publish'}</button>
+                                                    <button onClick={() => handleMakeLiveOneDay(t.id)} style={{ marginRight: '8px', padding: '6px 10px', background: 'rgba(16,185,129,0.15)', color: '#10b981', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Live 1 Day</button>
+                                                    <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/attempt-test/${t.id}`); }} style={{ marginRight: '8px', padding: '6px 10px', background: 'rgba(59,130,246,0.15)', color: '#60a5fa', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Copy Link</button>
                                                     <button onClick={() => handleDeleteTest(t.id)} style={{ padding: '6px 10px', background: 'rgba(239,68,68,0.15)', color: '#ef4444', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Delete</button>
                                                 </td>
                                             </tr>
                                         )) : (
-                                            <tr><td colSpan="5" style={{ padding: '24px', textAlign: 'center', color: '#52525b' }}>No tests added</td></tr>
+                                            <tr><td colSpan="7" style={{ padding: '24px', textAlign: 'center', color: '#52525b' }}>No tests added</td></tr>
                                         )}
                                     </tbody>
                                 </table>

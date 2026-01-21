@@ -149,11 +149,11 @@ const StudentDashboard = () => {
 
     useEffect(() => {
         const base = API_BASE || '';
-        // Fetch tests
-        fetch(`${base}/api/tests`).then(r => r.ok ? r.json() : null).then(list => {
+        // Fetch only public (published + within visibility window) tests
+        fetch(`${base}/api/tests/public`).then(r => r.ok ? r.json() : null).then(list => {
             if (Array.isArray(list)) {
                 const mapped = list.map(t => ({ id: t._id || t.id, name: t.name, subject: t.subject, duration: t.duration, scheduledAt: t.scheduledAt, published: !!t.published }));
-                const pub = mapped.filter(t => t.published).sort((a,b) => new Date(b.scheduledAt || 0) - new Date(a.scheduledAt || 0));
+                const pub = mapped.sort((a,b) => new Date(b.scheduledAt || 0) - new Date(a.scheduledAt || 0));
                 setPublishedTests(pub);
                 localStorage.setItem('digimentors_tests', JSON.stringify(mapped));
             }
@@ -322,7 +322,7 @@ const StudentDashboard = () => {
                                                 <div style={{ color: '#a1a1aa', fontSize: '0.8rem' }}>{t.subject || 'General'} • {t.scheduledAt ? new Date(t.scheduledAt).toLocaleString() : 'Anytime'}</div>
                                             </div>
                                         </div>
-                                        <Link to={`/attempt-test/admin-${t.id}`} className="btn-reset" style={{ padding: '8px 14px', background: 'white', color: 'black', borderRadius: '10px', fontWeight: '700', textDecoration: 'none' }}>Attempt</Link>
+                                        <Link to={`/attempt-test/${t.id}`} className="btn-reset" style={{ padding: '8px 14px', background: 'white', color: 'black', borderRadius: '10px', fontWeight: '700', textDecoration: 'none' }}>Attempt</Link>
                                     </div>
                                 )) : (
                                     <div style={{ padding: '30px', textAlign: 'center', color: '#a1a1aa' }}>No published tests yet.</div>
