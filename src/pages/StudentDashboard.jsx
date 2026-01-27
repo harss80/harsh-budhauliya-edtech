@@ -24,6 +24,9 @@ const StudentDashboard = () => {
         }
         return { name: 'Student', admissionId: '', goal: 'Not Set', email: '' };
     });
+    const [isMobile, setIsMobile] = useState(() => {
+        try { return typeof window !== 'undefined' ? window.innerWidth <= 1024 : false; } catch { return false; }
+    });
     const computeStats = (history) => {
         if (!Array.isArray(history) || history.length === 0) return { testsCompleted: 0, avgAccuracy: 0, questionsSolved: 0, studyHours: 0 };
         const totalSeconds = history.reduce((acc, curr) => {
@@ -52,11 +55,13 @@ const StudentDashboard = () => {
             return pub;
         } catch { return []; }
     });
+    const [loadingTests, setLoadingTests] = useState(true);
 
     // Notifications state and actions
     const [notificationsList, setNotificationsList] = useState(() => {
         try { return JSON.parse(localStorage.getItem('digimentors_notifications') || '[]'); } catch { return []; }
     });
+    const [loadingNotifs, setLoadingNotifs] = useState(true);
     const markRead = (id) => {
         const list = notificationsList.map(n => n.id === id ? { ...n, read: true } : n);
         setNotificationsList(list);
@@ -83,6 +88,12 @@ const StudentDashboard = () => {
             }
         });
     };
+
+    useEffect(() => {
+        const onResize = () => setIsMobile(window.innerWidth <= 1024);
+        window.addEventListener('resize', onResize);
+        return () => window.removeEventListener('resize', onResize);
+    }, []);
 
     // Last Test Resume
     const lastTest = (() => { try { return JSON.parse(localStorage.getItem('digimentors_last_test') || 'null'); } catch { return null; } })();
@@ -150,6 +161,7 @@ const StudentDashboard = () => {
     useEffect(() => {
         const base = API_BASE || '';
         // Fetch only public (published + within visibility window) tests
+        setLoadingTests(true);
         fetch(`${base}/api/tests/public`).then(r => r.ok ? r.json() : null).then(list => {
             if (Array.isArray(list)) {
                 const mapped = list.map(t => ({ id: t._id || t.id, name: t.name, subject: t.subject, duration: t.duration, scheduledAt: t.scheduledAt, published: !!t.published }));
@@ -157,7 +169,7 @@ const StudentDashboard = () => {
                 setPublishedTests(pub);
                 localStorage.setItem('digimentors_tests', JSON.stringify(mapped));
             }
-        }).catch(() => {});
+        }).catch(() => {}).finally(() => setLoadingTests(false));
 
         // Fetch current user's _id, then notifications
         const loadNotifs = async () => {
@@ -180,6 +192,7 @@ const StudentDashboard = () => {
                     localStorage.setItem('digimentors_notifications', JSON.stringify(mapped));
                 }
             } catch { /* ignore */ }
+            finally { setLoadingNotifs(false); }
         };
         loadNotifs();
     }, []);
@@ -206,7 +219,7 @@ const StudentDashboard = () => {
 
     return (
         <div style={{ background: '#050505', minHeight: '100vh', fontFamily: '"Inter", sans-serif', color: 'white', paddingTop: '80px', paddingBottom: '40px' }}>
-            <div className="container" style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 24px' }}>
+            <div className="container" style={{ maxWidth: '1200px', margin: '0 auto', padding: isMobile ? '0 16px' : '0 24px' }}>
 
                 {/* 1. Header & Greeting */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2.5rem', flexWrap: 'wrap', gap: '20px' }}>
@@ -216,8 +229,8 @@ const StudentDashboard = () => {
                                 {user.name.charAt(0)}
                             </div>
                             <div>
-                                <h1 style={{ fontSize: '1.8rem', fontWeight: '700', lineHeight: '1.2' }}>Hello, {user.name} 👋</h1>
-                                <p style={{ color: '#a1a1aa', fontSize: '0.9rem' }}>Let's crack {user.goal} today!</p>
+                                <h1 style={{ fontSize: isMobile ? '1.5rem' : '1.8rem', fontWeight: '700', lineHeight: '1.2' }}>Hello, {user.name} 👋</h1>
+                                <p style={{ color: '#a1a1aa', fontSize: isMobile ? '0.85rem' : '0.9rem' }}>Let's crack {user.goal} today!</p>
                             </div>
                         </div>
 
@@ -262,7 +275,7 @@ const StudentDashboard = () => {
                     ))}
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '2rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '2fr 1fr', gap: isMobile ? '1.25rem' : '2rem' }}>
 
                     {/* LEFT COLUMN */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
@@ -312,7 +325,22 @@ const StudentDashboard = () => {
                                 <h2 style={{ fontSize: '1.4rem', fontWeight: '700' }}>Upcoming Tests</h2>
                                 <Link to="/test-series" style={{ color: '#3b82f6', textDecoration: 'none', fontSize: '0.9rem', fontWeight: '600' }}>View All Tests</Link>
                             </div>
-                            {publishedTests.length > 0 ? (
+                            {loadingTests ? (
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+                                    {Array.from({ length: 4 }).map((_, i) => (
+                                        <div key={i} style={{ background: '#121214', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '16px' }}>
+                                            <div style={{ display: 'flex', gap: '12px', marginBottom: '10px' }}>
+                                                <div style={{ width: '36px', height: '36px', background: 'rgba(255,255,255,0.06)', borderRadius: '10px' }} />
+                                                <div style={{ flex: 1 }}>
+                                                    <div style={{ height: '14px', background: 'rgba(255,255,255,0.06)', borderRadius: '6px', marginBottom: '6px', width: '70%' }} />
+                                                    <div style={{ height: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', width: '50%' }} />
+                                                </div>
+                                            </div>
+                                            <div style={{ height: '36px', background: 'rgba(255,255,255,0.08)', borderRadius: '10px' }} />
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : publishedTests.length > 0 ? (
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
                                     {publishedTests.slice(0, 6).map((t) => (
                                         <div key={t.id} style={{ background: '#121214', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -322,7 +350,10 @@ const StudentDashboard = () => {
                                                 </div>
                                                 <div>
                                                     <div style={{ color: 'white', fontWeight: '600', fontSize: '0.95rem' }}>{t.name || 'Scheduled Test'}</div>
-                                                    <div style={{ color: '#a1a1aa', fontSize: '0.8rem' }}>{t.subject || 'General'} • {t.scheduledAt ? new Date(t.scheduledAt).toLocaleString() : 'Anytime'}</div>
+                                                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                                                        <span style={{ color: '#a1a1aa', fontSize: '0.8rem' }}>{t.scheduledAt ? new Date(t.scheduledAt).toLocaleString() : 'Anytime'}</span>
+                                                        <span style={{ fontSize: '0.7rem', color: '#60a5fa', background: 'rgba(59,130,246,0.12)', border: '1px solid rgba(59,130,246,0.3)', padding: '2px 8px', borderRadius: '999px' }}>{t.subject || 'General'}</span>
+                                                    </div>
                                                 </div>
                                             </div>
                                             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
@@ -378,7 +409,14 @@ const StudentDashboard = () => {
                                 {unreadCount > 0 && <button onClick={markAllRead} className="btn-reset" style={{ color: '#818cf8' }}>Mark all read</button>}
                             </div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '260px', overflowY: 'auto' }}>
-                                {notificationsList.length > 0 ? notificationsList.slice(0, 6).map((n) => (
+                                {loadingNotifs ? (
+                                    Array.from({ length: 4 }).map((_, i) => (
+                                        <div key={i} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', padding: '12px' }}>
+                                            <div style={{ height: '14px', background: 'rgba(255,255,255,0.06)', borderRadius: '6px', width: '60%', marginBottom: '6px' }} />
+                                            <div style={{ height: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', width: '80%' }} />
+                                        </div>
+                                    ))
+                                ) : notificationsList.length > 0 ? notificationsList.slice(0, 6).map((n) => (
                                     <div key={n.id} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', padding: '12px', display: 'flex', alignItems: 'start', justifyContent: 'space-between', gap: '12px' }}>
                                         <div>
                                             <div style={{ fontWeight: 600, color: 'white' }}>{n.title || 'Notice'}</div>
@@ -419,8 +457,8 @@ const StudentDashboard = () => {
                         {/* My Courses */}
                         <div>
                             <h3 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '1rem' }}>My Courses</h3>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                {myCourses.length > 0 ? myCourses.slice(0, 2).map((c, i) => (
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+                                {myCourses.length > 0 ? myCourses.slice(0, 4).map((c, i) => (
                                     <div key={i} style={{ background: '#121214', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', gap: '12px' }}>
                                         <div style={{ width: '50px', height: '50px', borderRadius: '8px', background: 'rgba(59, 130, 246, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><PlayCircle color="#3b82f6" /></div>
                                         <div>
