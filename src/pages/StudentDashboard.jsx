@@ -262,7 +262,7 @@ const StudentDashboard = () => {
                     ))}
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '2.5fr 1fr', gap: '2rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '2rem' }}>
 
                     {/* LEFT COLUMN */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
@@ -309,37 +309,34 @@ const StudentDashboard = () => {
                         {/* Published Tests */}
                         <div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '1.8rem 0 1rem' }}>
-                                <h2 style={{ fontSize: '1.4rem', fontWeight: '700' }}>Published Tests</h2>
-                                <Link to="/test-series" style={{ color: '#3b82f6', textDecoration: 'none', fontSize: '0.9rem', fontWeight: '600' }}>View All</Link>
+                                <h2 style={{ fontSize: '1.4rem', fontWeight: '700' }}>Upcoming Tests</h2>
+                                <Link to="/test-series" style={{ color: '#3b82f6', textDecoration: 'none', fontSize: '0.9rem', fontWeight: '600' }}>View All Tests</Link>
                             </div>
-                            <div style={{ background: '#121214', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)', overflow: 'hidden' }}>
-                                {publishedTests.length > 0 ? publishedTests.slice(0, 4).map((t) => (
-                                    <div key={t.id} style={{ padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                            <div style={{ width: '40px', height: '40px', background: 'rgba(59,130,246,0.12)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3b82f6' }}>T</div>
-                                            <div>
-                                                <div style={{ color: 'white', fontWeight: '600', fontSize: '0.95rem' }}>{t.name || 'Scheduled Test'}</div>
-                                                <div style={{ color: '#a1a1aa', fontSize: '0.8rem' }}>{t.subject || 'General'} • {t.scheduledAt ? new Date(t.scheduledAt).toLocaleString() : 'Anytime'}</div>
+                            {publishedTests.length > 0 ? (
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+                                    {publishedTests.slice(0, 6).map((t) => (
+                                        <div key={t.id} style={{ background: '#121214', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                                <div style={{ width: '36px', height: '36px', background: 'rgba(59,130,246,0.12)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3b82f6', fontWeight: 700 }}>
+                                                    {String(t.subject || 'T').charAt(0)}
+                                                </div>
+                                                <div>
+                                                    <div style={{ color: 'white', fontWeight: '600', fontSize: '0.95rem' }}>{t.name || 'Scheduled Test'}</div>
+                                                    <div style={{ color: '#a1a1aa', fontSize: '0.8rem' }}>{t.subject || 'General'} • {t.scheduledAt ? new Date(t.scheduledAt).toLocaleString() : 'Anytime'}</div>
+                                                </div>
+                                            </div>
+                                            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                                                <Link to={`/attempt-test/${t.id}`} className="btn-reset" style={{ padding: '8px 14px', background: 'white', color: 'black', borderRadius: '10px', fontWeight: '700', textDecoration: 'none' }}>Attempt</Link>
                                             </div>
                                         </div>
-                                        <Link to={`/attempt-test/${t.id}`} className="btn-reset" style={{ padding: '8px 14px', background: 'white', color: 'black', borderRadius: '10px', fontWeight: '700', textDecoration: 'none' }}>Attempt</Link>
-                                    </div>
-                                )) : (
-                                    <div style={{ padding: '30px', textAlign: 'center', color: '#a1a1aa' }}>No published tests yet.</div>
-                                )}
-                            </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div style={{ padding: '30px', textAlign: 'center', color: '#a1a1aa', background: '#121214', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>No published tests yet.</div>
+                            )}
                         </div>
 
                         {/* 4. Active Mock Test Banner */}
-                        <div style={{ position: 'relative', borderRadius: '24px', overflow: 'hidden', padding: '2rem', background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                            <div style={{ position: 'relative', zIndex: 2 }}>
-                                <div style={{ background: '#f59e0b', color: 'black', fontWeight: '700', fontSize: '0.75rem', padding: '4px 10px', borderRadius: '100px', display: 'inline-block', marginBottom: '1rem' }}>LIVE MOCK</div>
-                                <h2 style={{ fontSize: '1.8rem', fontWeight: '800', marginBottom: '0.5rem' }}>All India Mock Test 2026</h2>
-                                <p style={{ color: '#c7d2fe', marginBottom: '1.5rem', maxWidth: '500px' }}>Join 15,000+ students appearing for the test right now. Real exam pattern.</p>
-                                <button onClick={() => window.location.href = '/test-series'} className="btn-reset" style={{ padding: '12px 24px', background: 'white', color: '#1e1b4b', borderRadius: '12px', fontWeight: '700', fontSize: '0.95rem' }}>Attempt Now</button>
-                            </div>
-                            <div style={{ position: 'absolute', top: '0', right: '0', bottom: '0', width: '40%', background: 'url(https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=2070&auto=format&fit=crop) center/cover', opacity: 0.2, maskImage: 'linear-gradient(to right, transparent, black)' }} />
-                        </div>
 
                         {/* Recent History */}
                         <div>
