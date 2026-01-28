@@ -77,9 +77,22 @@ const StudyMaterial = () => {
 
                 {/* Header */}
                 <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-                    <div className="academic-badge" style={{ marginBottom: '1rem' }}>PREMIUM RESOURCES</div>
-                    <h1 style={{ fontSize: '2.5rem', fontWeight: '800', marginBottom: '1rem' }}>Study Material Library</h1>
-                    <p style={{ color: 'var(--text-muted)', maxWidth: '600px', margin: '0 auto' }}>
+                    <div style={{
+                        display: 'inline-block',
+                        padding: '6px 16px',
+                        borderRadius: '100px',
+                        background: 'var(--surface-highlight)',
+                        border: '1px solid var(--border)',
+                        fontSize: '0.85rem',
+                        fontWeight: '700',
+                        color: 'var(--primary)',
+                        marginBottom: '1rem',
+                        letterSpacing: '0.05em'
+                    }}>
+                        PREMIUM RESOURCES
+                    </div>
+                    <h1 style={{ fontSize: '2.5rem', fontWeight: '800', marginBottom: '1rem', color: 'var(--text-main)' }}>Study Material Library</h1>
+                    <p style={{ color: 'var(--text-secondary)', maxWidth: '600px', margin: '0 auto', fontSize: '1.1rem', lineHeight: '1.6' }}>
                         Access high-quality recorded lectures, detailed test solutions, and curated notes to accelerate your preparation.
                     </p>
                 </div>
@@ -88,28 +101,24 @@ const StudyMaterial = () => {
                 <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginBottom: '3rem', flexWrap: 'wrap' }}>
                     <button
                         onClick={() => setActiveTab('courses')}
-                        className="btn-reset"
+                        className={`btn-reset ${activeTab === 'courses' ? 'btn-primary' : 'btn-secondary'}`}
                         style={{
                             padding: '12px 24px',
-                            background: activeTab === 'courses' ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
-                            color: activeTab === 'courses' ? 'white' : 'var(--text-muted)',
-                            borderRadius: '100px',
                             fontWeight: '600',
-                            display: 'flex', alignItems: 'center', gap: '8px'
+                            display: 'flex', alignItems: 'center', gap: '8px',
+                            borderRadius: '100px'
                         }}
                     >
                         <Video size={18} /> Recorded Courses
                     </button>
                     <button
                         onClick={() => setActiveTab('downloads')}
-                        className="btn-reset"
+                        className={`btn-reset ${activeTab === 'downloads' ? 'btn-primary' : 'btn-secondary'}`}
                         style={{
                             padding: '12px 24px',
-                            background: activeTab === 'downloads' ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
-                            color: activeTab === 'downloads' ? 'white' : 'var(--text-muted)',
-                            borderRadius: '100px',
                             fontWeight: '600',
-                            display: 'flex', alignItems: 'center', gap: '8px'
+                            display: 'flex', alignItems: 'center', gap: '8px',
+                            borderRadius: '100px'
                         }}
                     >
                         <Download size={18} /> PDFs & Downloads
@@ -126,22 +135,25 @@ const StudyMaterial = () => {
                     {activeTab === 'courses' ? (
                         <div className="responsive-grid">
                             {courses.map((course) => (
-                                <div key={course.id} className="glass-card" style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                                    <div style={{ height: '180px', background: course.image, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <div key={course.id} className="card-base" style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                                    <div style={{ height: '200px', background: 'var(--surface-highlight)', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', borderBottom: '1px solid var(--border-light)' }}>
+                                        {/* Colored Overlay for "Cover" look */}
+                                        <div style={{ position: 'absolute', inset: 0, background: course.image, opacity: 0.8 }}></div>
+
                                         {course.isPurchased ? (
-                                            <PlayCircle size={60} color="white" style={{ opacity: 0.9 }} />
+                                            <PlayCircle size={60} color="white" style={{ position: 'relative', zIndex: 10, dropShadow: '0 4px 6px rgba(0,0,0,0.3)' }} />
                                         ) : (
-                                            <div style={{ background: 'rgba(0,0,0,0.6)', padding: '1rem', borderRadius: '50%', backdropFilter: 'blur(4px)' }}>
+                                            <div style={{ position: 'relative', zIndex: 10, background: 'rgba(0,0,0,0.4)', padding: '1rem', borderRadius: '50%', backdropFilter: 'blur(4px)' }}>
                                                 <Lock size={32} color="white" />
                                             </div>
                                         )}
-                                        <div style={{ position: 'absolute', bottom: '10px', right: '10px', background: 'rgba(0,0,0,0.7)', padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: '700' }}>
+                                        <div style={{ position: 'absolute', bottom: '10px', right: '10px', background: 'rgba(0,0,0,0.8)', padding: '4px 8px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: '700', color: 'white', zIndex: 10 }}>
                                             {course.lectures} Lectures • {course.duration}
                                         </div>
                                     </div>
-                                    <div style={{ padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                                        <h3 style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '8px', lineHeight: '1.4' }}>{course.title}</h3>
-                                        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>By {course.instructor}</p>
+                                    <div style={{ padding: '24px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                                        <h3 style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '8px', lineHeight: '1.4', color: 'var(--text-main)' }}>{course.title}</h3>
+                                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', marginBottom: '24px' }}>By {course.instructor}</p>
 
                                         <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                             {course.isPurchased ? (
@@ -149,19 +161,15 @@ const StudyMaterial = () => {
                                                     <CheckCircle size={18} /> Owned
                                                 </div>
                                             ) : (
-                                                <div style={{ fontSize: '1.5rem', fontWeight: '700' }}>₹{course.price}</div>
+                                                <div style={{ fontSize: '1.5rem', fontWeight: '700', color: 'var(--text-main)' }}>₹{course.price}</div>
                                             )}
 
-                                            <button className="btn-reset" style={{
+                                            <button className={course.isPurchased ? 'btn-secondary' : 'btn-primary'} style={{
                                                 padding: '10px 20px',
-                                                background: course.isPurchased ? 'rgba(255,255,255,0.1)' : 'white',
-                                                color: course.isPurchased ? 'white' : 'black',
-                                                borderRadius: '8px',
-                                                fontWeight: '700',
-                                                display: 'flex', alignItems: 'center', gap: '8px'
+                                                fontSize: '0.9rem'
                                             }}>
                                                 {course.isPurchased ? 'Watch Now' : (
-                                                    <>Buy Now <ShoppingCart size={16} /></>
+                                                    <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>Buy Now <ShoppingCart size={16} /></span>
                                                 )}
                                             </button>
                                         </div>
@@ -170,40 +178,44 @@ const StudyMaterial = () => {
                             ))}
                         </div>
                     ) : (
-                        <div className="glass-card" style={{ padding: '0', maxWidth: '900px', margin: '0 auto', overflow: 'hidden' }}>
-                            <div style={{ padding: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.02)' }}>
-                                <h3 style={{ fontSize: '1.2rem', fontWeight: '700' }}>Test Papers, Solutions & Notes</h3>
+                        <div className="card-base" style={{ padding: '0', maxWidth: '900px', margin: '0 auto', overflow: 'hidden' }}>
+                            <div style={{ padding: '24px', borderBottom: '1px solid var(--border)', background: 'var(--surface-highlight)' }}>
+                                <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: 'var(--text-main)' }}>Test Papers, Solutions & Notes</h3>
                             </div>
                             <div>
                                 {documents.map((doc, idx) => (
                                     <div key={doc.id} style={{
-                                        display: 'flex', alignItems: 'center', gap: '1rem',
-                                        padding: '1.5rem',
-                                        borderBottom: idx !== documents.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none',
-                                        flexWrap: 'wrap'
-                                    }}>
+                                        display: 'flex', alignItems: 'center', gap: '1.5rem',
+                                        padding: '20px 24px',
+                                        borderBottom: idx !== documents.length - 1 ? '1px solid var(--border)' : 'none',
+                                        flexWrap: 'wrap',
+                                        transition: 'background 0.2s',
+                                        cursor: 'pointer'
+                                    }}
+                                        onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-highlight)'}
+                                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                    >
                                         <div style={{
-                                            width: '50px', height: '50px', borderRadius: '12px',
-                                            background: doc.type === 'T&D' ? 'rgba(245, 158, 11, 0.1)' : 'rgba(99, 102, 241, 0.1)',
-                                            color: doc.type === 'T&D' ? '#f59e0b' : '#6366f1',
-                                            display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                            width: '56px', height: '56px', borderRadius: '12px',
+                                            background: doc.type === 'T&D' ? 'rgba(245, 158, 11, 0.1)' : 'rgba(37, 99, 235, 0.1)',
+                                            color: doc.type === 'T&D' ? '#f59e0b' : 'var(--primary)',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            border: '1px solid var(--border-light)'
                                         }}>
                                             {doc.type === 'Notes' ? <BookOpen size={24} /> : <FileText size={24} />}
                                         </div>
                                         <div style={{ flex: 1 }}>
-                                            <h4 style={{ fontWeight: '600', marginBottom: '4px', fontSize: '1rem' }}>{doc.title}</h4>
-                                            <div style={{ display: 'flex', gap: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                                            <h4 style={{ fontWeight: '600', marginBottom: '6px', fontSize: '1rem', color: 'var(--text-main)' }}>{doc.title}</h4>
+                                            <div style={{ display: 'flex', gap: '16px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
                                                 <span>{doc.subject}</span>
-                                                <span>• {doc.date}</span>
-                                                <span>• {doc.size}</span>
+                                                <span style={{ opacity: 0.5 }}>|</span>
+                                                <span>{doc.date}</span>
+                                                <span style={{ opacity: 0.5 }}>|</span>
+                                                <span>{doc.size}</span>
                                             </div>
                                         </div>
-                                        <button className="btn-reset" style={{
+                                        <button className="btn-secondary" style={{
                                             padding: '8px 16px',
-                                            border: '1px solid rgba(255,255,255,0.2)',
-                                            color: 'white',
-                                            borderRadius: '8px',
-                                            fontWeight: '600',
                                             fontSize: '0.85rem',
                                             display: 'flex', alignItems: 'center', gap: '6px'
                                         }}>

@@ -40,7 +40,7 @@ const Login = ({ onClose, defaultIsLogin = true }) => {
                 email: formData.email,
                 id: 'USER-' + Math.random().toString(36).substr(2, 9),
                 role: 'student',
-                phone: formData.phone || '' ,
+                phone: formData.phone || '',
                 educationDetails: {
                     targetExam: formData.targetExam || '',
                     grade: formData.grade || '',
@@ -157,18 +157,18 @@ const Login = ({ onClose, defaultIsLogin = true }) => {
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
                 onClick={(e) => e.stopPropagation()}
-                className="glass-card"
+                className="card-base"
                 style={{
                     width: '100%',
                     maxWidth: '1000px',
-                    borderRadius: '32px',
+                    borderRadius: '24px',
                     position: 'relative',
-                    border: '1px solid rgba(255,255,255,0.1)',
+                    border: '1px solid var(--border)',
                     display: 'flex',
                     flexDirection: 'row',
                     overflow: 'hidden',
-                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-                    background: '#0f1016',
+                    boxShadow: 'var(--shadow-lg)',
+                    background: 'var(--surface)',
                     flexWrap: 'wrap' // Crucial for mobile responsiveness
                 }}
             >
@@ -267,28 +267,28 @@ const Login = ({ onClose, defaultIsLogin = true }) => {
                                             style={{
                                                 width: '100%',
                                                 padding: '16px 16px 16px 48px',
-                                                background: '#15171e',
-                                                border: '1px solid #2d2f39',
+                                                background: 'var(--background)',
+                                                border: '1px solid var(--border)',
                                                 borderRadius: '12px',
-                                                color: 'white',
+                                                color: 'var(--text-main)',
                                                 fontSize: '1rem',
                                                 outline: 'none',
                                             }}
                                         />
                                     </div>
                                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', marginTop: '12px' }}>
-                                        <input type="tel" name="phone" placeholder="Phone" value={formData.phone} onChange={handleChange} style={{ background: '#15171e', border: '1px solid #2d2f39', padding: '12px', borderRadius: '12px', color: 'white' }} />
-                                        <input type="text" name="targetExam" placeholder="Target Exam (e.g., NEET/JEE)" value={formData.targetExam} onChange={handleChange} style={{ background: '#15171e', border: '1px solid #2d2f39', padding: '12px', borderRadius: '12px', color: 'white' }} />
-                                        <input type="text" name="grade" placeholder="Class/Grade" value={formData.grade} onChange={handleChange} style={{ background: '#15171e', border: '1px solid #2d2f39', padding: '12px', borderRadius: '12px', color: 'white' }} />
-                                        <input type="text" name="schoolName" placeholder="School/College" value={formData.schoolName} onChange={handleChange} style={{ background: '#15171e', border: '1px solid #2d2f39', padding: '12px', borderRadius: '12px', color: 'white' }} />
-                                        <input type="text" name="city" placeholder="City" value={formData.city} onChange={handleChange} style={{ background: '#15171e', border: '1px solid #2d2f39', padding: '12px', borderRadius: '12px', color: 'white' }} />
+                                        <input type="tel" name="phone" placeholder="Phone" value={formData.phone} onChange={handleChange} style={{ background: 'var(--background)', border: '1px solid var(--border)', padding: '12px', borderRadius: '12px', color: 'var(--text-main)' }} />
+                                        <input type="text" name="targetExam" placeholder="Target Exam (e.g., NEET/JEE)" value={formData.targetExam} onChange={handleChange} style={{ background: 'var(--background)', border: '1px solid var(--border)', padding: '12px', borderRadius: '12px', color: 'var(--text-main)' }} />
+                                        <input type="text" name="grade" placeholder="Class/Grade" value={formData.grade} onChange={handleChange} style={{ background: 'var(--background)', border: '1px solid var(--border)', padding: '12px', borderRadius: '12px', color: 'var(--text-main)' }} />
+                                        <input type="text" name="schoolName" placeholder="School/College" value={formData.schoolName} onChange={handleChange} style={{ background: 'var(--background)', border: '1px solid var(--border)', padding: '12px', borderRadius: '12px', color: 'var(--text-main)' }} />
+                                        <input type="text" name="city" placeholder="City" value={formData.city} onChange={handleChange} style={{ background: 'var(--background)', border: '1px solid var(--border)', padding: '12px', borderRadius: '12px', color: 'var(--text-main)' }} />
                                     </div>
                                 </motion.div>
                             )}
                         </AnimatePresence>
 
                         <div style={{ position: 'relative' }}>
-                            <Mail style={{ position: 'absolute', left: '16px', top: '16px', color: 'var(--text-dim)', width: '20px' }} />
+                            <Mail style={{ position: 'absolute', left: '16px', top: '16px', color: 'var(--text-secondary)', width: '20px' }} />
                             <input
                                 type="email"
                                 name="email"
@@ -299,10 +299,10 @@ const Login = ({ onClose, defaultIsLogin = true }) => {
                                 style={{
                                     width: '100%',
                                     padding: '16px 16px 16px 48px',
-                                    background: '#15171e',
-                                    border: '1px solid #2d2f39',
+                                    background: 'var(--background)',
+                                    border: '1px solid var(--border)',
                                     borderRadius: '12px',
-                                    color: 'white',
+                                    color: 'var(--text-main)',
                                     fontSize: '1rem',
                                     outline: 'none',
                                 }}
@@ -310,7 +310,7 @@ const Login = ({ onClose, defaultIsLogin = true }) => {
                         </div>
 
                         <div style={{ position: 'relative' }}>
-                            <Lock style={{ position: 'absolute', left: '16px', top: '16px', color: 'var(--text-dim)', width: '20px' }} />
+                            <Lock style={{ position: 'absolute', left: '16px', top: '16px', color: 'var(--text-secondary)', width: '20px' }} />
                             <input
                                 type="password"
                                 name="password"
@@ -321,10 +321,10 @@ const Login = ({ onClose, defaultIsLogin = true }) => {
                                 style={{
                                     width: '100%',
                                     padding: '16px 16px 16px 48px',
-                                    background: '#15171e',
-                                    border: '1px solid #2d2f39',
+                                    background: 'var(--background)',
+                                    border: '1px solid var(--border)',
                                     borderRadius: '12px',
-                                    color: 'white',
+                                    color: 'var(--text-main)',
                                     fontSize: '1rem',
                                     outline: 'none',
                                 }}
@@ -334,18 +334,13 @@ const Login = ({ onClose, defaultIsLogin = true }) => {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="btn-reset"
+                            className="btn-primary"
                             style={{
-                                background: 'linear-gradient(135deg, var(--primary), var(--academic-blue))',
-                                color: 'white',
+                                width: '100%',
+                                justifyContent: 'center',
                                 padding: '16px',
                                 borderRadius: '12px',
-                                fontWeight: '600',
                                 fontSize: '1rem',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '8px',
                                 marginTop: '10px',
                                 cursor: loading ? 'not-allowed' : 'pointer'
                             }}

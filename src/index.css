@@ -1,43 +1,41 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
 :root {
-  /* Modern Academic Palette */
-  --background: #0a0b10;
-  --surface: #15171e;
-  --surface-highlight: #1e212b;
+  /* Professional EdTech Palette - Clean, Trustworthy, Modern */
+  --background: #0b0c10;
+  /* Deep Professional Dark */
+  --surface: #12141c;
+  /* Subtle Contrast */
+  --surface-highlight: #1b1e2b;
 
-  --primary: #6366f1;
-  /* Indigo Academic */
-  --primary-light: #818cf8;
-  --primary-glow: rgba(99, 102, 241, 0.3);
+  --primary: #2563eb;
+  /* Trustworthy Blue */
+  --primary-dark: #1d4ed8;
+  --primary-light: #60a5fa;
 
-  --accent: #10b981;
-  /* Success Green */
+  --accent: #059669;
+  /* Growth Green */
   --accent-light: #34d399;
 
-  --academic-blue: #3b82f6;
-  --academic-gold: #f59e0b;
+  --secondary: #64748b;
+  /* Professional Slate */
 
-  --text-main: #f8fafc;
+  --text-main: #ffffff;
+  --text-secondary: #cbd5e1;
   --text-muted: #94a3b8;
-  --text-dim: #64748b;
 
-  --border: rgba(255, 255, 255, 0.06);
-  --border-light: rgba(255, 255, 255, 0.1);
+  --border: #27272a;
+  /* Subtle Borders */
+  --border-light: #3f3f46;
 
-  --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+  /* Shadows - Subtle & Professional, No Glows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 
-  --glass: rgba(21, 23, 30, 0.7);
-  --glass-border: 1px solid rgba(255, 255, 255, 0.08);
   /* Typography */
-  --font-sizes-h0: clamp(3rem, 8vw, 6rem);
-  --font-sizes-h1: clamp(2.5rem, 6vw, 4.5rem);
-  --font-sizes-h2: clamp(2rem, 5vw, 3.5rem);
-  --font-sizes-h3: clamp(1.5rem, 4vw, 2.5rem);
-  --font-sizes-body-lg: clamp(1.1rem, 2vw, 1.25rem);
-  --font-sizes-body: 1rem;
-  --font-sizes-sm: 0.875rem;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'Outfit', sans-serif;
 }
 
 * {
@@ -49,27 +47,24 @@
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 80px;
-  overflow-x: hidden;
   width: 100%;
+  overflow-x: hidden;
 }
 
 body {
-  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-sans);
   background-color: var(--background);
   color: var(--text-main);
   line-height: 1.6;
-  overflow-x: hidden;
-  /* Critical fix for layout shift */
   width: 100%;
-  position: relative;
-  /* Premium Educational Background: Grid + Focused Glows */
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    radial-gradient(circle at 0% 0%, rgba(99, 102, 241, 0.12) 0%, transparent 50%),
-    radial-gradient(circle at 100% 100%, rgba(16, 185, 129, 0.08) 0%, transparent 50%);
-  background-size: 50px 50px, 50px 50px, 100% 100%, 100% 100%;
+  overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+
+  /* Clean Background - No chaotic glows */
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+  background-size: 40px 40px;
 }
 
 .container {
@@ -81,57 +76,76 @@ body {
 h1,
 h2,
 h3,
-h4 {
-  font-family: 'Outfit', sans-serif;
+h4,
+h5,
+h6 {
+  font-family: var(--font-display);
   font-weight: 700;
-  letter-spacing: -0.02em;
+  color: var(--text-main);
+  letter-spacing: -0.01em;
 }
 
-.gradient-text {
-  background: linear-gradient(135deg, var(--primary-light) 0%, var(--academic-blue) 100%);
+/* Professional Utilities */
+.text-gradient {
+  background: linear-gradient(to right, #60a5fa, #a855f7);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-/* Academic Glassmorphism */
-.glass-card {
-  background: linear-gradient(145deg, rgba(21, 23, 30, 0.6) 0%, rgba(21, 23, 30, 0.8) 100%);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow:
-    0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -1px rgba(0, 0, 0, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  /* Top inner highlight */
-  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+.card-base {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  transition: all 0.3s ease;
 }
 
-.glass-card:hover {
-  transform: translateY(-8px);
-  border-color: rgba(99, 102, 241, 0.3);
-  box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.3);
+.card-base:hover {
+  border-color: var(--border-light);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
 }
 
-.academic-badge {
+.btn-primary {
+  background: var(--primary);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: background 0.2s;
+  border: none;
+  cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background: rgba(99, 102, 241, 0.1);
-  border: 1px solid rgba(99, 102, 241, 0.2);
-  border-radius: 100px;
-  color: var(--primary-light);
-  font-size: 0.85rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  gap: 0.5rem;
 }
 
-/* Custom Scrollbar */
+.btn-primary:hover {
+  background: var(--primary-dark);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text-main);
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  border: 1px solid var(--border-light);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: white;
+}
+
+/* Scrollbar */
 ::-webkit-scrollbar {
-  width: 10px;
+  width: 8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -139,13 +153,12 @@ h4 {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--surface-highlight);
-  border-radius: 5px;
-  border: 2px solid var(--background);
+  background: var(--border-light);
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--primary);
+  background: var(--secondary);
 }
 
 .btn-reset {

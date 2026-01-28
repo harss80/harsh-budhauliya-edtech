@@ -1,13 +1,12 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
     Target, Clock, Trophy, PlayCircle, ChevronRight, Zap,
     Activity, BookOpen, BarChart2, Users, FileText, Layers,
-    Layout, Settings, Shield, Bell, Search, Star, MessageSquare
+    Layout, Settings, Shield, Bell, Search, Star, MessageSquare,
+    User, Phone, MapPin, GraduationCap, Building, Camera, Save, X
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { API_BASE } from '../utils/apiBase';
 
 const StudentDashboard = () => {
@@ -51,7 +50,7 @@ const StudentDashboard = () => {
         try {
             const allTests = JSON.parse(localStorage.getItem('digimentors_tests') || '[]');
             const pub = allTests.filter(t => t.published);
-            pub.sort((a,b) => new Date(b.scheduledAt || 0) - new Date(a.scheduledAt || 0));
+            pub.sort((a, b) => new Date(b.scheduledAt || 0) - new Date(a.scheduledAt || 0));
             return pub;
         } catch { return []; }
     });
@@ -165,11 +164,11 @@ const StudentDashboard = () => {
         fetch(`${base}/api/tests/public`).then(r => r.ok ? r.json() : null).then(list => {
             if (Array.isArray(list)) {
                 const mapped = list.map(t => ({ id: t._id || t.id, name: t.name, subject: t.subject, duration: t.duration, scheduledAt: t.scheduledAt, published: !!t.published }));
-                const pub = mapped.sort((a,b) => new Date(b.scheduledAt || 0) - new Date(a.scheduledAt || 0));
+                const pub = mapped.sort((a, b) => new Date(b.scheduledAt || 0) - new Date(a.scheduledAt || 0));
                 setPublishedTests(pub);
                 localStorage.setItem('digimentors_tests', JSON.stringify(mapped));
             }
-        }).catch(() => {}).finally(() => setLoadingTests(false));
+        }).catch(() => { }).finally(() => setLoadingTests(false));
 
         // Fetch current user's _id, then notifications
         const loadNotifs = async () => {
@@ -204,320 +203,331 @@ const StudentDashboard = () => {
         if (!user.email) return;
         fetch(`${base}/api/results?email=${encodeURIComponent(user.email)}`).then(r => r.ok ? r.json() : null).then(list => {
             if (Array.isArray(list) && list.length) setServerResults(list);
-        }).catch(() => {});
+        }).catch(() => { });
     }, [user.email]);
 
     const stats = computeStats(serverResults.length ? serverResults : testHistory);
     const unreadCount = notificationsList.filter(n => !n.read).length;
 
     const quickActions = [
-        { title: 'Practice', path: '/test-generator', icon: Target, color: '#8b5cf6', desc: 'Custom Tests' },
+        { title: 'Practice Tests', path: '/test-generator', icon: Target, color: '#8b5cf6', desc: 'Create Custom Tests' },
         { title: 'Full Mocks', path: '/test-series', icon: Star, color: '#ef4444', desc: 'Real Exam Pattern' },
-        { title: 'Analysis', path: '/analysis', icon: BarChart2, color: '#10b981', desc: 'Deep Insights' },
-        { title: 'Explore', path: '/courses', icon: Search, color: '#3b82f6', desc: 'Find Courses' },
+        { title: 'Deep Analysis', path: '/analysis', icon: BarChart2, color: '#10b981', desc: 'Check Your Performance' },
+        { title: 'Course Library', path: '/courses', icon: Search, color: '#3b82f6', desc: 'Browse Study Material' },
     ];
 
     return (
-        <div style={{ background: '#050505', minHeight: '100vh', fontFamily: '"Inter", sans-serif', color: 'white', paddingTop: '80px', paddingBottom: '40px' }}>
-            <div className="container" style={{ maxWidth: '1200px', margin: '0 auto', padding: isMobile ? '0 16px' : '0 24px' }}>
+        <div style={{ background: 'var(--background)', minHeight: '100vh', paddingBottom: '40px' }}>
+            <div className="container" style={{ padding: isMobile ? '0 16px' : '0 24px', paddingTop: '100px' }}>
 
                 {/* 1. Header & Greeting */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2.5rem', flexWrap: 'wrap', gap: '20px' }}>
                     <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-                            <div style={{ width: '48px', height: '48px', background: 'linear-gradient(135deg, #3b82f6, #6366f1)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 'bold' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '8px' }}>
+                            <div style={{ width: '56px', height: '56px', background: 'var(--surface-highlight)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', fontWeight: 'bold', border: '1px solid var(--border)' }}>
                                 {user.name.charAt(0)}
                             </div>
                             <div>
-                                <h1 style={{ fontSize: isMobile ? '1.5rem' : '1.8rem', fontWeight: '700', lineHeight: '1.2' }}>Hello, {user.name} 👋</h1>
-                                <p style={{ color: '#a1a1aa', fontSize: isMobile ? '0.85rem' : '0.9rem' }}>Let's crack {user.goal} today!</p>
+                                <h1 style={{ fontSize: isMobile ? '1.5rem' : '1.8rem', fontWeight: '800', lineHeight: '1.2', color: 'var(--text-main)' }}>Hello, {user.name}</h1>
+                                <p style={{ color: 'var(--text-secondary)', fontSize: isMobile ? '0.9rem' : '1rem' }}>Ready to conquer {user.goal !== 'Not Set' ? user.goal : 'your exams'}?</p>
                             </div>
                         </div>
-
-                        {/* Continue Where You Left Off */}
-                        {lastTest && (
-                            <div style={{ background: '#121214', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)', padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
-                                <div>
-                                    <div style={{ fontWeight: 700 }}>Continue: {lastTest.name || 'Last Test'}</div>
-                                    <div style={{ color: '#a1a1aa', fontSize: '0.85rem' }}>{lastTest.at ? new Date(lastTest.at).toLocaleString() : ''}</div>
-                                </div>
-                                <button onClick={() => navigate(lastTest.link)} className="btn-reset" style={{ padding: '10px 16px', background: 'white', color: 'black', borderRadius: '10px', fontWeight: 700 }}>Resume</button>
-                            </div>
-                        )}
                     </div>
                     <div style={{ display: 'flex', gap: '12px' }}>
-                        <button onClick={() => navigate('/')} className="btn-reset" style={{ position: 'relative', padding: '10px', background: '#18181b', borderRadius: '10px', color: '#a1a1aa', border: '1px solid rgba(255,255,255,0.1)' }}>
+                        <button onClick={() => navigate('/')} className="btn-secondary" style={{ padding: '10px', borderRadius: '12px' }}>
                             <Bell size={20} />
                             {unreadCount > 0 && (
-                                <span style={{ position: 'absolute', top: '-4px', right: '-4px', background: '#ef4444', color: 'white', borderRadius: '999px', fontSize: '10px', lineHeight: '1', padding: '4px 6px', fontWeight: 700 }}>{unreadCount}</span>
+                                <span style={{ position: 'absolute', top: '8px', right: '8px', width: '8px', height: '8px', background: '#ef4444', borderRadius: '50%' }} />
                             )}
                         </button>
-                        <button onClick={() => navigate('/test-generator')} className="btn-reset" style={{ padding: '10px 20px', background: '#3b82f6', borderRadius: '10px', color: 'white', fontWeight: '600', fontSize: '0.9rem' }}>Resume Learning</button>
+                        <button onClick={() => navigate('/test-generator')} className="btn-primary" style={{ padding: '10px 20px', fontSize: '0.95rem' }}>
+                            Resume Learning
+                        </button>
                     </div>
                 </div>
 
-                {/* 2. Stats Overview */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
+                {/* 2. Stats Overview - Minimal Cards */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '2.5rem' }}>
                     {[
                         { label: 'Tests Taken', value: stats.testsCompleted, icon: FileText, color: '#f59e0b' },
                         { label: 'Questions Solved', value: stats.questionsSolved, icon: Zap, color: '#10b981' },
                         { label: 'Avg. Accuracy', value: `${stats.avgAccuracy}%`, icon: Trophy, color: '#ec4899' },
                         { label: 'Study Hours', value: `${stats.studyHours || 0}h`, icon: Clock, color: '#3b82f6' }
                     ].map((s, i) => (
-                        <motion.div key={i} whileHover={{ y: -5 }} style={{ background: '#121214', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '20px', padding: '20px', position: 'relative', overflow: 'hidden' }}>
-                            <div style={{ position: 'absolute', top: 0, right: 0, width: '80px', height: '80px', background: s.color, filter: 'blur(60px)', opacity: 0.1 }} />
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                                <div style={{ padding: '10px', background: `rgba(255,255,255,0.05)`, borderRadius: '10px' }}><s.icon size={20} color={s.color} /></div>
+                        <div key={i} className="card-base" style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '16px' }}>
+                            <div style={{ padding: '12px', background: 'var(--surface-highlight)', borderRadius: '12px', color: s.color, border: '1px solid var(--border)' }}>
+                                <s.icon size={24} />
                             </div>
-                            <div style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '4px' }}>{s.value}</div>
-                            <div style={{ color: '#a1a1aa', fontSize: '0.9rem' }}>{s.label}</div>
-                        </motion.div>
+                            <div>
+                                <div style={{ fontSize: '1.5rem', fontWeight: '800', color: 'var(--text-main)', lineHeight: 1 }}>{s.value}</div>
+                                <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '4px', fontWeight: '500' }}>{s.label}</div>
+                            </div>
+                        </div>
                     ))}
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '2fr 1fr', gap: isMobile ? '1.25rem' : '2rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '2fr 1fr', gap: isMobile ? '24px' : '32px' }}>
 
-                    {/* LEFT COLUMN */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
+                    {/* LEFT COLUMN - Main Content */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
 
-                        {/* Goal Selector */}
-                        {needsGoal && (
-                            <div style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(129,140,248,0.25)', padding: '16px', borderRadius: '16px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+                        {/* Recent Test Resume */}
+                        {lastTest && (
+                            <div className="card-base" style={{ padding: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', background: 'var(--surface-highlight)' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                    <div style={{ padding: '10px', background: 'var(--primary)', borderRadius: '10px', color: 'white' }}><PlayCircle size={20} /></div>
                                     <div>
-                                        <div style={{ fontWeight: 700, marginBottom: '6px' }}>Set your Goal</div>
-                                        <div style={{ color: '#a1a1aa', fontSize: '0.9rem' }}>Choose your target exam to personalize your dashboard.</div>
-                                    </div>
-                                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                                        <select value={goalTemp} onChange={(e) => setGoalTemp(e.target.value)} style={{ padding: '10px 12px', background: '#0a0a0a', border: '1px solid #333', color: 'white', borderRadius: '10px' }}>
-                                            <option value="NEET">NEET</option>
-                                            <option value="JEE">JEE</option>
-                                            <option value="Boards">Boards</option>
-                                            <option value="Foundation">Foundation (Class 8-10)</option>
-                                        </select>
-                                        <button onClick={saveGoal} className="btn-reset" style={{ padding: '10px 16px', background: 'white', color: 'black', borderRadius: '10px', fontWeight: 700 }}>Save</button>
+                                        <div style={{ fontWeight: '700', fontSize: '1rem', color: 'var(--text-main)' }}>Continue: {lastTest.name || 'Last Test'}</div>
+                                        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Paused on {lastTest.at ? new Date(lastTest.at).toLocaleString() : ''}</div>
                                     </div>
                                 </div>
+                                <button onClick={() => navigate(lastTest.link)} className="btn-primary" style={{ padding: '8px 16px', fontSize: '0.9rem' }}>Resume</button>
                             </div>
                         )}
 
-                        {/* 3. Quick Actions */}
+                        {/* Quick Actions */}
                         <div>
-                            <h2 style={{ fontSize: '1.4rem', fontWeight: '700', marginBottom: '1.5rem' }}>Start Studying</h2>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem' }}>
+                            <h2 style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '16px', color: 'var(--text-main)' }}>Quick Access</h2>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
                                 {quickActions.map((action, i) => (
                                     <Link key={i} to={action.path} style={{ textDecoration: 'none' }}>
-                                        <motion.div whileHover={{ scale: 1.02 }} style={{ background: '#18181b', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', height: '100%' }}>
-                                            <div style={{ width: '40px', height: '40px', background: `${action.color}15`, borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem', color: action.color }}>
+                                        <motion.div whileHover={{ y: -4 }} className="card-base" style={{ padding: '24px', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                                            <div style={{ width: '40px', height: '40px', background: 'var(--surface-highlight)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px', color: action.color, border: '1px solid var(--border)' }}>
                                                 <action.icon size={20} />
                                             </div>
-                                            <h3 style={{ fontSize: '1rem', fontWeight: '600', color: 'white', marginBottom: '4px' }}>{action.title}</h3>
-                                            <p style={{ fontSize: '0.8rem', color: '#a1a1aa' }}>{action.desc}</p>
+                                            <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: 'var(--text-main)', marginBottom: '4px' }}>{action.title}</h3>
+                                            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{action.desc}</p>
                                         </motion.div>
                                     </Link>
                                 ))}
                             </div>
                         </div>
 
-                        {/* Published Tests */}
+                        {/* Upcoming Tests */}
                         <div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '1.8rem 0 1rem' }}>
-                                <h2 style={{ fontSize: '1.4rem', fontWeight: '700' }}>Upcoming Tests</h2>
-                                <Link to="/test-series" style={{ color: '#3b82f6', textDecoration: 'none', fontSize: '0.9rem', fontWeight: '600' }}>View All Tests</Link>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                                <h2 style={{ fontSize: '1.25rem', fontWeight: '700', color: 'var(--text-main)' }}>Scheduled Tests</h2>
+                                <Link to="/test-series" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '0.9rem', fontWeight: '600' }}>View All</Link>
                             </div>
+
                             {loadingTests ? (
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
-                                    {Array.from({ length: 4 }).map((_, i) => (
-                                        <div key={i} style={{ background: '#121214', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '16px' }}>
-                                            <div style={{ display: 'flex', gap: '12px', marginBottom: '10px' }}>
-                                                <div style={{ width: '36px', height: '36px', background: 'rgba(255,255,255,0.06)', borderRadius: '10px' }} />
-                                                <div style={{ flex: 1 }}>
-                                                    <div style={{ height: '14px', background: 'rgba(255,255,255,0.06)', borderRadius: '6px', marginBottom: '6px', width: '70%' }} />
-                                                    <div style={{ height: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', width: '50%' }} />
-                                                </div>
-                                            </div>
-                                            <div style={{ height: '36px', background: 'rgba(255,255,255,0.08)', borderRadius: '10px' }} />
-                                        </div>
-                                    ))}
-                                </div>
+                                <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>Loading schedule...</div>
                             ) : publishedTests.length > 0 ? (
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
-                                    {publishedTests.slice(0, 6).map((t) => (
-                                        <div key={t.id} style={{ background: '#121214', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                                <div style={{ width: '36px', height: '36px', background: 'rgba(59,130,246,0.12)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3b82f6', fontWeight: 700 }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                    {publishedTests.slice(0, 4).map((t) => (
+                                        <div key={t.id} className="card-base" style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                                <div style={{ width: '48px', height: '48px', background: 'var(--surface-highlight)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)', fontWeight: '700', border: '1px solid var(--border)' }}>
                                                     {String(t.subject || 'T').charAt(0)}
                                                 </div>
                                                 <div>
-                                                    <div style={{ color: 'white', fontWeight: '600', fontSize: '0.95rem' }}>{t.name || 'Scheduled Test'}</div>
-                                                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                                                        <span style={{ color: '#a1a1aa', fontSize: '0.8rem' }}>{t.scheduledAt ? new Date(t.scheduledAt).toLocaleString() : 'Anytime'}</span>
-                                                        <span style={{ fontSize: '0.7rem', color: '#60a5fa', background: 'rgba(59,130,246,0.12)', border: '1px solid rgba(59,130,246,0.3)', padding: '2px 8px', borderRadius: '999px' }}>{t.subject || 'General'}</span>
+                                                    <div style={{ color: 'var(--text-main)', fontWeight: '600', fontSize: '1rem' }}>{t.name}</div>
+                                                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center', fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                                                        <span>{t.subject || 'General'}</span>
+                                                        <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--text-muted)' }}></span>
+                                                        <span>{t.scheduledAt ? new Date(t.scheduledAt).toLocaleDateString() : 'Flexible'}</span>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                                                <Link to={`/attempt-test/${t.id}`} className="btn-reset" style={{ padding: '8px 14px', background: 'white', color: 'black', borderRadius: '10px', fontWeight: '700', textDecoration: 'none' }}>Attempt</Link>
-                                            </div>
+                                            <Link to={`/attempt-test/${t.id}`} className="btn-secondary" style={{ padding: '8px 16px', fontSize: '0.85rem' }}>Attempt Now</Link>
                                         </div>
                                     ))}
                                 </div>
                             ) : (
-                                <div style={{ padding: '30px', textAlign: 'center', color: '#a1a1aa', background: '#121214', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>No published tests yet.</div>
+                                <div className="card-base" style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                                    No upcoming scheduled tests. <Link to="/test-series" style={{ color: 'var(--primary)' }}>Explore Mock Tests</Link>
+                                </div>
                             )}
                         </div>
 
-                        {/* 4. Active Mock Test Banner */}
-
-                        {/* Recent History */}
-                        <div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                                <h2 style={{ fontSize: '1.4rem', fontWeight: '700' }}>Recent Activity</h2>
-                                <Link to="/test-history" style={{ color: '#3b82f6', textDecoration: 'none', fontSize: '0.9rem', fontWeight: '600' }}>View All</Link>
-                            </div>
-                            <div style={{ background: '#121214', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)', overflow: 'hidden' }}>
-                                {testHistory.length > 0 ? testHistory.slice(0, 4).map((t, i) => (
-                                    <div key={i} style={{ padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                                            <div style={{ width: '40px', height: '40px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                <FileText size={18} color="#a1a1aa" />
-                                            </div>
-                                            <div>
-                                                <div style={{ color: 'white', fontWeight: '500', fontSize: '0.95rem' }}>{t.name || "Test Attempt"}</div>
-                                                <div style={{ color: '#a1a1aa', fontSize: '0.8rem' }}>{t.date || "Just now"} • {t.attempted} Qs</div>
-                                            </div>
-                                        </div>
-                                        <div style={{ textAlign: 'right' }}>
-                                            <div style={{ color: '#10b981', fontWeight: '600' }}>{t.score}/{t.maxScore}</div>
-                                            <div style={{ color: '#a1a1aa', fontSize: '0.8rem' }}>Score</div>
-                                        </div>
-                                    </div>
-                                )) : (
-                                    <div style={{ padding: '30px', textAlign: 'center', color: '#a1a1aa' }}>No recent activity. Start learning!</div>
-                                )}
-                            </div>
-                        </div>
                     </div>
 
-                    {/* RIGHT COLUMN */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                    {/* RIGHT COLUMN - Sidebar */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
                         {/* Recent Notifications */}
-                        <div style={{ background: '#121214', padding: '16px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                                <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700 }}>Notifications</h3>
-                                {unreadCount > 0 && <button onClick={markAllRead} className="btn-reset" style={{ color: '#818cf8' }}>Mark all read</button>}
+                        <div className="card-base" style={{ padding: '20px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                                <h3 style={{ fontSize: '1rem', fontWeight: '700', color: 'var(--text-main)' }}>Notifications</h3>
+                                {unreadCount > 0 && <button onClick={markAllRead} style={{ color: 'var(--primary)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.8rem', fontWeight: '600' }}>Mark all read</button>}
                             </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '260px', overflowY: 'auto' }}>
-                                {loadingNotifs ? (
-                                    Array.from({ length: 4 }).map((_, i) => (
-                                        <div key={i} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', padding: '12px' }}>
-                                            <div style={{ height: '14px', background: 'rgba(255,255,255,0.06)', borderRadius: '6px', width: '60%', marginBottom: '6px' }} />
-                                            <div style={{ height: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', width: '80%' }} />
-                                        </div>
-                                    ))
-                                ) : notificationsList.length > 0 ? notificationsList.slice(0, 6).map((n) => (
-                                    <div key={n.id} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', padding: '12px', display: 'flex', alignItems: 'start', justifyContent: 'space-between', gap: '12px' }}>
-                                        <div>
-                                            <div style={{ fontWeight: 600, color: 'white' }}>{n.title || 'Notice'}</div>
-                                            <div style={{ color: '#a1a1aa', fontSize: '0.9rem' }}>{n.message}</div>
-                                            <div style={{ color: '#71717a', fontSize: '0.75rem', marginTop: '6px' }}>{n.createdAt ? new Date(n.createdAt).toLocaleString() : ''}</div>
-                                        </div>
-                                        {!n.read && <button onClick={() => markRead(n.id)} className="btn-reset" style={{ color: '#10b981', fontWeight: 700 }}>Mark read</button>}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '300px', overflowY: 'auto' }}>
+                                {notificationsList.length > 0 ? notificationsList.slice(0, 5).map((n) => (
+                                    <div key={n.id} style={{ paddingBottom: '12px', borderBottom: '1px solid var(--border)' }}>
+                                        <div style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: '0.9rem' }}>{n.title}</div>
+                                        <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', margin: '4px 0' }}>{n.message}</div>
+                                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{n.createdAt ? new Date(n.createdAt).toLocaleDateString() : ''}</div>
                                     </div>
                                 )) : (
-                                    <div style={{ color: '#71717a', fontSize: '0.9rem' }}>No notifications</div>
+                                    <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', textAlign: 'center', padding: '10px' }}>No new notifications</div>
                                 )}
                             </div>
                         </div>
 
-                        {/* Profile Card */}
-                        <div style={{ background: '#18181b', padding: '24px', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
-                            <div style={{ width: '80px', height: '80px', margin: '0 auto 1rem', borderRadius: '50%', background: 'linear-gradient(135deg, #ec4899, #8b5cf6)', padding: '3px' }}>
-                                <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: '#18181b', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                                    <span style={{ fontSize: '2rem' }}>👨‍🎓</span>
-                                </div>
+                        {/* Profile Summary */}
+                        <div className="card-base" style={{ padding: '24px', textAlign: 'center' }}>
+                            <div style={{ width: '80px', height: '80px', margin: '0 auto 16px', borderRadius: '50%', background: 'var(--surface-highlight)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border)' }}>
+                                <span style={{ fontSize: '2rem' }}>👨‍🎓</span>
                             </div>
-                            <h3 style={{ fontSize: '1.2rem', fontWeight: '700', marginBottom: '4px' }}>{user.name}</h3>
-                            <div style={{ fontSize: '0.9rem', color: '#a1a1aa', marginBottom: '1.5rem' }}>ID: {user.admissionId || "--------"}</div>
+                            <h3 style={{ fontSize: '1.2rem', fontWeight: '700', color: 'var(--text-main)' }}>{user.name}</h3>
+                            <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '20px' }}>{user.email}</p>
 
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '1.5rem' }}>
-                                <div style={{ background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '12px' }}>
-                                    <div style={{ fontSize: '0.8rem', color: '#a1a1aa' }}>Rank</div>
-                                    <div style={{ fontSize: '1rem', fontWeight: '700' }}>{stats.avgAccuracy > 80 ? "Top 5%" : "Unranked"}</div>
-                                </div>
-                                <div style={{ background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '12px' }}>
-                                    <div style={{ fontSize: '0.8rem', color: '#a1a1aa' }}>Streak</div>
-                                    <div style={{ fontSize: '1rem', fontWeight: '700' }}>🔥 3 Days</div>
-                                </div>
-                            </div>
-                            <button onClick={() => setShowProfileModal(true)} className="btn-reset" style={{ width: '100%', padding: '12px', background: 'rgba(255,255,255,0.1)', color: 'white', borderRadius: '12px', fontWeight: '600', fontSize: '0.9rem' }}>Edit Profile</button>
+                            <button onClick={() => setShowProfileModal(true)} className="btn-secondary" style={{ width: '100%', justifyContent: 'center' }}>Edit Profile</button>
                         </div>
 
-                        {/* My Courses */}
-                        <div>
-                            <h3 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '1rem' }}>My Courses</h3>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
-                                {myCourses.length > 0 ? myCourses.slice(0, 4).map((c, i) => (
-                                    <div key={i} style={{ background: '#121214', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', gap: '12px' }}>
-                                        <div style={{ width: '50px', height: '50px', borderRadius: '8px', background: 'rgba(59, 130, 246, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><PlayCircle color="#3b82f6" /></div>
-                                        <div>
-                                            <div style={{ fontSize: '0.95rem', fontWeight: '600', marginBottom: '4px' }}>{c.title}</div>
-                                            <div style={{ fontSize: '0.75rem', color: '#a1a1aa' }}>Progress: 45%</div>
-                                        </div>
-                                    </div>
-                                )) : (
-                                    <div style={{ padding: '20px', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '16px', textAlign: 'center', color: '#a1a1aa', fontSize: '0.9rem' }}>No Active Courses</div>
-                                )}
+                        {/* Help Box */}
+                        <div style={{ background: 'var(--primary)', padding: '24px', borderRadius: '16px', color: 'white' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', opacity: 0.9 }}>
+                                <MessageSquare size={18} /> <span style={{ fontSize: '0.85rem', fontWeight: '600', textTransform: 'uppercase' }}>Support</span>
                             </div>
-                        </div>
-
-                        {/* Need Help */}
-                        <div style={{ background: 'linear-gradient(135deg, #0e7490, #0891b2)', padding: '24px', borderRadius: '24px', color: 'white' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1rem' }}>
-                                <MessageSquare size={24} />
-                                <div style={{ background: 'rgba(255,255,255,0.2)', padding: '4px 8px', borderRadius: '6px', fontSize: '0.7rem', fontWeight: '700' }}>SUPPORT</div>
-                            </div>
-                            <h4 style={{ fontSize: '1.2rem', fontWeight: '700', marginBottom: '8px' }}>Need Help?</h4>
-                            <p style={{ fontSize: '0.9rem', opacity: 0.9, marginBottom: '1.5rem', lineHeight: '1.5' }}>Stuck on a problem or tech issue? Our mentors are online.</p>
-                            <button onClick={() => window.location.href = '/contact'} className="btn-reset" style={{ width: '100%', background: 'white', color: '#0891b2', padding: '12px', borderRadius: '12px', fontWeight: '700', fontSize: '0.9rem' }}>Chat Support</button>
+                            <h4 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '8px' }}>Need Assistance?</h4>
+                            <p style={{ fontSize: '0.9rem', marginBottom: '16px', opacity: 0.9 }}>Our academic counselors are here to help you.</p>
+                            <Link to="/contact" style={{ display: 'inline-block', background: 'white', color: 'var(--primary)', padding: '10px 20px', borderRadius: '8px', fontWeight: '700', fontSize: '0.9rem', textDecoration: 'none' }}>Contact Us</Link>
                         </div>
 
                     </div>
                 </div>
 
-            {showProfileModal && (
-                <div onClick={() => setShowProfileModal(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000 }}>
-                    <div onClick={e => e.stopPropagation()} style={{ width: '90%', maxWidth: '520px', background: '#18181b', border: '1px solid #333', borderRadius: '16px', padding: '20px' }}>
-                        <div style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: '12px' }}>Edit Profile</div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '10px' }}>
-                            <input value={profileForm.name} onChange={e => setProfileForm({ ...profileForm, name: e.target.value })} placeholder="Full Name" style={{ padding: '12px', background: '#0a0a0a', border: '1px solid #333', borderRadius: '10px', color: 'white' }} />
-                            <input value={profileForm.phone} onChange={e => setProfileForm({ ...profileForm, phone: e.target.value })} placeholder="Phone" style={{ padding: '12px', background: '#0a0a0a', border: '1px solid #333', borderRadius: '10px', color: 'white' }} />
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                                <select value={profileForm.targetExam} onChange={e => setProfileForm({ ...profileForm, targetExam: e.target.value })} style={{ padding: '12px', background: '#0a0a0a', border: '1px solid #333', borderRadius: '10px', color: 'white' }}>
-                                    <option value="">Select Target</option>
-                                    <option value="NEET">NEET</option>
-                                    <option value="JEE">JEE</option>
-                                    <option value="Boards">Boards</option>
-                                    <option value="Foundation">Foundation</option>
-                                </select>
-                                <input value={profileForm.grade} onChange={e => setProfileForm({ ...profileForm, grade: e.target.value })} placeholder="Class/Grade" style={{ padding: '12px', background: '#0a0a0a', border: '1px solid #333', borderRadius: '10px', color: 'white' }} />
+                {/* Profile Edit Modal */}
+                {showProfileModal && (
+                    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000 }}>
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            className="card-base"
+                            onClick={e => e.stopPropagation()}
+                            style={{ width: '100%', maxWidth: '600px', background: 'var(--surface)', maxHeight: '90vh', overflowY: 'auto', padding: 0, border: '1px solid var(--border-light)', boxShadow: 'var(--shadow-lg)' }}
+                        >
+                            {/* Header */}
+                            <div style={{ padding: '24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface-highlight)' }}>
+                                <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <Settings size={20} /> Edit Profile
+                                </h3>
+                                <button onClick={() => setShowProfileModal(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                                    <X size={24} />
+                                </button>
                             </div>
-                            <input value={profileForm.schoolName} onChange={e => setProfileForm({ ...profileForm, schoolName: e.target.value })} placeholder="School/College" style={{ padding: '12px', background: '#0a0a0a', border: '1px solid #333', borderRadius: '10px', color: 'white' }} />
-                            <input value={profileForm.city} onChange={e => setProfileForm({ ...profileForm, city: e.target.value })} placeholder="City" style={{ padding: '12px', background: '#0a0a0a', border: '1px solid #333', borderRadius: '10px', color: 'white' }} />
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '16px' }}>
-                            <button onClick={() => setShowProfileModal(false)} className="btn-reset" style={{ padding: '10px 14px', background: 'transparent', border: '1px solid #333', color: 'white', borderRadius: '10px' }}>Cancel</button>
-                            <button onClick={saveProfile} className="btn-reset" style={{ padding: '10px 14px', background: 'white', color: 'black', borderRadius: '10px', fontWeight: 700 }}>Save</button>
-                        </div>
+
+                            <div style={{ padding: '32px' }}>
+                                {/* Avatar Placeholder */}
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '32px' }}>
+                                    <div style={{ position: 'relative', width: '100px', height: '100px', marginBottom: '16px' }}>
+                                        <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: 'linear-gradient(135deg, #3b82f6, #818cf8)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem', fontWeight: 'bold', color: 'white', border: '4px solid var(--surface)' }}>
+                                            {profileForm.name.charAt(0)}
+                                        </div>
+                                        <button style={{ position: 'absolute', bottom: '0', right: '0', background: 'var(--text-main)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
+                                            <Camera size={16} color="var(--background)" />
+                                        </button>
+                                    </div>
+                                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Update your personal details</p>
+                                </div>
+
+                                <div style={{ display: 'grid', gap: '24px' }}>
+                                    {/* Personal Section */}
+                                    <div>
+                                        <h4 style={{ fontSize: '0.85rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '16px' }}>Personal Information</h4>
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                            <div style={{ gridColumn: 'span 2' }}>
+                                                <label style={{ fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '8px', display: 'block' }}>Full Name</label>
+                                                <div style={{ position: 'relative' }}>
+                                                    <User size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
+                                                    <input
+                                                        value={profileForm.name}
+                                                        onChange={e => setProfileForm({ ...profileForm, name: e.target.value })}
+                                                        style={{ width: '100%', padding: '10px 10px 10px 40px', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text-main)', outline: 'none' }}
+                                                        placeholder="Enter your name"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label style={{ fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '8px', display: 'block' }}>Phone Number</label>
+                                                <div style={{ position: 'relative' }}>
+                                                    <Phone size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
+                                                    <input
+                                                        value={profileForm.phone}
+                                                        onChange={e => setProfileForm({ ...profileForm, phone: e.target.value })}
+                                                        style={{ width: '100%', padding: '10px 10px 10px 40px', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text-main)', outline: 'none' }}
+                                                        placeholder="+91 98765..."
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label style={{ fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '8px', display: 'block' }}>City</label>
+                                                <div style={{ position: 'relative' }}>
+                                                    <MapPin size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
+                                                    <input
+                                                        value={profileForm.city}
+                                                        onChange={e => setProfileForm({ ...profileForm, city: e.target.value })}
+                                                        style={{ width: '100%', padding: '10px 10px 10px 40px', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text-main)', outline: 'none' }}
+                                                        placeholder="Your City"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Academic Section */}
+                                    <div>
+                                        <h4 style={{ fontSize: '0.85rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '16px' }}>Academic Details</h4>
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                            <div>
+                                                <label style={{ fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '8px', display: 'block' }}>Target Exam</label>
+                                                <div style={{ position: 'relative' }}>
+                                                    <Target size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
+                                                    <select
+                                                        value={profileForm.targetExam}
+                                                        onChange={e => setProfileForm({ ...profileForm, targetExam: e.target.value })}
+                                                        style={{ width: '100%', padding: '10px 10px 10px 40px', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text-main)', outline: 'none', appearance: 'none' }}
+                                                    >
+                                                        <option value="">Select Target</option>
+                                                        <option value="NEET">NEET</option>
+                                                        <option value="JEE">JEE</option>
+                                                        <option value="Boards">Boards</option>
+                                                        <option value="Foundation">Foundation</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label style={{ fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '8px', display: 'block' }}>Grade / Class</label>
+                                                <div style={{ position: 'relative' }}>
+                                                    <GraduationCap size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
+                                                    <input
+                                                        value={profileForm.grade}
+                                                        onChange={e => setProfileForm({ ...profileForm, grade: e.target.value })}
+                                                        style={{ width: '100%', padding: '10px 10px 10px 40px', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text-main)', outline: 'none' }}
+                                                        placeholder="e.g. 11th"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div style={{ gridColumn: 'span 2' }}>
+                                                <label style={{ fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '8px', display: 'block' }}>School / College</label>
+                                                <div style={{ position: 'relative' }}>
+                                                    <Building size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
+                                                    <input
+                                                        value={profileForm.schoolName}
+                                                        onChange={e => setProfileForm({ ...profileForm, schoolName: e.target.value })}
+                                                        style={{ width: '100%', padding: '10px 10px 10px 40px', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text-main)', outline: 'none' }}
+                                                        placeholder="Enter institution name"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style={{ padding: '24px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: '12px', background: 'var(--surface)' }}>
+                                <button onClick={() => setShowProfileModal(false)} className="btn-secondary">Cancel</button>
+                                <button onClick={saveProfile} className="btn-primary" style={{ padding: '10px 24px' }}>
+                                    <Save size={18} /> Save Changes
+                                </button>
+                            </div>
+                        </motion.div>
                     </div>
-                </div>
-            )}
+                )}
             </div>
         </div>
     );
 };
-
-// Profile Modal Root (rendered within the page for simplicity)
 
 export default StudentDashboard;

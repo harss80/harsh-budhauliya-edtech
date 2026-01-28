@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Clock, ChevronLeft, ChevronRight, AlertCircle,
@@ -138,6 +138,16 @@ const TestPlayer = () => {
         return () => clearInterval(tracker);
     }, [currentQuestion, questions]);
 
+    const handleNext = useCallback(() => {
+        if (currentQuestion < questions.length - 1) {
+            setCurrentQuestion(prev => {
+                const next = prev + 1;
+                setVisited(v => new Set(v).add(next));
+                return next;
+            });
+        }
+    }, [currentQuestion, questions.length]);
+
     // Question Timer Countdown & Auto-Skip
     useEffect(() => {
         if (!questions.length) return;
@@ -153,7 +163,7 @@ const TestPlayer = () => {
             });
         }, 1000);
         return () => clearInterval(qTimer);
-    }, [currentQuestion, questions.length]);
+    }, [currentQuestion, questions.length, handleNext]);
 
     // Responsive Check
     useEffect(() => {
@@ -178,19 +188,7 @@ const TestPlayer = () => {
         setTimeLeft(durationMinutes * 60);
     }, [durationMinutes]);
 
-    // Global Timer
-    useEffect(() => {
-        const timer = setInterval(() => {
-            setTimeLeft((prev) => {
-                if (prev <= 1) {
-                    handleSubmit();
-                    return 0;
-                }
-                return prev - 1;
-            });
-        }, 1000);
-        return () => clearInterval(timer);
-    }, []);
+    
 
     const formatTime = (seconds) => {
         const h = Math.floor(seconds / 3600);
@@ -203,15 +201,7 @@ const TestPlayer = () => {
         setAnswers(prev => ({ ...prev, [questions[currentQuestion].id]: optionId }));
     };
 
-    const handleNext = () => {
-        if (currentQuestion < questions.length - 1) {
-            setCurrentQuestion(prev => {
-                const next = prev + 1;
-                setVisited(v => new Set(v).add(next));
-                return next;
-            });
-        }
-    };
+    
 
     const handlePrev = () => {
         if (currentQuestion > 0) {
@@ -229,7 +219,7 @@ const TestPlayer = () => {
         });
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = useCallback(() => {
         let correctCount = 0;
         let attemptedCount = 0;
 
@@ -320,7 +310,21 @@ const TestPlayer = () => {
         } catch { /* ignore */ }
 
         navigate('/analysis', { state: { result: resultData } });
-    };
+    }, [answers, durationMinutes, navigate, questions, testTitle, timeLeft, timePerQuestion]);
+
+    // Global Timer
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setTimeLeft((prev) => {
+                if (prev <= 1) {
+                    handleSubmit();
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+        return () => clearInterval(timer);
+    }, [handleSubmit]);
 
     if (questions.length === 0) {
         return (

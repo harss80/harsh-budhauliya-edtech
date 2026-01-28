@@ -56,10 +56,10 @@ const Navbar = () => {
                     left: 0,
                     right: 0,
                     zIndex: 1000,
-                    background: scrolled ? 'rgba(5, 5, 5, 0.85)' : 'transparent',
+                    background: scrolled ? 'rgba(11, 12, 16, 0.95)' : 'transparent',
                     backdropFilter: scrolled ? 'blur(12px)' : 'none',
-                    borderBottom: scrolled ? '1px solid rgba(255,255,255,0.08)' : '1px solid transparent',
-                    padding: '16px 0',
+                    borderBottom: scrolled ? '1px solid var(--border)' : '1px solid transparent',
+                    padding: scrolled ? '4px 0' : '12px 0',
                     transition: 'all 0.3s ease'
                 }}
             >
@@ -67,7 +67,7 @@ const Navbar = () => {
 
                     {/* Logo */}
                     <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
-                        <img src="/assets/logo.png" alt="Digimentors" style={{ height: '64px', objectFit: 'contain' }} />
+                        <img src="/assets/logo.png" alt="Digimentors" style={{ height: '80px', objectFit: 'contain' }} />
                     </Link>
 
                     {/* Desktop Links */}
@@ -77,15 +77,15 @@ const Navbar = () => {
                                 key={link.name}
                                 to={link.path}
                                 style={{
-                                    color: '#a1a1aa',
+                                    color: 'var(--text-secondary)',
                                     textDecoration: 'none',
                                     fontSize: '0.95rem',
                                     fontWeight: '500',
                                     transition: 'color 0.2s',
                                     position: 'relative'
                                 }}
-                                onMouseEnter={(e) => e.target.style.color = 'white'}
-                                onMouseLeave={(e) => e.target.style.color = '#a1a1aa'}
+                                onMouseEnter={(e) => e.target.style.color = 'var(--text-main)'}
+                                onMouseLeave={(e) => e.target.style.color = 'var(--text-secondary)'}
                             >
                                 {link.name}
                             </Link>
@@ -94,8 +94,8 @@ const Navbar = () => {
 
                     {/* Right Actions */}
                     <div className="desktop-actions" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'white', fontWeight: '600', fontSize: '0.9rem' }}>
-                            <div style={{ padding: '8px', background: 'rgba(255,255,255,0.1)', borderRadius: '50%' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-main)', fontWeight: '600', fontSize: '0.9rem' }}>
+                            <div style={{ padding: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '50%', border: '1px solid var(--border)' }}>
                                 <Phone size={16} />
                             </div>
                             <span style={{ fontSize: '0.85rem' }}>Talk to us</span>
@@ -107,8 +107,8 @@ const Navbar = () => {
                             </Link>
                         ) : (
                             <div style={{ display: 'flex', gap: '1rem' }}>
-                                <Link to="/login" style={{ color: 'white', textDecoration: 'none', fontWeight: '600', fontSize: '0.95rem', padding: '10px 0' }}>Login</Link>
-                                <Link to="/login" className="btn-reset" style={{ padding: '10px 24px', background: 'linear-gradient(90deg, #3b82f6, #2563eb)', color: 'white', borderRadius: '100px', fontWeight: '600', fontSize: '0.9rem', boxShadow: '0 4px 12px rgba(59, 130, 246, 0.4)', textDecoration: 'none' }}>
+                                <Link to="/login" style={{ color: 'var(--text-main)', textDecoration: 'none', fontWeight: '600', fontSize: '0.95rem', padding: '10px 0' }}>Login</Link>
+                                <Link to="/login" className="btn-reset" style={{ padding: '10px 24px', background: 'var(--primary)', color: 'white', borderRadius: '100px', fontWeight: '600', fontSize: '0.9rem', textDecoration: 'none' }}>
                                     Get Started
                                 </Link>
                             </div>
@@ -116,7 +116,7 @@ const Navbar = () => {
                     </div>
 
                     {/* Mobile Toggle */}
-                    <button className="mobile-toggle" onClick={() => setIsOpen(!isOpen)} style={{ color: 'white', background: 'none', border: 'none', cursor: 'pointer' }}>
+                    <button className="mobile-toggle" onClick={() => setIsOpen(!isOpen)} style={{ color: 'var(--text-main)', background: 'none', border: 'none', cursor: 'pointer' }}>
                         {isOpen ? <X size={28} /> : <Menu size={28} />}
                     </button>
                 </div>
@@ -128,7 +128,7 @@ const Navbar = () => {
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: '100vh' }}
                             exit={{ opacity: 0, height: 0 }}
-                            style={{ position: 'fixed', top: '96px', left: 0, right: 0, background: '#050505', padding: '2rem', overflowY: 'auto', borderTop: '1px solid rgba(255,255,255,0.1)' }}
+                            style={{ position: 'fixed', top: '80px', left: 0, right: 0, background: 'var(--background)', padding: '2rem', overflowY: 'auto', borderTop: '1px solid var(--border)' }}
                         >
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                                 {navLinks.map((link) => (
