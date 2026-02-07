@@ -1,18 +1,58 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { chaptersList } from '../data/realQuestions';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE } from '../utils/apiBase';
+import { NCERT } from '../data/ncert';
 import { ChevronRight, ChevronLeft, Check, CheckCircle, Layers, Zap, BookOpen, Activity } from 'lucide-react';
+
+// Step indicator extracted to avoid nested component lint
+const StepIndicator = ({ step }) => (
+    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '3rem', position: 'relative' }}>
+        <div style={{ position: 'absolute', top: '50%', left: '0', right: '0', height: '2px', background: 'rgba(255,255,255,0.1)', zIndex: 0 }}></div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', maxWidth: '400px', position: 'relative', zIndex: 1 }}>
+            {[1, 2, 3, 4].map(s => (
+                <div key={s} style={{
+                    width: '40px', height: '40px',
+                    borderRadius: '50%',
+                    background: s <= step ? 'var(--primary)' : 'var(--surface)',
+                    border: s <= step ? 'none' : '1px solid rgba(255,255,255,0.2)',
+                    color: s <= step ? 'white' : 'var(--text-muted)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontWeight: '700',
+                    boxShadow: s <= step ? '0 0 15px var(--primary-glow)' : 'none',
+                    transition: 'all 0.3s ease'
+                }}>
+                    {s < step ? <Check size={20} /> : s}
+                </div>
+            ))}
+        </div>
+    </div>
+);
 
 const TestGenerator = () => {
     const navigate = useNavigate();
     const [step, setStep] = useState(1);
-    const [config, setConfig] = useState({
-        exam: 'NEET', // Default
-        class: [],
-        subjects: [],
-        chapters: [],
-        questionCount: 10
+    const [config, setConfig] = useState(() => {
+        const tc = localStorage.getItem('target_class');
+        if (tc && /^Class (6|7|8|9|10|11|12)$/.test(tc)) {
+            const cls = tc.replace('Class ', '');
+            const subs = Array.from(new Set((NCERT[cls] || []).map(b => b.subject))).slice(0, 3);
+            return {
+                exam: 'Foundation',
+                class: [tc],
+                subjects: subs.length ? subs : ['Mathematics', 'Science'],
+                chapters: [],
+                questionCount: 10
+            };
+        }
+        return {
+            exam: 'NEET',
+            class: [],
+            subjects: ['Physics', 'Chemistry', 'Biology'],
+            chapters: [],
+            questionCount: 10
+        };
     });
 
     // Helper to toggle selection in arrays
@@ -27,41 +67,83 @@ const TestGenerator = () => {
         });
     };
 
-    // Auto-select subjects based on Exam
-    useEffect(() => {
-        if (config.exam === 'NEET') {
-            setConfig(prev => ({ ...prev, subjects: ['Physics', 'Chemistry', 'Biology'] }));
-        } else {
-            setConfig(prev => ({ ...prev, subjects: ['Physics', 'Chemistry', 'Mathematics'] }));
-        }
-    }, [config.exam]);
+    // Derive Foundation subjects from NCERT for selected classes
+    const foundationSubjects = useMemo(() => {
+        const classes = config.class.length > 0 ? config.class.map(c => c.replace('Class ', '')) : ['6'];
+        const subjects = new Set();
+        classes.forEach(cls => {
+            (NCERT[cls] || []).forEach(book => subjects.add(book.subject));
+        });
+        return Array.from(subjects);
+    }, [config.class]);
 
     const getAvailableChapters = () => {
         let chapters = [];
-        const classes = config.class.length > 0 ? config.class : ['Class 11', 'Class 12'];
-
-        config.subjects.forEach(sub => {
-            if (chaptersList[sub]) {
-                classes.forEach(cls => {
-                    if (chaptersList[sub][cls]) {
-                        // Tag each chapter with its subject for better UI grouping
-                        const subChapters = chaptersList[sub][cls].map(c => ({ name: c, subject: sub, class: cls }));
-                        chapters = [...chapters, ...subChapters];
-                    }
+        const classes = config.class.length > 0 ? config.class : (config.exam === 'Foundation' ? ['Class 6'] : ['Class 11', 'Class 12']);
+        if (config.exam === 'Foundation') {
+            classes.forEach(cls => {
+                const key = cls.replace('Class ', '');
+                config.subjects.forEach(sub => {
+                    const books = (NCERT[key] || []).filter(b => b.subject === sub);
+                    books.forEach(b => {
+                        chapters = chapters.concat(b.chapters.map(c => ({ name: c, subject: sub, class: cls, bookId: b.bookId, bookName: b.name })));
+                    });
                 });
-            }
-        });
+            });
+        } else {
+            config.subjects.forEach(sub => {
+                if (chaptersList[sub]) {
+                    classes.forEach(cls => {
+                        if (chaptersList[sub][cls]) {
+                            const subChapters = chaptersList[sub][cls].map(c => ({ name: c, subject: sub, class: cls }));
+                            chapters = [...chapters, ...subChapters];
+                        }
+                    });
+                }
+            });
+        }
         return chapters;
     };
 
-    const handleStartTest = () => {
+    const handleStartTest = async () => {
         // Validation
         if (config.chapters.length === 0) {
             alert("Please select at least one chapter!");
             return;
         }
 
-        // Save config to local storage
+        // If Foundation with one class and one subject, try server-backed NCERT generation
+        if (config.exam === 'Foundation' && config.class.length === 1 && config.subjects.length === 1) {
+            const cls = config.class[0].replace('Class ', '');
+            const subject = config.subjects[0];
+            const available = getAvailableChapters();
+            const books = (NCERT[cls] || []).filter(b => b.subject === subject);
+            if (books.length > 0) {
+                const pickBook = books.find(b => available.some(ac => ac.bookId === b.bookId && config.chapters.includes(ac.name))) || books[0];
+                const chaptersForBook = config.chapters.filter(c => available.some(ac => ac.bookId === pickBook.bookId && ac.name === c));
+                try {
+                    const res = await fetch(`${API_BASE}/api/tests/generate-ncert`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            classNumber: String(cls),
+                            book: { name: pickBook.name, subject: pickBook.subject },
+                            chapters: chaptersForBook.length > 0 ? chaptersForBook : config.chapters,
+                            questionCount: 50,
+                            duration: 60,
+                            name: `Class ${cls} ${pickBook.name} - ${chaptersForBook[0] || config.chapters[0]}`
+                        })
+                    });
+                    if (res.ok) {
+                        const created = await res.json();
+                        navigate(`/attempt-test/${created._id}`);
+                        return;
+                    }
+                } catch { /* ignore and fallback */ }
+            }
+        }
+
+        // Fallback to local custom generation
         localStorage.setItem('custom_test_config', JSON.stringify(config));
         navigate('/attempt-test/custom-generated');
     };
@@ -70,29 +152,6 @@ const TestGenerator = () => {
     const prevStep = () => setStep(step - 1);
 
     // --- UI COMPONENTS ---
-
-    const StepIndicator = () => (
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '3rem', position: 'relative' }}>
-            <div style={{ position: 'absolute', top: '50%', left: '0', right: '0', height: '2px', background: 'rgba(255,255,255,0.1)', zIndex: 0 }}></div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', maxWidth: '400px', position: 'relative', zIndex: 1 }}>
-                {[1, 2, 3, 4].map(s => (
-                    <div key={s} style={{
-                        width: '40px', height: '40px',
-                        borderRadius: '50%',
-                        background: s <= step ? 'var(--primary)' : 'var(--surface)',
-                        border: s <= step ? 'none' : '1px solid rgba(255,255,255,0.2)',
-                        color: s <= step ? 'white' : 'var(--text-muted)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontWeight: '700',
-                        boxShadow: s <= step ? '0 0 15px var(--primary-glow)' : 'none',
-                        transition: 'all 0.3s ease'
-                    }}>
-                        {s < step ? <Check size={20} /> : s}
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
 
     return (
         <div className="section-padding" style={{ minHeight: '100vh', background: 'var(--background)', paddingTop: '100px' }}>
@@ -106,7 +165,7 @@ const TestGenerator = () => {
                     <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}>Select specific topics to target your weak areas.</p>
                 </div>
 
-                <StepIndicator />
+                <StepIndicator step={step} />
 
                 <div className="glass-card" style={{ minHeight: '500px', display: 'flex', flexDirection: 'column', padding: '0', overflow: 'hidden' }}>
 
@@ -127,10 +186,17 @@ const TestGenerator = () => {
                                     <div style={{ marginBottom: '3rem' }}>
                                         <label style={{ display: 'block', marginBottom: '1rem', color: 'var(--text-muted)', fontWeight: '600' }}>Target Exam</label>
                                         <div className="responsive-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
-                                            {['NEET', 'JEE Main'].map(e => (
+                                            {['NEET', 'JEE Main', 'Foundation'].map(e => (
                                                 <button
                                                     key={e}
-                                                    onClick={() => setConfig({ ...config, exam: e })}
+                                                    onClick={() => {
+                                                        const nextSubjects = e === 'NEET'
+                                                            ? ['Physics', 'Chemistry', 'Biology']
+                                                            : e === 'JEE Main'
+                                                                ? ['Physics', 'Chemistry', 'Mathematics']
+                                                                : (foundationSubjects.length ? foundationSubjects.slice(0, Math.min(3, foundationSubjects.length)) : ['Mathematics', 'Science']);
+                                                        setConfig(prev => ({ ...prev, exam: e, subjects: nextSubjects }));
+                                                    }}
                                                     className="btn-reset"
                                                     style={{
                                                         padding: '2rem',
@@ -151,7 +217,7 @@ const TestGenerator = () => {
                                     <div>
                                         <label style={{ display: 'block', marginBottom: '1rem', color: 'var(--text-muted)', fontWeight: '600' }}>Select Class</label>
                                         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                                            {['Class 11', 'Class 12'].map(c => (
+                                            {(config.exam === 'Foundation' ? ['Class 6','Class 7','Class 8','Class 9','Class 10','Class 11','Class 12'] : ['Class 11', 'Class 12']).map(c => (
                                                 <button
                                                     key={c}
                                                     onClick={() => toggleSelection('class', c)}
@@ -190,7 +256,7 @@ const TestGenerator = () => {
                                         <Activity color="#ec4899" fill="rgba(236, 72, 153, 0.2)" /> Select Subjects
                                     </h2>
                                     <div className="responsive-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
-                                        {(config.exam === 'NEET' ? ['Physics', 'Chemistry', 'Biology'] : ['Physics', 'Chemistry', 'Mathematics']).map(sub => (
+                                        {(config.exam === 'Foundation' ? foundationSubjects : (config.exam === 'NEET' ? ['Physics', 'Chemistry', 'Biology'] : ['Physics', 'Chemistry', 'Mathematics'])).map(sub => (
                                             <button
                                                 key={sub}
                                                 onClick={() => toggleSelection('subjects', sub)}

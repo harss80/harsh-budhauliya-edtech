@@ -31,18 +31,58 @@ const Navbar = () => {
         };
     }, [location]);
 
-    const navLinks = [
-        { name: 'Home', path: '/' },
-        { name: 'Courses', path: '/courses' },
-        { name: 'Test Series', path: '/test-series' },
-        { name: 'Study Material', path: '/study-material' },
-        { name: 'About', path: '/about' },
+    const homeLink = { name: 'Home', path: '/' };
+    const menus = [
+        {
+            label: 'Foundation',
+            items: [
+                { name: 'Class 6', path: '/class/6' },
+                { name: 'Class 7', path: '/class/7' },
+                { name: 'Class 8', path: '/class/8' },
+                { name: 'Class 9', path: '/class/9' },
+                { name: 'Class 10', path: '/class/10' },
+                { name: 'Class 11', path: '/class/11' },
+                { name: 'Class 12', path: '/class/12' }
+            ]
+        },
+        {
+            label: 'NEET',
+            items: [
+                { name: 'NEET UG', path: '/category/neet-ug' },
+                { name: 'Test Series', path: '/test-series' },
+                { name: 'Question Bank', path: '/questions' },
+                { name: 'Study Material', path: '/study-material' }
+            ]
+        },
+        {
+            label: 'JEE',
+            items: [
+                { name: 'JEE Main', path: '/category/jee-main' },
+                { name: 'JEE Advanced', path: '/category/jee-advanced' },
+                { name: 'Test Series', path: '/test-series' },
+                { name: 'Question Bank', path: '/questions' }
+            ]
+        },
+        {
+            label: 'Company',
+            items: [
+                { name: 'About', path: '/about' },
+                { name: 'Careers', path: '/careers' },
+                { name: 'Privacy Policy', path: '/privacy-policy' },
+                { name: 'Terms of Service', path: '/terms-of-service' },
+                { name: 'Contact', path: '/contact' }
+            ]
+        },
+        {
+            label: 'More',
+            items: []
+        }
     ];
 
-    const dropdownVariants = {
-        hidden: { opacity: 0, y: 10, scale: 0.95, display: 'none' },
-        visible: { opacity: 1, y: 0, scale: 1, display: 'block' }
-    };
+    const menusToRender = menus;
+    const [openDropdown, setOpenDropdown] = useState(null);
+
+
 
     return (
         <>
@@ -70,25 +110,72 @@ const Navbar = () => {
                         <img src="/assets/logo.png" alt="Digimentors" style={{ height: '80px', objectFit: 'contain' }} />
                     </Link>
 
-                    {/* Desktop Links */}
                     <div className="desktop-menu" style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-                        {navLinks.map((link) => (
-                            <Link
-                                key={link.name}
-                                to={link.path}
-                                style={{
-                                    color: 'var(--text-secondary)',
-                                    textDecoration: 'none',
-                                    fontSize: '0.95rem',
-                                    fontWeight: '500',
-                                    transition: 'color 0.2s',
-                                    position: 'relative'
-                                }}
-                                onMouseEnter={(e) => e.target.style.color = 'var(--text-main)'}
-                                onMouseLeave={(e) => e.target.style.color = 'var(--text-secondary)'}
+                        <Link
+                            to={homeLink.path}
+                            style={{
+                                color: 'var(--text-secondary)',
+                                textDecoration: 'none',
+                                fontSize: '0.95rem',
+                                fontWeight: '500',
+                                transition: 'color 0.2s',
+                                position: 'relative'
+                            }}
+                            onMouseEnter={(e) => e.target.style.color = 'var(--text-main)'}
+                            onMouseLeave={(e) => e.target.style.color = 'var(--text-secondary)'}
+                        >
+                            {homeLink.name}
+                        </Link>
+
+                        {menusToRender.map((menu) => (
+                            <div
+                                key={menu.label}
+                                style={{ position: 'relative' }}
+                                onMouseEnter={() => setOpenDropdown(menu.label)}
+                                onMouseLeave={() => setOpenDropdown(null)}
                             >
-                                {link.name}
-                            </Link>
+                                {menu.to ? (
+                                    <Link
+                                        to={menu.to}
+                                        style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '0.95rem', fontWeight: 500 }}
+                                        onMouseEnter={(e) => e.target.style.color = 'var(--text-main)'}
+                                        onMouseLeave={(e) => e.target.style.color = 'var(--text-secondary)'}
+                                    >
+                                        {menu.label}
+                                        <ChevronDown size={16} />
+                                    </Link>
+                                ) : (
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)', fontSize: '0.95rem', fontWeight: 500 }}>
+                                        {menu.label}
+                                        <ChevronDown size={16} />
+                                    </div>
+                                )}
+
+                                <AnimatePresence>
+                                    {openDropdown === menu.label && menu.items && menu.items.length > 0 && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: 10 }}
+                                            style={{ position: 'absolute', top: 'calc(100% + 10px)', left: 0, background: '#18181b', border: '1px solid var(--border)', borderRadius: '12px', padding: '12px', minWidth: '220px', boxShadow: '0 10px 30px rgba(0,0,0,0.35)', zIndex: 2000 }}
+                                        >
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                                {menu.items.map((item) => (
+                                                    <Link
+                                                        key={item.name}
+                                                        to={item.path}
+                                                        style={{ color: 'white', textDecoration: 'none', fontWeight: 600, fontSize: '0.95rem', padding: '8px 10px', borderRadius: '8px' }}
+                                                        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
+                                                        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                                                    >
+                                                        {item.name}
+                                                    </Link>
+                                                ))}
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
                         ))}
                     </div>
 
@@ -130,16 +217,41 @@ const Navbar = () => {
                             exit={{ opacity: 0, height: 0 }}
                             style={{ position: 'fixed', top: '80px', left: 0, right: 0, background: 'var(--background)', padding: '2rem', overflowY: 'auto', borderTop: '1px solid var(--border)' }}
                         >
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                                {navLinks.map((link) => (
-                                    <Link
-                                        key={link.name}
-                                        to={link.path}
-                                        onClick={() => setIsOpen(false)}
-                                        style={{ fontSize: '1.2rem', fontWeight: '600', color: 'white', textDecoration: 'none', paddingBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.05)' }}
-                                    >
-                                        {link.name}
-                                    </Link>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                                <Link
+                                    to={homeLink.path}
+                                    onClick={() => setIsOpen(false)}
+                                    style={{ fontSize: '1.2rem', fontWeight: '700', color: 'white', textDecoration: 'none', paddingBottom: '0.75rem', borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+                                >
+                                    {homeLink.name}
+                                </Link>
+
+                                {menusToRender.map((menu) => (
+                                    <div key={menu.label}>
+                                        {menu.to ? (
+                                            <Link
+                                                to={menu.to}
+                                                onClick={() => setIsOpen(false)}
+                                                style={{ fontSize: '1rem', fontWeight: 700, color: '#d4d4d8', marginBottom: '8px', display: 'block', textDecoration: 'none' }}
+                                            >
+                                                {menu.label}
+                                            </Link>
+                                        ) : (
+                                            <div style={{ fontSize: '1rem', fontWeight: 700, color: '#d4d4d8', marginBottom: '8px' }}>{menu.label}</div>
+                                        )}
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '16px' }}>
+                                            {menu.items.map((item) => (
+                                                <Link
+                                                    key={item.name}
+                                                    to={item.path}
+                                                    onClick={() => setIsOpen(false)}
+                                                    style={{ fontSize: '1.05rem', fontWeight: 600, color: 'white', textDecoration: 'none', paddingBottom: '8px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}
+                                                >
+                                                    {item.name}
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    </div>
                                 ))}
                                 {user ? (
                                     <Link to="/test" onClick={() => setIsOpen(false)} style={{ padding: '16px', background: '#3b82f6', color: 'white', borderRadius: '12px', textAlign: 'center', fontWeight: '700', textDecoration: 'none' }}>Go to Dashboard</Link>

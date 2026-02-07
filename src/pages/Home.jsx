@@ -53,7 +53,7 @@ const CourseModal = ({ batch, onClose }) => {
     if (!batch) return null;
 
     return (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={onClose}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={onClose}>
             <motion.div
                 initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
@@ -334,26 +334,27 @@ const Home = () => {
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px' }}>
                         {[
-                            { title: 'JEE (Main + Adv)', icon: Atom, color: '#3b82f6', desc: 'Class 11, 12 & Droppers' },
-                            { title: 'NEET UG', icon: Stethoscope, color: '#10b981', desc: 'Class 11, 12 & Droppers' },
-                            { title: 'Foundation', icon: Microscope, color: '#f59e0b', desc: 'Class 8, 9 & 10' },
-                            { title: 'School Boards', icon: School, color: '#8b5cf6', desc: 'CBSE, ICSE & State' }
+                            { title: 'JEE (Main + Adv)', icon: Atom, color: '#3b82f6', desc: 'Class 11, 12 & Droppers', to: '/category/JEE' },
+                            { title: 'NEET UG', icon: Stethoscope, color: '#10b981', desc: 'Class 11, 12 & Droppers', to: '/category/NEET' },
+                            { title: 'Foundation', icon: Microscope, color: '#f59e0b', desc: 'Class 8, 9 & 10', to: '/category/Foundation' },
+                            { title: 'School Boards', icon: School, color: '#8b5cf6', desc: 'CBSE, ICSE & State', to: '/classes' }
                         ].map((item, idx) => (
-                            <motion.div
-                                key={idx}
-                                whileHover={{ y: -5 }}
-                                className="card-base"
-                                style={{ padding: '32px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
-                            >
-                                <div style={{ background: item.color, padding: '12px', borderRadius: '12px', color: 'white', marginBottom: '20px' }}>
-                                    <item.icon size={28} />
-                                </div>
-                                <h3 style={{ fontSize: '1.4rem', fontWeight: '700', marginBottom: '8px', color: 'var(--text-main)' }}>{item.title}</h3>
-                                <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', marginBottom: '20px' }}>{item.desc}</p>
-                                <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: '8px', color: item.color, fontWeight: '600', fontSize: '0.9rem' }}>
-                                    Explore Courses <ArrowRight size={16} />
-                                </div>
-                            </motion.div>
+                            <Link to={item.to} key={idx} style={{ textDecoration: 'none' }}>
+                                <motion.div
+                                    whileHover={{ y: -5 }}
+                                    className="card-base"
+                                    style={{ padding: '32px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
+                                >
+                                    <div style={{ background: item.color, padding: '12px', borderRadius: '12px', color: 'white', marginBottom: '20px' }}>
+                                        <item.icon size={28} />
+                                    </div>
+                                    <h3 style={{ fontSize: '1.4rem', fontWeight: '700', marginBottom: '8px', color: 'var(--text-main)' }}>{item.title}</h3>
+                                    <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', marginBottom: '20px' }}>{item.desc}</p>
+                                    <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: '8px', color: item.color, fontWeight: '600', fontSize: '0.9rem' }}>
+                                        Explore <ArrowRight size={16} />
+                                    </div>
+                                </motion.div>
+                            </Link>
                         ))}
                     </div>
                 </div>
@@ -453,7 +454,7 @@ const Home = () => {
             <section style={{ padding: '0 0 100px' }}>
                 <div className="container">
                     <div style={{
-                        background: 'linear-gradient(135deg, var(--surface) 0%, #000 100%)',
+                        background: 'var(--surface)',
                         borderRadius: '32px',
                         padding: '60px',
                         border: '1px solid var(--border)',

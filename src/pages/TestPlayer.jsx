@@ -91,7 +91,15 @@ const TestPlayer = () => {
                 setTestTitle('Custom Practice Session');
             } else {
                 filtered = questionPool.filter(q => relevantSubjects.includes(q.subject));
-                setTestTitle(isMedical ? 'Medical Diagnostic Test' : isEngineering ? 'JEE Diagnostic Test' : 'Comprehensive Assessment');
+
+                if (testId?.includes('foundation')) {
+                    if (testId.includes('chapter')) setTestTitle('Chapter Warrior - Practice');
+                    else if (testId.includes('mid-term')) setTestTitle('Mid-Term Chronicles');
+                    else if (testId.includes('final')) setTestTitle('Board Cracker - Final');
+                    else setTestTitle('Foundation Practice Test');
+                } else {
+                    setTestTitle(isMedical ? 'Medical Diagnostic Test' : isEngineering ? 'JEE Diagnostic Test' : 'Comprehensive Assessment');
+                }
             }
 
             for (let i = filtered.length - 1; i > 0; i--) {
@@ -188,7 +196,7 @@ const TestPlayer = () => {
         setTimeLeft(durationMinutes * 60);
     }, [durationMinutes]);
 
-    
+
 
     const formatTime = (seconds) => {
         const h = Math.floor(seconds / 3600);
@@ -201,7 +209,7 @@ const TestPlayer = () => {
         setAnswers(prev => ({ ...prev, [questions[currentQuestion].id]: optionId }));
     };
 
-    
+
 
     const handlePrev = () => {
         if (currentQuestion > 0) {

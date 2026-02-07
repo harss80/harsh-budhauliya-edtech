@@ -21,11 +21,14 @@ import About from './pages/About';
 import Careers from './pages/Careers';
 import TeacherRegistration from './pages/TeacherRegistration';
 import TestSeries from './pages/TestSeries';
+
 import Courses from './pages/Courses';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import Footer from './components/Footer';
 import { API_BASE } from './utils/apiBase';
+import Classes from './pages/Classes';
+import ClassDetail from './pages/ClassDetail';
 
 // --- Visit Tracker ---
 const VisitTracker = () => {
@@ -335,9 +338,12 @@ function App() {
           <Route path="/careers" element={<Careers />} />
           <Route path="/teacher-registration" element={<TeacherRegistration />} />
           <Route path="/test-series" element={<ProtectedRoute><TestSeries /></ProtectedRoute>} />
+
           <Route path="/courses" element={<Courses />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/terms-of-service" element={<TermsOfService />} />
+          <Route path="/classes" element={<Classes />} />
+          <Route path="/class/:classNumber" element={<ClassDetail />} />
         </Routes>
       </Layout>
     </Router>

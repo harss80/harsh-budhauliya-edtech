@@ -3,6 +3,7 @@ const asyncHandler = require('../utils/asyncHandler');
 const Test = require('../models/Test');
 const multer = require('multer');
 const pdfParse = require('pdf-parse');
+const axios = require('axios');
 
 const router = express.Router();
 
@@ -77,6 +78,109 @@ router.post('/generate-from-pdf', upload.single('file'), asyncHandler(async (req
     sourceName: file.originalname,
     sourceSummary: summary,
     questions
+  });
+
+  res.status(201).json(t);
+}));
+
+router.post('/generate-ncert', asyncHandler(async (req, res) => {
+  const body = req.body || {};
+  const classNumber = String(body.classNumber || '6');
+  const book = body.book || {};
+  const chapters = Array.isArray(body.chapters) ? body.chapters.slice(0, 5) : [];
+  const minCount = Math.max(parseInt(body.questionCount || '50', 10), 50);
+  const subject = book.subject || 'General';
+  if (!book || !book.name || chapters.length === 0) return res.status(400).json({ error: 'book and chapters required' });
+
+  const searchAndExtract = async (query) => {
+    try {
+      const search = await axios.get('https://en.wikipedia.org/w/api.php', { params: { action: 'query', list: 'search', srsearch: query, format: 'json' } });
+      const hits = search.data?.query?.search || [];
+      if (hits.length === 0) return '';
+      const pageid = hits[0].pageid;
+      const page = await axios.get('https://en.wikipedia.org/w/api.php', { params: { action: 'query', prop: 'extracts', explaintext: 1, pageids: pageid, format: 'json' } });
+      const pages = page.data?.query?.pages || {};
+      const extract = pages[pageid]?.extract || '';
+      return String(extract);
+    } catch (e) {
+      return '';
+    }
+  };
+
+  const buildQuestions = (text, targetChapter) => {
+    const sentences = String(text || '').replace(/\s+/g, ' ').split(/[.!?]\s+/).filter(s => s && s.length > 40);
+    const words = String(text || '').toLowerCase().match(/\b[a-z]{5,}\b/g) || [];
+    const wordPool = Array.from(new Set(words));
+    const rand = (arr) => arr[Math.floor(Math.random() * arr.length)];
+    const pickDistractors = (correct) => {
+      const pool = wordPool.filter(w => w !== correct);
+      const ds = new Set();
+      while (ds.size < 3 && pool.length > 0) ds.add(rand(pool));
+      const list = Array.from(ds);
+      while (list.length < 3) list.push(correct + list.length);
+      return list;
+    };
+    const qs = [];
+    for (let i = 0; i < sentences.length && qs.length < minCount; i++) {
+      const s = sentences[i];
+      const tokens = s.split(' ');
+      const candidates = tokens.filter(t => /^[A-Za-z][A-Za-z-]{4,}$/.test(t)).map(t => t.replace(/[^A-Za-z-]/g, ''));
+      if (candidates.length === 0) continue;
+      const answer = rand(candidates);
+      const blanked = s.replace(new RegExp(`\\b${answer.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`), '____');
+      const distractors = pickDistractors(answer.toLowerCase());
+      const optionsRaw = [answer, ...distractors];
+      for (let k = optionsRaw.length - 1; k > 0; k--) { const j = Math.floor(Math.random() * (k + 1)); [optionsRaw[k], optionsRaw[j]] = [optionsRaw[j], optionsRaw[k]]; }
+      const mapId = ['A','B','C','D'];
+      const options = optionsRaw.slice(0,4).map((opt, idx) => ({ id: mapId[idx], text: String(opt) }));
+      const correctIdx = options.findIndex(o => o.text.toLowerCase() === answer.toLowerCase());
+      const correctAnswer = mapId[Math.max(0, correctIdx)];
+      qs.push({ text: `Fill in the blank: ${blanked}`, options, correctAnswer, explanation: `Based on ${targetChapter}`, subject, chapter: targetChapter, difficulty: (i % 3 === 0) ? 'Hard' : ((i % 3 === 1) ? 'Medium' : 'Standard') });
+    }
+    while (qs.length < minCount) {
+      const answer = (wordPool[qs.length % (wordPool.length || 1)] || 'concept');
+      const sentence = `${targetChapter} is related to ____ in ${book.name}.`;
+      const distractors = pickDistractors(answer);
+      const optionsRaw = [answer, ...distractors];
+      for (let k = optionsRaw.length - 1; k > 0; k--) { const j = Math.floor(Math.random() * (k + 1)); [optionsRaw[k], optionsRaw[j]] = [optionsRaw[j], optionsRaw[k]]; }
+      const mapId = ['A','B','C','D'];
+      const options = optionsRaw.slice(0,4).map((opt, idx) => ({ id: mapId[idx], text: String(opt) }));
+      const correctIdx = options.findIndex(o => o.text.toLowerCase() === String(answer).toLowerCase());
+      const correctAnswer = mapId[Math.max(0, correctIdx)];
+      qs.push({ text: `Fill in the blank: ${sentence}`, options, correctAnswer, explanation: `Topic: ${targetChapter}`, subject, chapter: targetChapter, difficulty: 'Standard' });
+    }
+    return qs.slice(0, minCount);
+  };
+
+  let aggregated = [];
+  for (const ch of chapters) {
+    const queries = [
+      `${ch} Class ${classNumber} NCERT`,
+      `${book.name} ${ch} NCERT`,
+      `${ch} ${book.subject}`
+    ];
+    let text = '';
+    for (const q of queries) { if (text.length < 500) { const t = await searchAndExtract(q); if (t && t.length > text.length) text = t; } }
+    if (!text || text.length < 200) text = `${ch} ${book.name} ${book.subject} Class ${classNumber}`.repeat(50);
+    const qs = buildQuestions(text, ch);
+    aggregated = aggregated.concat(qs);
+    if (aggregated.length >= minCount) break;
+  }
+  if (aggregated.length < minCount && chapters.length > 0) {
+    aggregated = aggregated.concat(buildQuestions(chapters.join(' '), chapters[0]));
+  }
+
+  const name = body.name || `NCERT Class ${classNumber} - ${book.name}`;
+  const t = await Test.create({
+    name,
+    subject,
+    duration: parseInt(body.duration || '60', 10),
+    scheduledAt: new Date(),
+    published: true,
+    generated: true,
+    sourceName: `${book.name} Chapters`,
+    sourceSummary: `Auto-generated from Wikipedia for ${chapters.join(', ')}`,
+    questions: aggregated
   });
 
   res.status(201).json(t);

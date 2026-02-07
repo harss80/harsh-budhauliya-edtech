@@ -5,12 +5,35 @@ import {
     BookOpen, Clock, AlertCircle, CheckCircle, Lock, PlayCircle, Star,
     Filter, Layout, Atom, Zap, Target
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { API_BASE } from '../utils/apiBase';
+import { NCERT } from '../data/ncert';
 
 const TestSeries = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+
+    const params = new URLSearchParams(location.search);
+    const classParam = params.get('class');
+    const typeParam = params.get('type');
+
+    const mapTypeToTab = (t) => {
+        if (t === 'chapter') return 'Chapter Tests';
+        if (t === 'sectional') return 'Sectional Tests';
+        if (t === 'board') return 'Full Mocks';
+        if (t === 'pyq') return 'Previous Year';
+        return 'Full Mocks';
+    };
+
     const [userGoal, setUserGoal] = useState('JEE'); // Default
-    const [activeTab, setActiveTab] = useState('Full Mocks');
+    const [activeTab, setActiveTab] = useState(mapTypeToTab(typeParam));
+
+    // NCERT generator state (Class 6)
+    const [ncertBookId, setNcertBookId] = useState('');
+    const [ncertChapters, setNcertChapters] = useState([]);
+    const [isGenerating, setIsGenerating] = useState(false);
+    const classBooks = (NCERT[classParam] || []);
+    const selectedBook = classBooks.find(b => b.bookId === ncertBookId) || null;
 
     useEffect(() => {
         // Load user preference
@@ -21,7 +44,42 @@ const TestSeries = () => {
             else if (goal.includes('JEE') || goal.includes('ENGINEERING')) setUserGoal('JEE');
             else setUserGoal('Foundation');
         }
-    }, []);
+        if (classParam) {
+            setUserGoal('Foundation');
+            setActiveTab(mapTypeToTab(typeParam));
+        }
+    }, [location.search, classParam, typeParam]);
+
+    const toggleChapter = (name) => {
+        setNcertChapters(prev => prev.includes(name) ? prev.filter(c => c !== name) : [...prev, name]);
+    };
+
+    const handleGenerateNCERT = async () => {
+        if (!selectedBook || ncertChapters.length === 0) return;
+        try {
+            setIsGenerating(true);
+            const res = await fetch(`${API_BASE}/api/tests/generate-ncert`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    classNumber: String(classParam || '6'),
+                    book: { name: selectedBook.name, subject: selectedBook.subject },
+                    chapters: ncertChapters,
+                    questionCount: 50,
+                    duration: 60,
+                    name: `Class ${classParam || '6'} ${selectedBook.name} - ${ncertChapters[0]}`
+                })
+            });
+            if (!res.ok) throw new Error('failed');
+            const created = await res.json();
+            navigate(`/attempt-test/${created._id}`);
+        } catch (e) {
+            console.error(e);
+            alert('Failed to generate questions. Please try again.');
+        } finally {
+            setIsGenerating(false);
+        }
+    };
 
     // Mock Data for numerous tests
     const generateTests = (goal, category, count) => {
@@ -37,15 +95,46 @@ const TestSeries = () => {
         }));
     };
 
-    const tests = [
+    // Server published tests
+    const [serverTests, setServerTests] = useState([]);
+    useEffect(() => {
+        let cancelled = false;
+        const run = async () => {
+            try {
+                const res = await fetch(`${API_BASE}/api/tests/public`);
+                if (!res.ok) return;
+                const list = await res.json();
+                if (!cancelled && Array.isArray(list)) setServerTests(list);
+            } catch {
+                // ignore
+            }
+        };
+        run();
+        return () => { cancelled = true; };
+    }, []);
+
+    const serverCards = serverTests.map(t => ({
+        id: t._id,
+        title: t.name || 'Published Test',
+        questions: Array.isArray(t.questions) ? t.questions.length : 50,
+        duration: t.duration || 60,
+        marks: (Array.isArray(t.questions) ? t.questions.length : 50) * 1,
+        tags: ['Server'],
+        isLocked: false
+    }));
+
+    const mockTests = [
         ...generateTests(userGoal, 'Full Mocks', 10),
         ...generateTests(userGoal, 'Sectional Tests', 8),
         ...generateTests(userGoal, 'Chapter Tests', 15),
         ...generateTests(userGoal, 'Previous Year', 5),
     ].filter(t => {
-        if (activeTab === 'All') return true;
-        return t.title.includes(activeTab);
+        const key = activeTab === 'Board Cracker' ? 'Full Mocks' : activeTab;
+        if (key === 'All') return true;
+        return t.title.includes(key);
     });
+
+    const tests = [...serverCards, ...mockTests];
 
     const handleStartTest = (testId) => {
         navigate(`/attempt-test/${testId}`);
@@ -67,6 +156,36 @@ const TestSeries = () => {
                         Practice with India's most advanced test platform. Real exam interface, detailed analytics, and AI-driven difficulty.
                     </p>
                 </div>
+
+                {/* NCERT Class 6 Chapter-wise Generator */}
+                {classBooks.length > 0 && (
+                    <div style={{ marginBottom: '2rem', padding: '16px', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.08)', background: '#121214' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '16px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '12px' }}>
+                            <div>
+                                <div style={{ fontWeight: 800, marginBottom: 6 }}>Class {classParam} NCERT Chapter-wise Generator</div>
+                                <div style={{ color: '#a1a1aa', fontSize: '0.95rem' }}>Select book and chapters. At least 50 questions will be generated automatically.</div>
+                            </div>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(220px, 1fr) 2fr auto', gap: '12px', alignItems: 'start' }}>
+                            <select value={ncertBookId} onChange={(e)=>{ setNcertBookId(e.target.value); setNcertChapters([]); }} style={{ background: '#0b0b0e', color: 'white', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: '12px' }}>
+                                <option value="">Select Book</option>
+                                {classBooks.map(b => (
+                                    <option key={b.bookId} value={b.bookId}>{b.name}</option>
+                                ))}
+                            </select>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '8px' }}>
+                                {(selectedBook?.chapters || []).map(ch => (
+                                    <button key={ch} onClick={() => toggleChapter(ch)} className="btn-reset" style={{ padding: '10px 12px', borderRadius: 10, textAlign: 'left', background: ncertChapters.includes(ch) ? 'rgba(16,185,129,0.15)' : 'rgba(255,255,255,0.04)', border: ncertChapters.includes(ch) ? '1px solid rgba(16,185,129,0.5)' : '1px solid rgba(255,255,255,0.06)', color: 'white', fontSize: '0.9rem' }}>
+                                        {ch}
+                                    </button>
+                                ))}
+                            </div>
+                            <button disabled={!selectedBook || ncertChapters.length === 0 || isGenerating} onClick={handleGenerateNCERT} className="btn-reset" style={{ padding: '12px 16px', borderRadius: 10, fontWeight: 700, background: (!selectedBook || ncertChapters.length === 0 || isGenerating) ? 'rgba(255,255,255,0.08)' : '#3b82f6', color: (!selectedBook || ncertChapters.length === 0 || isGenerating) ? '#a1a1aa' : 'white', whiteSpace: 'nowrap' }}>
+                                {isGenerating ? 'Generating…' : 'Generate 50 Questions'}
+                            </button>
+                        </div>
+                    </div>
+                )}
 
                 {/* Tabs & Controls */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem', flexWrap: 'wrap', gap: '20px' }}>
