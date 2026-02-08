@@ -645,5 +645,756 @@ export const realQuestions = [
         explanation: 'Projection = (a.b)/|b|. a.b = 2(1) -1(2) + 1(2) = 2. |b| = √(1+4+4) = 3. Result = 2/3.'
     },
     // New Math 12
-    { id: 'math_12_005', subject: 'Mathematics', class: 'Class 12', chapter: 'Integrals', question: 'Integral of ln(x) dx is:', options: [{ id: 'A', text: '1/x + C' }, { id: 'B', text: 'x ln(x) - x + C' }, { id: 'C', text: 'x ln(x) + C' }, { id: 'D', text: 'ln(x)' }], correctAnswer: 'B', explanation: 'Using Integration by Parts: ∫u dv = uv - ∫v du. u=ln x, dv=dx.' }
+    { id: 'math_12_005', subject: 'Mathematics', class: 'Class 12', chapter: 'Integrals', question: 'Integral of ln(x) dx is:', options: [{ id: 'A', text: '1/x + C' }, { id: 'B', text: 'x ln(x) - x + C' }, { id: 'C', text: 'x ln(x) + C' }, { id: 'D', text: 'ln(x)' }], correctAnswer: 'B', explanation: 'Using Integration by Parts: ∫u dv = uv - ∫v du. u=ln x, dv=dx.' },
+
+    // --- FOUNDATION LEVEL QUESTIONS (Classes 6-10) ---
+
+    // Class 6 Mathematics
+    {
+        id: 'math_6_001',
+        subject: 'Mathematics',
+        class: 'Class 6',
+        chapter: 'Knowing Our Numbers',
+        question: 'The greatest 4-digit number using the digits 8, 5, 2, 9 (each digit used only once) is:',
+        options: [
+            { id: 'A', text: '9852' },
+            { id: 'B', text: '9825' },
+            { id: 'C', text: '9582' },
+            { id: 'D', text: '9285' }
+        ],
+        correctAnswer: 'A',
+        explanation: 'To form the greatest number, arrange digits in descending order: 9, 8, 5, 2 → 9852.'
+    },
+    {
+        id: 'math_6_002',
+        subject: 'Mathematics',
+        class: 'Class 6',
+        chapter: 'Whole Numbers',
+        question: 'The predecessor of 1000 is:',
+        options: [
+            { id: 'A', text: '1001' },
+            { id: 'B', text: '999' },
+            { id: 'C', text: '1000' },
+            { id: 'D', text: '998' }
+        ],
+        correctAnswer: 'B',
+        explanation: 'Predecessor means the number that comes before. The number before 1000 is 999.'
+    },
+    {
+        id: 'math_6_003',
+        subject: 'Mathematics',
+        class: 'Class 6',
+        chapter: 'Fractions',
+        question: 'Which fraction is equivalent to 3/4?',
+        options: [
+            { id: 'A', text: '6/8' },
+            { id: 'B', text: '2/3' },
+            { id: 'C', text: '4/5' },
+            { id: 'D', text: '5/6' }
+        ],
+        correctAnswer: 'A',
+        explanation: 'Multiply numerator and denominator by 2: 3×2/4×2 = 6/8.'
+    },
+
+    // Class 6 Science
+    {
+        id: 'sci_6_001',
+        subject: 'Science',
+        class: 'Class 6',
+        chapter: 'Components of Food',
+        question: 'Which of the following is rich in proteins?',
+        options: [
+            { id: 'A', text: 'Rice' },
+            { id: 'B', text: 'Eggs' },
+            { id: 'C', text: 'Sugar' },
+            { id: 'D', text: 'Oil' }
+        ],
+        correctAnswer: 'B',
+        explanation: 'Eggs are rich in proteins, which are essential for body building and repair.'
+    },
+    {
+        id: 'sci_6_002',
+        subject: 'Science',
+        class: 'Class 6',
+        chapter: 'Getting to Know Plants',
+        question: 'The process by which plants make their own food is called:',
+        options: [
+            { id: 'A', text: 'Respiration' },
+            { id: 'B', text: 'Photosynthesis' },
+            { id: 'C', text: 'Transpiration' },
+            { id: 'D', text: 'Germination' }
+        ],
+        correctAnswer: 'B',
+        explanation: 'Photosynthesis is the process by which green plants use sunlight, water, and carbon dioxide to make food.'
+    },
+
+    // Class 7 Mathematics
+    {
+        id: 'math_7_001',
+        subject: 'Mathematics',
+        class: 'Class 7',
+        chapter: 'Integers',
+        question: 'The value of (-3) × (-2) × 5 is:',
+        options: [
+            { id: 'A', text: '-30' },
+            { id: 'B', text: '30' },
+            { id: 'C', text: '-10' },
+            { id: 'D', text: '10' }
+        ],
+        correctAnswer: 'B',
+        explanation: '(-3) × (-2) = 6, then 6 × 5 = 30. Product of two negatives is positive.'
+    },
+    {
+        id: 'math_7_002',
+        subject: 'Mathematics',
+        class: 'Class 7',
+        chapter: 'Algebra',
+        question: 'If x = 2, then the value of 3x + 5 is:',
+        options: [
+            { id: 'A', text: '10' },
+            { id: 'B', text: '11' },
+            { id: 'C', text: '12' },
+            { id: 'D', text: '13' }
+        ],
+        correctAnswer: 'B',
+        explanation: 'Substitute x = 2: 3(2) + 5 = 6 + 5 = 11.'
+    },
+
+    // Class 7 Science
+    {
+        id: 'sci_7_001',
+        subject: 'Science',
+        class: 'Class 7',
+        chapter: 'Nutrition in Plants',
+        question: 'Which part of the plant is responsible for photosynthesis?',
+        options: [
+            { id: 'A', text: 'Roots' },
+            { id: 'B', text: 'Stem' },
+            { id: 'C', text: 'Leaves' },
+            { id: 'D', text: 'Flowers' }
+        ],
+        correctAnswer: 'C',
+        explanation: 'Leaves contain chlorophyll and are the main sites of photosynthesis in plants.'
+    },
+    {
+        id: 'sci_7_002',
+        subject: 'Science',
+        class: 'Class 7',
+        chapter: 'Heat',
+        question: 'Heat transfer in solids occurs mainly through:',
+        options: [
+            { id: 'A', text: 'Conduction' },
+            { id: 'B', text: 'Convection' },
+            { id: 'C', text: 'Radiation' },
+            { id: 'D', text: 'Evaporation' }
+        ],
+        correctAnswer: 'A',
+        explanation: 'In solids, heat is transferred mainly through conduction, where particles vibrate and pass energy to neighboring particles.'
+    },
+
+    // Class 8 Mathematics
+    {
+        id: 'math_8_001',
+        subject: 'Mathematics',
+        class: 'Class 8',
+        chapter: 'Rational Numbers',
+        question: 'Which of the following is a rational number?',
+        options: [
+            { id: 'A', text: '√2' },
+            { id: 'B', text: 'π' },
+            { id: 'C', text: '3/4' },
+            { id: 'D', text: '√3' }
+        ],
+        correctAnswer: 'C',
+        explanation: 'A rational number can be expressed as a fraction p/q where p and q are integers. 3/4 is a rational number.'
+    },
+    {
+        id: 'math_8_002',
+        subject: 'Mathematics',
+        class: 'Class 8',
+        chapter: 'Linear Equations',
+        question: 'The solution of the equation 2x + 3 = 11 is:',
+        options: [
+            { id: 'A', text: 'x = 3' },
+            { id: 'B', text: 'x = 4' },
+            { id: 'C', text: 'x = 5' },
+            { id: 'D', text: 'x = 6' }
+        ],
+        correctAnswer: 'B',
+        explanation: '2x + 3 = 11 → 2x = 11 - 3 → 2x = 8 → x = 4.'
+    },
+
+    // Class 8 Science
+    {
+        id: 'sci_8_001',
+        subject: 'Science',
+        class: 'Class 8',
+        chapter: 'Crop Production and Management',
+        question: 'The process of loosening and turning of soil is called:',
+        options: [
+            { id: 'A', text: 'Irrigation' },
+            { id: 'B', text: 'Ploughing' },
+            { id: 'C', text: 'Harvesting' },
+            { id: 'D', text: 'Weeding' }
+        ],
+        correctAnswer: 'B',
+        explanation: 'Ploughing is the agricultural process of loosening and turning the soil to prepare it for cultivation.'
+    },
+    {
+        id: 'sci_8_002',
+        subject: 'Science',
+        class: 'Class 8',
+        chapter: 'Materials: Metals and Non-metals',
+        question: 'Which of the following is a non-metal?',
+        options: [
+            { id: 'A', text: 'Iron' },
+            { id: 'B', text: 'Copper' },
+            { id: 'C', text: 'Sulphur' },
+            { id: 'D', text: 'Aluminium' }
+        ],
+        correctAnswer: 'C',
+        explanation: 'Sulphur is a non-metal, while iron, copper, and aluminium are metals.'
+    },
+
+    // Class 9 Mathematics
+    {
+        id: 'math_9_001',
+        subject: 'Mathematics',
+        class: 'Class 9',
+        chapter: 'Number Systems',
+        question: 'The decimal expansion of 1/3 is:',
+        options: [
+            { id: 'A', text: '0.3' },
+            { id: 'B', text: '0.33' },
+            { id: 'C', text: '0.333...' },
+            { id: 'D', text: '0.3333' }
+        ],
+        correctAnswer: 'C',
+        explanation: '1/3 = 0.333... which is a repeating decimal with infinite 3s.'
+    },
+    {
+        id: 'math_9_002',
+        subject: 'Mathematics',
+        class: 'Class 9',
+        chapter: 'Polynomials',
+        question: 'The degree of the polynomial 3x² + 2x³ - 5x + 7 is:',
+        options: [
+            { id: 'A', text: '1' },
+            { id: 'B', text: '2' },
+            { id: 'C', text: '3' },
+            { id: 'D', text: '4' }
+        ],
+        correctAnswer: 'C',
+        explanation: 'The degree of a polynomial is the highest power of the variable. Here, the highest power is 3 in the term 2x³.'
+    },
+
+    // Class 9 Science
+    {
+        id: 'sci_9_001',
+        subject: 'Science',
+        class: 'Class 9',
+        chapter: 'Matter in Our Surroundings',
+        question: 'Which state of matter has maximum compressibility?',
+        options: [
+            { id: 'A', text: 'Solid' },
+            { id: 'B', text: 'Liquid' },
+            { id: 'C', text: 'Gas' },
+            { id: 'D', text: 'Plasma' }
+        ],
+        correctAnswer: 'C',
+        explanation: 'Gases have maximum compressibility because their molecules are far apart and can be easily compressed.'
+    },
+    {
+        id: 'sci_9_002',
+        subject: 'Science',
+        class: 'Class 9',
+        chapter: 'Atoms and Molecules',
+        question: 'The symbol of gold is:',
+        options: [
+            { id: 'A', text: 'Go' },
+            { id: 'B', text: 'Gd' },
+            { id: 'C', text: 'Au' },
+            { id: 'D', text: 'Ag' }
+        ],
+        correctAnswer: 'C',
+        explanation: 'The chemical symbol of gold is Au, which comes from the Latin word "Aurum".'
+    },
+
+    // Class 10 Mathematics
+    {
+        id: 'math_10_001',
+        subject: 'Mathematics',
+        class: 'Class 10',
+        chapter: 'Quadratic Equations',
+        question: 'The discriminant of the quadratic equation x² + 5x + 6 = 0 is:',
+        options: [
+            { id: 'A', text: '1' },
+            { id: 'B', text: '25' },
+            { id: 'C', text: '1' },
+            { id: 'D', text: '-1' }
+        ],
+        correctAnswer: 'C',
+        explanation: 'For ax² + bx + c = 0, discriminant D = b² - 4ac. Here, D = 5² - 4(1)(6) = 25 - 24 = 1.'
+    },
+    {
+        id: 'math_10_002',
+        subject: 'Mathematics',
+        class: 'Class 10',
+        chapter: 'Trigonometry',
+        question: 'The value of sin²30° + cos²30° is:',
+        options: [
+            { id: 'A', text: '0' },
+            { id: 'B', text: '1' },
+            { id: 'C', text: '2' },
+            { id: 'D', text: '√2' }
+        ],
+        correctAnswer: 'B',
+        explanation: 'For any angle θ, sin²θ + cos²θ = 1. This is a fundamental trigonometric identity.'
+    },
+
+    // Class 10 Science
+    {
+        id: 'sci_10_001',
+        subject: 'Science',
+        class: 'Class 10',
+        chapter: 'Chemical Reactions and Equations',
+        question: 'The balanced equation for the reaction between hydrogen and oxygen is:',
+        options: [
+            { id: 'A', text: 'H₂ + O₂ → H₂O' },
+            { id: 'B', text: '2H₂ + O₂ → 2H₂O' },
+            { id: 'C', text: 'H₂ + 2O₂ → 2H₂O' },
+            { id: 'D', text: '2H₂ + 2O₂ → 4H₂O' }
+        ],
+        correctAnswer: 'B',
+        explanation: 'The balanced equation is 2H₂ + O₂ → 2H₂O, which balances the number of hydrogen and oxygen atoms on both sides.'
+    },
+    {
+        id: 'sci_10_002',
+        subject: 'Science',
+        class: 'Class 10',
+        chapter: 'Life Processes',
+        question: 'Which organelle is known as the powerhouse of the cell?',
+        options: [
+            { id: 'A', text: 'Nucleus' },
+            { id: 'B', text: 'Mitochondria' },
+            { id: 'C', text: 'Ribosome' },
+            { id: 'D', text: 'Chloroplast' }
+        ],
+        correctAnswer: 'B',
+        explanation: 'Mitochondria are known as the powerhouse of the cell as they produce ATP (energy) through cellular respiration.'
+    },
+
+    // Additional Foundation Questions - Hard Level
+
+    // Class 6 Mathematics (Advanced)
+    {
+        id: 'math_6_004',
+        subject: 'Mathematics',
+        class: 'Class 6',
+        chapter: 'Ratio and Proportion',
+        question: 'If 12 workers can build a wall in 6 days, how many days will 8 workers take to build same wall?',
+        options: [
+            { id: 'A', text: '4 days' },
+            { id: 'B', text: '9 days' },
+            { id: 'C', text: '8 days' },
+            { id: 'D', text: '12 days' }
+        ],
+        correctAnswer: 'B',
+        explanation: 'This is inverse proportion: 12×6 = 8×x → x = 72/8 = 9 days.'
+    },
+    {
+        id: 'math_6_005',
+        subject: 'Mathematics',
+        class: 'Class 6',
+        chapter: 'Mensuration',
+        question: 'The area of a square field is 2025 m². The perimeter of the field is:',
+        options: [
+            { id: 'A', text: '180 m' },
+            { id: 'B', text: '90 m' },
+            { id: 'C', text: '45 m' },
+            { id: 'D', text: '225 m' }
+        ],
+        correctAnswer: 'A',
+        explanation: 'Area = side² → side = √2025 = 45 m. Perimeter = 4×side = 4×45 = 180 m.'
+    },
+
+    // Class 6 Science (Advanced)
+    {
+        id: 'sci_6_003',
+        subject: 'Science',
+        class: 'Class 6',
+        chapter: 'Electricity and Circuits',
+        question: 'In a circuit with three resistors of 2Ω, 3Ω, and 5Ω connected in series, total resistance is:',
+        options: [
+            { id: 'A', text: '10Ω' },
+            { id: 'B', text: '8Ω' },
+            { id: 'C', text: '5Ω' },
+            { id: 'D', text: '30Ω' }
+        ],
+        correctAnswer: 'A',
+        explanation: 'In series connection, total resistance = sum of all resistances = 2+3+5 = 10Ω.'
+    },
+    {
+        id: 'sci_6_004',
+        subject: 'Science',
+        class: 'Class 6',
+        chapter: 'Water',
+        question: 'The process of conversion of water vapor into liquid water is called:',
+        options: [
+            { id: 'A', text: 'Evaporation' },
+            { id: 'B', text: 'Condensation' },
+            { id: 'C', text: 'Precipitation' },
+            { id: 'D', text: 'Transpiration' }
+        ],
+        correctAnswer: 'B',
+        explanation: 'Condensation is the process where water vapor changes to liquid water droplets.'
+    },
+
+    // Class 7 Mathematics (Advanced)
+    {
+        id: 'math_7_003',
+        subject: 'Mathematics',
+        class: 'Class 7',
+        chapter: 'Comparing Quantities',
+        question: 'A shopkeeper offers 20% discount on an item marked at ₹500. The selling price is:',
+        options: [
+            { id: 'A', text: '₹400' },
+            { id: 'B', text: '₹480' },
+            { id: 'C', text: '₹420' },
+            { id: 'D', text: '₹450' }
+        ],
+        correctAnswer: 'A',
+        explanation: 'Discount = 20% of 500 = 100. Selling price = 500 - 100 = ₹400.'
+    },
+    {
+        id: 'math_7_004',
+        subject: 'Mathematics',
+        class: 'Class 7',
+        chapter: 'Perimeter and Area',
+        question: 'The radius of a circle is 7 cm. Its area is approximately:',
+        options: [
+            { id: 'A', text: '154 cm²' },
+            { id: 'B', text: '44 cm²' },
+            { id: 'C', text: '21 cm²' },
+            { id: 'D', text: '49 cm²' }
+        ],
+        correctAnswer: 'A',
+        explanation: 'Area = πr² = (22/7) × 7² = (22/7) × 49 = 22 × 7 = 154 cm².'
+    },
+
+    // Class 7 Science (Advanced)
+    {
+        id: 'sci_7_003',
+        subject: 'Science',
+        class: 'Class 7',
+        chapter: 'Acids, Bases and Salts',
+        question: 'A solution with pH value 3 is:',
+        options: [
+            { id: 'A', text: 'Strongly acidic' },
+            { id: 'B', text: 'Weakly acidic' },
+            { id: 'C', text: 'Neutral' },
+            { id: 'D', text: 'Basic' }
+        ],
+        correctAnswer: 'A',
+        explanation: 'pH scale: 0-6 (acidic), 7 (neutral), 8-14 (basic). pH 3 is strongly acidic.'
+    },
+    {
+        id: 'sci_7_004',
+        subject: 'Science',
+        class: 'Class 7',
+        chapter: 'Weather and Climate',
+        question: 'Which instrument is used to measure atmospheric pressure?',
+        options: [
+            { id: 'A', text: 'Thermometer' },
+            { id: 'B', text: 'Barometer' },
+            { id: 'C', text: 'Hygrometer' },
+            { id: 'D', text: 'Anemometer' }
+        ],
+        correctAnswer: 'B',
+        explanation: 'Barometer is used to measure atmospheric pressure.'
+    },
+
+    // Class 8 Mathematics (Advanced)
+    {
+        id: 'math_8_003',
+        subject: 'Mathematics',
+        class: 'Class 8',
+        chapter: 'Understanding Quadrilaterals',
+        question: 'The sum of interior angles of a regular hexagon is:',
+        options: [
+            { id: 'A', text: '360°' },
+            { id: 'B', text: '540°' },
+            { id: 'C', text: '720°' },
+            { id: 'D', text: '900°' }
+        ],
+        correctAnswer: 'C',
+        explanation: 'Sum of interior angles = (n-2) × 180° = (6-2) × 180° = 4 × 180° = 720°.'
+    },
+    {
+        id: 'math_8_004',
+        subject: 'Mathematics',
+        class: 'Class 8',
+        chapter: 'Exponents and Powers',
+        question: 'The value of (2³)² × 2⁻¹ is:',
+        options: [
+            { id: 'A', text: '16' },
+            { id: 'B', text: '32' },
+            { id: 'C', text: '64' },
+            { id: 'D', text: '8' }
+        ],
+        correctAnswer: 'B',
+        explanation: '(2³)² × 2⁻¹ = 2⁶ × 2⁻¹ = 2⁵ = 32.'
+    },
+
+    // Class 8 Science (Advanced)
+    {
+        id: 'sci_8_003',
+        subject: 'Science',
+        class: 'Class 8',
+        chapter: 'Conservation of Plants and Animals',
+        question: 'Which of the following is an example of in-situ conservation?',
+        options: [
+            { id: 'A', text: 'Zoological park' },
+            { id: 'B', text: 'Botanical garden' },
+            { id: 'C', text: 'National park' },
+            { id: 'D', text: 'Seed bank' }
+        ],
+        correctAnswer: 'C',
+        explanation: 'In-situ conservation protects species in their natural habitat, like national parks.'
+    },
+    {
+        id: 'sci_8_004',
+        subject: 'Science',
+        class: 'Class 8',
+        chapter: 'Reaching the Age of Adolescence',
+        question: 'Which hormone is responsible for secondary sexual characteristics in males?',
+        options: [
+            { id: 'A', text: 'Estrogen' },
+            { id: 'B', text: 'Testosterone' },
+            { id: 'C', text: 'Insulin' },
+            { id: 'D', text: 'Thyroxine' }
+        ],
+        correctAnswer: 'B',
+        explanation: 'Testosterone is the male sex hormone responsible for secondary sexual characteristics.'
+    },
+
+    // Class 9 Mathematics (Advanced)
+    {
+        id: 'math_9_003',
+        subject: 'Mathematics',
+        class: 'Class 9',
+        chapter: 'Coordinate Geometry',
+        question: 'The distance between points (3,4) and (7,1) is:',
+        options: [
+            { id: 'A', text: '5 units' },
+            { id: 'B', text: '√25 units' },
+            { id: 'C', text: '√41 units' },
+            { id: 'D', text: '7 units' }
+        ],
+        correctAnswer: 'A',
+        explanation: 'Distance = √[(7-3)² + (1-4)²] = √[16 + 9] = √25 = 5 units.'
+    },
+    {
+        id: 'math_9_004',
+        subject: 'Mathematics',
+        class: 'Class 9',
+        chapter: 'Heron\'s Formula',
+        question: 'The area of a triangle with sides 13cm, 14cm, and 15cm is:',
+        options: [
+            { id: 'A', text: '84 cm²' },
+            { id: 'B', text: '96 cm²' },
+            { id: 'C', text: '72 cm²' },
+            { id: 'D', text: '108 cm²' }
+        ],
+        correctAnswer: 'A',
+        explanation: 's = (13+14+15)/2 = 21. Area = √[21(21-13)(21-14)(21-15)] = √[21×8×7×6] = √7056 = 84 cm².'
+    },
+
+    // Class 9 Science (Advanced)
+    {
+        id: 'sci_9_003',
+        subject: 'Science',
+        class: 'Class 9',
+        chapter: 'Structure of the Atom',
+        question: 'The maximum number of electrons that can be accommodated in M shell is:',
+        options: [
+            { id: 'A', text: '2' },
+            { id: 'B', text: '8' },
+            { id: 'C', text: '18' },
+            { id: 'D', text: '32' }
+        ],
+        correctAnswer: 'C',
+        explanation: 'M shell is the third shell (n=3). Maximum electrons = 2n² = 2×3² = 18.'
+    },
+    {
+        id: 'sci_9_004',
+        subject: 'Science',
+        class: 'Class 9',
+        chapter: 'Work and Energy',
+        question: 'A body of mass 5 kg is moving with velocity 2 m/s. Its kinetic energy is:',
+        options: [
+            { id: 'A', text: '10 J' },
+            { id: 'B', text: '20 J' },
+            { id: 'C', text: '5 J' },
+            { id: 'D', text: '40 J' }
+        ],
+        correctAnswer: 'A',
+        explanation: 'KE = ½mv² = ½ × 5 × 2² = ½ × 5 × 4 = 10 J.'
+    },
+
+    // Class 10 Mathematics (Advanced)
+    {
+        id: 'math_10_003',
+        subject: 'Mathematics',
+        class: 'Class 10',
+        chapter: 'Arithmetic Progressions',
+        question: 'The sum of first 20 terms of AP: 3, 7, 11, 15, ... is:',
+        options: [
+            { id: 'A', text: '820' },
+            { id: 'B', text: '840' },
+            { id: 'C', text: '860' },
+            { id: 'D', text: '880' }
+        ],
+        correctAnswer: 'A',
+        explanation: 'a=3, d=4, n=20. S_n = n/2[2a + (n-1)d] = 20/2[6 + 76] = 10×82 = 820.'
+    },
+    {
+        id: 'math_10_004',
+        subject: 'Mathematics',
+        class: 'Class 10',
+        chapter: 'Circles',
+        question: 'The length of tangent from a point 6cm away from center of circle with radius 4cm is:',
+        options: [
+            { id: 'A', text: '2√5 cm' },
+            { id: 'B', text: '√20 cm' },
+            { id: 'C', text: '2√5 cm' },
+            { id: 'D', text: '√52 cm' }
+        ],
+        correctAnswer: 'A',
+        explanation: 'Tangent length = √(d² - r²) = √(6² - 4²) = √(36 - 16) = √20 = 2√5 cm.'
+    },
+
+    // Class 10 Science (Advanced)
+    {
+        id: 'sci_10_003',
+        subject: 'Science',
+        class: 'Class 10',
+        chapter: 'Periodic Classification of Elements',
+        question: 'Which element has electronic configuration 2,8,8,1?',
+        options: [
+            { id: 'A', text: 'Sodium' },
+            { id: 'B', text: 'Potassium' },
+            { id: 'C', text: 'Chlorine' },
+            { id: 'D', text: 'Argon' }
+        ],
+        correctAnswer: 'B',
+        explanation: '2,8,8,1 configuration has 19 electrons, which is potassium (K, atomic number 19).'
+    },
+    {
+        id: 'sci_10_004',
+        subject: 'Science',
+        class: 'Class 10',
+        chapter: 'Heredity and Evolution',
+        question: 'Which law of Mendel states that factors segregate independently during gamete formation?',
+        options: [
+            { id: 'A', text: 'Law of Dominance' },
+            { id: 'B', text: 'Law of Segregation' },
+            { id: 'C', text: 'Law of Independent Assortment' },
+            { id: 'D', text: 'Law of Purity of Gametes' }
+        ],
+        correctAnswer: 'C',
+        explanation: 'Law of Independent Assortment states that genes segregate independently during gamete formation.'
+    },
+
+    // Additional Mixed Questions for Variety
+    {
+        id: 'mixed_001',
+        subject: 'Mathematics',
+        class: 'Class 8',
+        chapter: 'Data Handling',
+        question: 'The mean of first 10 prime numbers is approximately:',
+        options: [
+            { id: 'A', text: '12.9' },
+            { id: 'B', text: '15.7' },
+            { id: 'C', text: '18.3' },
+            { id: 'D', text: '21.1' }
+        ],
+        correctAnswer: 'A',
+        explanation: 'First 10 primes: 2,3,5,7,11,13,17,19,23,29. Sum = 129, Mean = 129/10 = 12.9.'
+    },
+    {
+        id: 'mixed_002',
+        subject: 'Science',
+        class: 'Class 9',
+        chapter: 'Natural Resources',
+        question: 'Which gas is primarily responsible for greenhouse effect?',
+        options: [
+            { id: 'A', text: 'Oxygen' },
+            { id: 'B', text: 'Nitrogen' },
+            { id: 'C', text: 'Carbon dioxide' },
+            { id: 'D', text: 'Hydrogen' }
+        ],
+        correctAnswer: 'C',
+        explanation: 'Carbon dioxide is the primary greenhouse gas responsible for global warming.'
+    },
+    {
+        id: 'mixed_003',
+        subject: 'Mathematics',
+        class: 'Class 7',
+        chapter: 'Symmetry',
+        question: 'How many lines of symmetry does a regular hexagon have?',
+        options: [
+            { id: 'A', text: '3' },
+            { id: 'B', text: '6' },
+            { id: 'C', text: '9' },
+            { id: 'D', text: '12' }
+        ],
+        correctAnswer: 'B',
+        explanation: 'A regular hexagon has 6 lines of symmetry - 3 through opposite vertices and 3 through midpoints of opposite sides.'
+    },
+    {
+        id: 'mixed_004',
+        subject: 'Science',
+        class: 'Class 10',
+        chapter: 'Magnetic Effects of Electric Current',
+        question: 'The device used to convert electrical energy into mechanical energy is:',
+        options: [
+            { id: 'A', text: 'Generator' },
+            { id: 'B', text: 'Motor' },
+            { id: 'C', text: 'Transformer' },
+            { id: 'D', text: 'Rectifier' }
+        ],
+        correctAnswer: 'B',
+        explanation: 'Electric motor converts electrical energy into mechanical energy.'
+    },
+    {
+        id: 'mixed_005',
+        subject: 'Mathematics',
+        class: 'Class 6',
+        chapter: 'Practical Geometry',
+        question: 'The angle bisector of 90° angle divides it into two angles of:',
+        options: [
+            { id: 'A', text: '30° each' },
+            { id: 'B', text: '45° each' },
+            { id: 'C', text: '60° each' },
+            { id: 'D', text: '90° each' }
+        ],
+        correctAnswer: 'B',
+        explanation: 'Angle bisector divides an angle into two equal parts. 90° ÷ 2 = 45° each.'
+    },
+    {
+        id: 'mixed_006',
+        subject: 'Science',
+        class: 'Class 8',
+        chapter: 'Sound',
+        question: 'The speed of sound in air at room temperature is approximately:',
+        options: [
+            { id: 'A', text: '340 m/s' },
+            { id: 'B', text: '150 m/s' },
+            { id: 'C', text: '500 m/s' },
+            { id: 'D', text: '1000 m/s' }
+        ],
+        correctAnswer: 'A',
+        explanation: 'Speed of sound in air at room temperature (20°C) is approximately 340 m/s.'
+    }
 ];
