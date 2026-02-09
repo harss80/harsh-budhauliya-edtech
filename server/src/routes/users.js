@@ -77,4 +77,67 @@ router.get('/admin', requireAdminToken, asyncHandler(async (req, res) => {
   });
 }));
 
+// Token-protected CSV export
+router.get('/admin/export', requireAdminToken, asyncHandler(async (req, res) => {
+  const q = String(req.query.q || '').trim();
+  const exam = String(req.query.exam || '').trim();
+
+  const query = {};
+  if (exam) {
+    query['educationDetails.targetExam'] = { $regex: exam, $options: 'i' };
+  }
+  if (q) {
+    query.$or = [
+      { name: { $regex: q, $options: 'i' } },
+      { email: { $regex: q, $options: 'i' } },
+      { admissionId: { $regex: q, $options: 'i' } },
+      { phone: { $regex: q, $options: 'i' } },
+    ];
+  }
+
+  const items = await User.find(query).sort({ createdAt: -1 }).limit(5000);
+
+  const escape = (v) => {
+    const s = String(v ?? '');
+    if (/[",\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+    return s;
+  };
+
+  const header = [
+    'AdmissionID',
+    'Name',
+    'Email',
+    'Phone',
+    'Target',
+    'Grade',
+    'School',
+    'City',
+    'JoinDate',
+    'LastLogin',
+    'CreatedAt',
+  ].join(',');
+
+  const rows = items.map((u) => {
+    return [
+      escape(u.admissionId || 'N/A'),
+      escape(u.name || ''),
+      escape(u.email || ''),
+      escape(u.phone || ''),
+      escape(u.educationDetails?.targetExam || ''),
+      escape(u.educationDetails?.grade || ''),
+      escape(u.educationDetails?.schoolName || ''),
+      escape(u.educationDetails?.city || ''),
+      escape(u.joinDate || ''),
+      escape(u.lastLogin || ''),
+      escape(u.createdAt ? new Date(u.createdAt).toISOString() : ''),
+    ].join(',');
+  });
+
+  const csv = [header, ...rows].join('\n');
+
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', 'attachment; filename="digimentors_users.csv"');
+  res.send(csv);
+}));
+
 module.exports = router;

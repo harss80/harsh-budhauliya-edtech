@@ -517,6 +517,9 @@ const AdminDashboard = () => {
     const [contactPage, setContactPage] = useState(1);
     const [contactPageSize] = useState(10);
 
+    const [usersQuery, setUsersQuery] = useState({ q: '', exam: '', page: 1, limit: 50 });
+    const [usersMeta, setUsersMeta] = useState({ total: 0, totalPages: 1 });
+
     // Responsive
     useEffect(() => {
         const handleResize = () => {
@@ -535,7 +538,13 @@ const AdminDashboard = () => {
             const base = API_BASE || '';
             try {
                 const [usersRes, testsRes, notifsRes, contactsRes, careersRes] = await Promise.all([
-                    fetch(`${base}/api/users/admin${adminToken ? `?token=${encodeURIComponent(adminToken)}` : ''}`, {
+                    fetch(`${base}/api/users/admin?${new URLSearchParams({
+                        token: adminToken || '',
+                        q: usersQuery.q || '',
+                        exam: usersQuery.exam || '',
+                        page: String(usersQuery.page || 1),
+                        limit: String(usersQuery.limit || 50),
+                    }).toString()}`, {
                         headers: adminToken ? { 'x-admin-token': adminToken } : {}
                     }).catch(() => null),
                     fetch(`${base}/api/tests`).catch(() => null),
@@ -549,8 +558,15 @@ const AdminDashboard = () => {
                     const payload = await usersRes.json();
                     const list = Array.isArray(payload) ? payload : (Array.isArray(payload?.items) ? payload.items : []);
                     setUsers(list);
+                    if (!Array.isArray(payload) && payload && typeof payload === 'object') {
+                        setUsersMeta({ total: payload.total || 0, totalPages: payload.totalPages || 1 });
+                    } else {
+                        setUsersMeta({ total: list.length || 0, totalPages: 1 });
+                    }
                 } else {
                     setUsers(getAllUsers());
+                    const fallback = getAllUsers();
+                    setUsersMeta({ total: fallback.length || 0, totalPages: 1 });
                 }
 
                 // Tests
@@ -620,7 +636,7 @@ const AdminDashboard = () => {
         fetchData();
         const interval = setInterval(fetchData, 5000);
         return () => clearInterval(interval);
-    }, [adminToken]);
+    }, [adminToken, usersQuery.q, usersQuery.exam, usersQuery.page, usersQuery.limit]);
 
     // Handlers
     const handleConfigChange = (key, value) => {
@@ -876,11 +892,44 @@ const AdminDashboard = () => {
         localStorage.setItem('digimentors_contacts', JSON.stringify(list));
     };
 
-    // Filtered Users
-    const filteredUsers = users.filter(u =>
-        u.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        u.email?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredUsers = users;
+
+    useEffect(() => {
+        const t = setTimeout(() => {
+            setUsersQuery((prev) => ({ ...prev, q: searchTerm || '', page: 1 }));
+        }, 350);
+        return () => clearTimeout(t);
+    }, [searchTerm]);
+
+    const exportUsersCsv = async () => {
+        try {
+            const base = API_BASE || '';
+            const qs = new URLSearchParams({
+                token: adminToken || '',
+                q: usersQuery.q || '',
+                exam: usersQuery.exam || '',
+            }).toString();
+            const res = await fetch(`${base}/api/users/admin/export?${qs}`, {
+                headers: adminToken ? { 'x-admin-token': adminToken } : {}
+            });
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                alert(err.error || 'Export failed');
+                return;
+            }
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'digimentors_users.csv';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+        } catch {
+            alert('Export failed');
+        }
+    };
 
     return (
         <div style={{ minHeight: '100vh', background: '#09090b', color: 'white', display: 'flex', overflow: 'hidden', fontFamily: '"Inter", sans-serif' }}>
@@ -1002,8 +1051,47 @@ const AdminDashboard = () => {
 
                     {/* USERS TAB */}
                     {activeTab === 'users' && (
-                        <div style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', overflow: 'hidden' }}>
-                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+
+                            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+                                <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                                    <select
+                                        value={usersQuery.exam}
+                                        onChange={(e) => setUsersQuery((prev) => ({ ...prev, exam: e.target.value, page: 1 }))}
+                                        style={{ padding: '10px 12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', color: 'white', outline: 'none' }}
+                                    >
+                                        <option value="">All Exams</option>
+                                        <option value="NEET">NEET</option>
+                                        <option value="JEE">JEE</option>
+                                        <option value="Foundation">Foundation</option>
+                                    </select>
+
+                                    <select
+                                        value={usersQuery.limit}
+                                        onChange={(e) => setUsersQuery((prev) => ({ ...prev, limit: parseInt(e.target.value || '50', 10) || 50, page: 1 }))}
+                                        style={{ padding: '10px 12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', color: 'white', outline: 'none' }}
+                                    >
+                                        {[25, 50, 100, 200].map((n) => (
+                                            <option key={n} value={n}>{n} / page</option>
+                                        ))}
+                                    </select>
+
+                                    <div style={{ color: '#a1a1aa', fontSize: '0.9rem' }}>
+                                        Total: <span style={{ color: 'white', fontWeight: 700 }}>{usersMeta.total || 0}</span>
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={exportUsersCsv}
+                                    className="btn-reset"
+                                    style={{ padding: '10px 14px', background: 'rgba(129, 140, 248, 0.1)', color: '#818cf8', border: '1px solid rgba(129, 140, 248, 0.2)', borderRadius: '12px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+                                >
+                                    <FileText size={18} /> Export CSV
+                                </button>
+                            </div>
+
+                            <div style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', overflow: 'hidden' }}>
+                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
                                 <thead>
                                     <tr style={{ textAlign: 'left', color: '#a1a1aa', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                                         <th style={{ padding: '16px' }}>Student</th>
@@ -1038,10 +1126,35 @@ const AdminDashboard = () => {
                                             </td>
                                         </tr>
                                     )) : (
-                                        <tr><td colSpan="6" style={{ padding: '32px', textAlign: 'center', color: '#52525b' }}>No users found</td></tr>
+                                        <tr><td colSpan="7" style={{ padding: '32px', textAlign: 'center', color: '#52525b' }}>No users found</td></tr>
                                     )}
                                 </tbody>
-                            </table>
+                                </table>
+                            </div>
+
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+                                <div style={{ color: '#a1a1aa', fontSize: '0.9rem' }}>
+                                    Page <span style={{ color: 'white', fontWeight: 700 }}>{usersQuery.page}</span> / <span style={{ color: 'white', fontWeight: 700 }}>{usersMeta.totalPages || 1}</span>
+                                </div>
+                                <div style={{ display: 'flex', gap: '10px' }}>
+                                    <button
+                                        onClick={() => setUsersQuery((prev) => ({ ...prev, page: Math.max(1, (prev.page || 1) - 1) }))}
+                                        disabled={(usersQuery.page || 1) <= 1}
+                                        className="btn-reset"
+                                        style={{ padding: '10px 14px', borderRadius: '10px', background: 'rgba(255,255,255,0.06)', color: 'white', border: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer', opacity: (usersQuery.page || 1) <= 1 ? 0.4 : 1 }}
+                                    >
+                                        Prev
+                                    </button>
+                                    <button
+                                        onClick={() => setUsersQuery((prev) => ({ ...prev, page: Math.min((usersMeta.totalPages || 1), (prev.page || 1) + 1) }))}
+                                        disabled={(usersQuery.page || 1) >= (usersMeta.totalPages || 1)}
+                                        className="btn-reset"
+                                        style={{ padding: '10px 14px', borderRadius: '10px', background: 'rgba(255,255,255,0.06)', color: 'white', border: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer', opacity: (usersQuery.page || 1) >= (usersMeta.totalPages || 1) ? 0.4 : 1 }}
+                                    >
+                                        Next
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     )}
 
