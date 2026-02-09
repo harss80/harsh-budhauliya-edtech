@@ -213,16 +213,7 @@ const SinglePageOnly = ({ children }) => {
 
   if (!user) return children;
 
-  const path = location.pathname || '';
-  const isAllowed =
-    path === '/test' ||
-    path === '/login' ||
-    path.startsWith('/attempt-test') ||
-    path.startsWith('/admin');
-
-  if (!isAllowed) {
-    return <Navigate to="/test" replace />;
-  }
+  void location;
 
   return children;
 };
