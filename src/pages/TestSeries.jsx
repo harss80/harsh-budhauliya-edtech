@@ -8,10 +8,13 @@ import {
 import { useNavigate, useLocation } from 'react-router-dom';
 import { API_BASE } from '../utils/apiBase';
 import { NCERT } from '../data/ncert';
+import { realQuestions as localQuestionPool } from '../data/realQuestions';
 
 const TestSeries = () => {
     const navigate = useNavigate();
     const location = useLocation();
+
+    const MotionDiv = motion.div;
 
     const params = new URLSearchParams(location.search);
     const classParam = params.get('class');
@@ -140,6 +143,99 @@ const TestSeries = () => {
         navigate(`/attempt-test/${testId}`);
     };
 
+    const [isGeneratingNeetFull, setIsGeneratingNeetFull] = useState(false);
+    const [isSeedingBank, setIsSeedingBank] = useState(false);
+
+    const chunk = (arr, size) => {
+        const out = [];
+        for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+        return out;
+    };
+
+    const mapToBankItem = (q, exam) => ({
+        exam,
+        subject: q.subject,
+        class: q.class,
+        chapter: q.chapter,
+        difficulty: q.difficulty || 'Standard',
+        tags: Array.isArray(q.tags) ? q.tags : [],
+        text: q.question,
+        imageUrl: q.imageUrl,
+        options: Array.isArray(q.options) ? q.options : [],
+        correctAnswer: q.correctAnswer,
+        explanation: q.explanation,
+        source: 'local'
+    });
+
+    const handleSeedQuestionBank = async () => {
+        try {
+            setIsSeedingBank(true);
+
+            const exam = userGoal === 'NEET' ? 'NEET' : userGoal === 'JEE' ? 'JEE' : 'NEET';
+            const allowedSubjects = exam === 'NEET'
+                ? new Set(['Physics', 'Chemistry', 'Biology'])
+                : new Set(['Physics', 'Chemistry', 'Mathematics']);
+
+            const items = (Array.isArray(localQuestionPool) ? localQuestionPool : [])
+                .filter((q) => allowedSubjects.has(q.subject))
+                .map((q) => mapToBankItem(q, exam));
+
+            if (items.length === 0) {
+                alert('No local questions found to seed.');
+                return;
+            }
+
+            const batches = chunk(items, 200);
+            let insertedTotal = 0;
+
+            for (const b of batches) {
+                const res = await fetch(`${API_BASE}/api/question-bank/import`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ items: b })
+                });
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    throw new Error(err.error || 'import failed');
+                }
+                const data = await res.json();
+                insertedTotal += (data.inserted || 0);
+            }
+
+            alert(`Seed complete. Inserted: ${insertedTotal}`);
+        } catch (e) {
+            console.error(e);
+            alert('Seeding failed. Ensure backend is running and reachable.');
+        } finally {
+            setIsSeedingBank(false);
+        }
+    };
+    const handleGenerateNeetFull = async () => {
+        try {
+            setIsGeneratingNeetFull(true);
+            const res = await fetch(`${API_BASE}/api/tests/generate-neet-full`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: `NEET Full Syllabus Mock - ${new Date().toLocaleDateString()}`,
+                    hardRatio: 0.55,
+                    preferDiagrams: true
+                })
+            });
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.error || 'failed');
+            }
+            const created = await res.json();
+            navigate(`/attempt-test/${created._id}`);
+        } catch (e) {
+            console.error(e);
+            alert('Failed to generate NEET full syllabus test. Please try again.');
+        } finally {
+            setIsGeneratingNeetFull(false);
+        }
+    };
+
     return (
         <div style={{ minHeight: '100vh', background: '#050505', paddingTop: '100px', paddingBottom: '60px', color: 'white', fontFamily: '"Inter", sans-serif' }}>
             <div className="container" style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px' }}>
@@ -149,6 +245,46 @@ const TestSeries = () => {
                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '6px 16px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '100px', border: '1px solid rgba(59, 130, 246, 0.2)', color: '#60a5fa', fontSize: '0.85rem', fontWeight: '700', marginBottom: '1rem', letterSpacing: '0.05em' }}>
                         <Target size={14} /> ELITE TEST SERIES
                     </div>
+
+                {userGoal === 'NEET' && !classParam && (
+                    <div style={{ marginBottom: '2rem', padding: '16px', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.08)', background: '#121214' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                            <div>
+                                <div style={{ fontWeight: 800, marginBottom: 6 }}>NEET Full Syllabus (Real Exam Mode)</div>
+                                <div style={{ color: '#a1a1aa', fontSize: '0.95rem' }}>180 Questions • 200 Minutes • Physics 45 • Chemistry 45 • Biology 90</div>
+                            </div>
+                            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                                <button
+                                    disabled={isSeedingBank}
+                                    onClick={handleSeedQuestionBank}
+                                    className="btn-reset"
+                                    style={{
+                                        padding: '12px 16px', borderRadius: 10, fontWeight: 800,
+                                        background: isSeedingBank ? 'rgba(255,255,255,0.08)' : 'rgba(59, 130, 246, 0.9)',
+                                        color: isSeedingBank ? '#a1a1aa' : 'white',
+                                        whiteSpace: 'nowrap'
+                                    }}
+                                >
+                                    {isSeedingBank ? 'Seeding…' : 'Seed Question Bank (Free)'}
+                                </button>
+
+                                <button
+                                    disabled={isGeneratingNeetFull}
+                                    onClick={handleGenerateNeetFull}
+                                    className="btn-reset"
+                                    style={{
+                                        padding: '12px 16px', borderRadius: 10, fontWeight: 800,
+                                        background: isGeneratingNeetFull ? 'rgba(255,255,255,0.08)' : '#22c55e',
+                                        color: isGeneratingNeetFull ? '#a1a1aa' : 'black',
+                                        whiteSpace: 'nowrap'
+                                    }}
+                                >
+                                    {isGeneratingNeetFull ? 'Generating…' : 'Generate New Full Test'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
                     <h1 style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', fontWeight: '800', lineHeight: '1.2', marginBottom: '1rem' }}>
                         {userGoal} <span style={{ background: 'linear-gradient(to right, #60a5fa, #a78bfa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Exam Center</span>
                     </h1>
@@ -219,7 +355,7 @@ const TestSeries = () => {
                 {/* Test Grid */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '2rem' }}>
                     {tests.map((test) => (
-                        <motion.div
+                        <MotionDiv
                             key={test.id}
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -286,7 +422,7 @@ const TestSeries = () => {
                                     {test.isLocked ? 'Unlock Series' : 'Start Test'} {!test.isLocked && <PlayCircle size={18} />}
                                 </button>
                             </div>
-                        </motion.div>
+                        </MotionDiv>
                     ))}
                 </div>
 

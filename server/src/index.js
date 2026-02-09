@@ -12,6 +12,7 @@ const contactsRouter = require('./routes/contacts');
 const testsRouter = require('./routes/tests');
 const resultsRouter = require('./routes/results');
 const careersRouter = require('./routes/careers');
+const questionBankRouter = require('./routes/questionBank');
 
 const app = express();
 
@@ -44,6 +45,7 @@ app.use('/api/contacts', contactsRouter);
 app.use('/api/tests', testsRouter);
 app.use('/api/results', resultsRouter);
 app.use('/api/careers', careersRouter);
+app.use('/api/question-bank', questionBankRouter);
 
 // Compatibility endpoint for login logs (no-op store for now)
 app.post('/api/login', (req, res) => {

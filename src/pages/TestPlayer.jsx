@@ -20,6 +20,11 @@ const TestPlayer = () => {
     const isMedical = testId?.includes('medical') || testId?.includes('neet') || testId?.includes('biology');
     const isEngineering = testId?.includes('jee') || testId?.includes('math') || testId?.includes('engineering');
 
+    const isNeetExamLike = isMedical;
+    const isJeeExamLike = isEngineering;
+
+    const MotionDiv = motion.div;
+
     // Fallback: If unknown, show all (memoized)
     const relevantSubjects = useMemo(() => (
         isMedical
@@ -61,6 +66,7 @@ const TestPlayer = () => {
                                 originalId: q.id || idx + 1,
                                 subject: q.subject || t.subject || 'General',
                                 text: q.text,
+                                imageUrl: q.imageUrl,
                                 options: q.options || [],
                                 correctAnswer: q.correctAnswer,
                                 explanation: q.explanation,
@@ -92,6 +98,16 @@ const TestPlayer = () => {
             } else {
                 filtered = questionPool.filter(q => relevantSubjects.includes(q.subject));
 
+                if (isNeetExamLike) {
+                    try {
+                        const recentRaw = localStorage.getItem('digimentors_neet_recent_original_ids') || '[]';
+                        const recent = new Set(JSON.parse(recentRaw));
+                        filtered = filtered.filter((q) => !recent.has(q.id));
+                    } catch {
+                        // ignore
+                    }
+                }
+
                 if (testId?.includes('foundation')) {
                     if (testId.includes('chapter')) setTestTitle('Chapter Warrior - Practice');
                     else if (testId.includes('mid-term')) setTestTitle('Mid-Term Chronicles');
@@ -106,13 +122,49 @@ const TestPlayer = () => {
                 const j = Math.floor(Math.random() * (i + 1));
                 [filtered[i], filtered[j]] = [filtered[j], filtered[i]];
             }
-            const MAX_QS = testId === 'custom-generated' ? 100 : 50;
-            const selected = filtered.slice(0, MAX_QS);
+
+            const pickRandom = (arr, count) => {
+                const copy = Array.isArray(arr) ? [...arr] : [];
+                for (let i = copy.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [copy[i], copy[j]] = [copy[j], copy[i]];
+                }
+                return copy.slice(0, Math.max(0, count));
+            };
+
+            let selected = [];
+            if (testId === 'custom-generated') {
+                selected = filtered.slice(0, 100);
+            } else if (isNeetExamLike) {
+                const phy = filtered.filter(q => q.subject === 'Physics');
+                const chem = filtered.filter(q => q.subject === 'Chemistry');
+                const bio = filtered.filter(q => q.subject === 'Biology');
+                selected = [
+                    ...pickRandom(phy, 45),
+                    ...pickRandom(chem, 45),
+                    ...pickRandom(bio, 90)
+                ];
+                if (selected.length < 180) {
+                    const used = new Set(selected.map((q) => q?.id).filter(Boolean));
+                    const remaining = filtered.filter((q) => !used.has(q?.id));
+                    const topup = pickRandom(remaining, 180 - selected.length);
+                    selected = selected.concat(topup);
+                }
+                selected = pickRandom(selected, 180);
+                if (!cancelled) setDurationMinutes(200);
+            } else if (isJeeExamLike) {
+                selected = filtered.slice(0, 75);
+                if (!cancelled) setDurationMinutes(180);
+            } else {
+                selected = filtered.slice(0, 50);
+            }
+
             const mapped = selected.map((q, i) => ({
                 id: i + 1,
                 originalId: q.id,
                 subject: q.subject,
                 text: q.question,
+                imageUrl: q.imageUrl,
                 options: q.options,
                 correctAnswer: q.correctAnswer,
                 explanation: q.explanation,
@@ -120,21 +172,36 @@ const TestPlayer = () => {
                 class: q.class
             }));
             if (!cancelled) setQuestions(mapped);
+
+            if (isNeetExamLike) {
+                try {
+                    const keepLast = 180 * 5;
+                    const recentRaw = localStorage.getItem('digimentors_neet_recent_original_ids') || '[]';
+                    const recent = JSON.parse(recentRaw);
+                    const nowIds = mapped.map((m) => m.originalId).filter(Boolean);
+                    const next = [...nowIds, ...recent].slice(0, keepLast);
+                    localStorage.setItem('digimentors_neet_recent_original_ids', JSON.stringify(next));
+                } catch {
+                    // ignore
+                }
+            }
         };
         load();
         return () => { cancelled = true; };
-    }, [testId, isMedical, isEngineering, relevantSubjects]);
+    }, [testId, isMedical, isEngineering, relevantSubjects, isNeetExamLike, isJeeExamLike]);
 
     // Question Timer (60s per question)
     const [questionTimer, setQuestionTimer] = useState(60);
 
     // Reset question timer when current question changes
     useEffect(() => {
+        if (isNeetExamLike || isJeeExamLike) return;
         setQuestionTimer(60);
-    }, [currentQuestion]);
+    }, [currentQuestion, isNeetExamLike, isJeeExamLike]);
 
     // Track time updated per second for current question
     useEffect(() => {
+        if (isNeetExamLike || isJeeExamLike) return;
         const tracker = setInterval(() => {
             if (questions[currentQuestion]) {
                 setTimePerQuestion(prev => ({
@@ -144,7 +211,7 @@ const TestPlayer = () => {
             }
         }, 1000);
         return () => clearInterval(tracker);
-    }, [currentQuestion, questions]);
+    }, [currentQuestion, questions, isNeetExamLike, isJeeExamLike]);
 
     const handleNext = useCallback(() => {
         if (currentQuestion < questions.length - 1) {
@@ -158,6 +225,7 @@ const TestPlayer = () => {
 
     // Question Timer Countdown & Auto-Skip
     useEffect(() => {
+        if (isNeetExamLike || isJeeExamLike) return;
         if (!questions.length) return;
 
         const qTimer = setInterval(() => {
@@ -171,7 +239,7 @@ const TestPlayer = () => {
             });
         }, 1000);
         return () => clearInterval(qTimer);
-    }, [currentQuestion, questions.length, handleNext]);
+    }, [currentQuestion, questions.length, handleNext, isNeetExamLike, isJeeExamLike]);
 
     // Responsive Check
     useEffect(() => {
@@ -368,15 +436,17 @@ const TestPlayer = () => {
                     </div>
 
                     {/* Question Timer Badge */}
-                    <div style={{
-                        background: 'rgba(255,255,255,0.05)', padding: '6px 12px', borderRadius: '100px',
-                        display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem',
-                        border: '1px solid rgba(255,255,255,0.08)'
-                    }}>
-                        <Clock size={16} color={questionTimer < 10 ? '#ef4444' : '#fbbf24'} />
-                        <span style={{ color: '#a1a1aa', fontSize: '0.8rem', display: isMobile ? 'none' : 'inline' }}>Time Left:</span>
-                        <span style={{ fontWeight: '700', color: questionTimer < 10 ? '#ef4444' : 'white', minWidth: '24px' }}>{questionTimer}s</span>
-                    </div>
+                    {!(isNeetExamLike || isJeeExamLike) && (
+                        <div style={{
+                            background: 'rgba(255,255,255,0.05)', padding: '6px 12px', borderRadius: '100px',
+                            display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem',
+                            border: '1px solid rgba(255,255,255,0.08)'
+                        }}>
+                            <Clock size={16} color={questionTimer < 10 ? '#ef4444' : '#fbbf24'} />
+                            <span style={{ color: '#a1a1aa', fontSize: '0.8rem', display: isMobile ? 'none' : 'inline' }}>Time Left:</span>
+                            <span style={{ fontWeight: '700', color: questionTimer < 10 ? '#ef4444' : 'white', minWidth: '24px' }}>{questionTimer}s</span>
+                        </div>
+                    )}
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -463,7 +533,7 @@ const TestPlayer = () => {
                     </div>
 
                     <AnimatePresence mode='wait'>
-                        <motion.div
+                        <MotionDiv
                             key={currentQuestion}
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
@@ -496,6 +566,16 @@ const TestPlayer = () => {
                                     </h3>
                                 </div>
 
+                                {questions[currentQuestion].imageUrl && (
+                                    <div style={{ marginBottom: '1.5rem' }}>
+                                        <img
+                                            src={questions[currentQuestion].imageUrl}
+                                            alt="question"
+                                            style={{ maxWidth: '100%', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.08)' }}
+                                        />
+                                    </div>
+                                )}
+
                                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '1rem' }}>
                                     {questions[currentQuestion].options.map(opt => {
                                         const isSelected = answers[questions[currentQuestion].id] === opt.id;
@@ -527,7 +607,7 @@ const TestPlayer = () => {
                                     })}
                                 </div>
                             </div>
-                        </motion.div>
+                        </MotionDiv>
                     </AnimatePresence>
 
                     {/* Bottom Action Bar */}

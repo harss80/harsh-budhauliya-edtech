@@ -1,6 +1,7 @@
 const express = require('express');
 const asyncHandler = require('../utils/asyncHandler');
 const Test = require('../models/Test');
+const QuestionBank = require('../models/QuestionBank');
 const multer = require('multer');
 const pdfParse = require('pdf-parse');
 const axios = require('axios');
@@ -32,6 +33,102 @@ router.get('/public', asyncHandler(async (req, res) => {
 router.post('/', asyncHandler(async (req, res) => {
   const data = req.body || {};
   const t = await Test.create(data);
+  res.status(201).json(t);
+}));
+
+router.post('/generate-neet-full', asyncHandler(async (req, res) => {
+  const body = req.body || {};
+  const excludeIds = Array.isArray(body.excludeIds) ? body.excludeIds : [];
+  const preferDiagrams = body.preferDiagrams !== false;
+  const hardRatio = Math.min(Math.max(parseFloat(body.hardRatio || '0.5'), 0), 1);
+
+  const shuffle = (arr) => {
+    const copy = [...arr];
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+  };
+
+  const pickWithDifficulty = (pool, count) => {
+    const hard = pool.filter(q => String(q.difficulty || '').toLowerCase() === 'hard');
+    const mid = pool.filter(q => String(q.difficulty || '').toLowerCase() === 'medium');
+    const std = pool.filter(q => !['hard', 'medium'].includes(String(q.difficulty || '').toLowerCase()));
+
+    const hardCount = Math.round(count * hardRatio);
+    const remaining = count - hardCount;
+    const midCount = Math.round(remaining * 0.6);
+    const stdCount = count - hardCount - midCount;
+
+    const selected = [];
+    selected.push(...shuffle(hard).slice(0, hardCount));
+    selected.push(...shuffle(mid).slice(0, midCount));
+    selected.push(...shuffle(std).slice(0, stdCount));
+
+    if (selected.length < count) {
+      const used = new Set(selected.map(q => String(q._id)));
+      const rest = shuffle(pool.filter(q => !used.has(String(q._id))));
+      selected.push(...rest.slice(0, count - selected.length));
+    }
+
+    return shuffle(selected).slice(0, count);
+  };
+
+  const baseQuery = { exam: 'NEET' };
+  if (excludeIds.length > 0) baseQuery._id = { $nin: excludeIds };
+
+  const [phyAll, chemAll, bioAll] = await Promise.all([
+    QuestionBank.find({ ...baseQuery, subject: 'Physics' }).limit(5000),
+    QuestionBank.find({ ...baseQuery, subject: 'Chemistry' }).limit(5000),
+    QuestionBank.find({ ...baseQuery, subject: 'Biology' }).limit(10000),
+  ]);
+
+  const bumpDiagrams = (pool, targetCount) => {
+    if (!preferDiagrams) return pool;
+    const diag = pool.filter(q => q.imageUrl || (Array.isArray(q.tags) && q.tags.includes('diagram')));
+    const non = pool.filter(q => !(q.imageUrl || (Array.isArray(q.tags) && q.tags.includes('diagram'))));
+    const diagTarget = Math.min(Math.round(targetCount * 0.1), diag.length);
+    return shuffle([...shuffle(diag).slice(0, diagTarget), ...shuffle(non)]);
+  };
+
+  const phy = bumpDiagrams(phyAll, 45);
+  const chem = bumpDiagrams(chemAll, 45);
+  const bio = bumpDiagrams(bioAll, 90);
+
+  const selected = [
+    ...pickWithDifficulty(phy, 45),
+    ...pickWithDifficulty(chem, 45),
+    ...pickWithDifficulty(bio, 90),
+  ];
+
+  if (selected.length < 180) {
+    return res.status(400).json({ error: 'Not enough questions in question bank. Import more NEET questions first.' });
+  }
+
+  const questions = selected.slice(0, 180).map((q) => ({
+    text: q.text,
+    imageUrl: q.imageUrl,
+    options: q.options || [],
+    correctAnswer: q.correctAnswer,
+    explanation: q.explanation,
+    subject: q.subject,
+    chapter: q.chapter,
+    difficulty: q.difficulty,
+  }));
+
+  const t = await Test.create({
+    name: body.name || `NEET Full Syllabus Mock - ${new Date().toLocaleDateString()}`,
+    subject: 'NEET',
+    duration: 200,
+    scheduledAt: new Date(),
+    published: true,
+    generated: true,
+    sourceName: 'QuestionBank',
+    sourceSummary: `Generated from QuestionBank with hardRatio=${hardRatio}`,
+    questions
+  });
+
   res.status(201).json(t);
 }));
 

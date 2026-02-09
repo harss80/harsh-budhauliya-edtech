@@ -7,6 +7,7 @@ const OptionSchema = new Schema({
 
 const QuestionSchema = new Schema({
   text: { type: String },
+  imageUrl: { type: String },
   options: { type: [OptionSchema], default: [] },
   correctAnswer: { type: String },
   explanation: { type: String },
