@@ -232,8 +232,20 @@ const ProtectedAdminRoute = ({ children }) => {
   const user = JSON.parse(localStorage.getItem('digimentors_current_user') || 'null');
   const config = JSON.parse(localStorage.getItem('digimentors_site_config') || '{}');
   const adminEmails = Array.isArray(config.adminEmails) ? config.adminEmails : ['harshbudhauliya882@gmail.com'];
-  const isAllowed = user && adminEmails.map(e => (e || '').toLowerCase()).includes((user.email || '').toLowerCase());
-  if (!isAllowed) {
+  const isEmailAllowed = user && adminEmails.map(e => (e || '').toLowerCase()).includes((user.email || '').toLowerCase());
+
+  const localToken = (() => {
+    try { return String(localStorage.getItem('digimentors_admin_token') || '').trim(); } catch { return ''; }
+  })();
+  const urlToken = (() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      return String(params.get('token') || '').trim();
+    } catch { return ''; }
+  })();
+
+  const hasToken = !!(urlToken || localToken);
+  if (!isEmailAllowed && !hasToken) {
     return <Navigate to="/login" replace />;
   }
   return children;

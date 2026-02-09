@@ -470,6 +470,23 @@ const AdminDashboard = () => {
     const [isSidebarOpen, setSidebarOpen] = useState(true);
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 1024);
 
+    const [adminToken, setAdminToken] = useState(() => {
+        try {
+            const params = new URLSearchParams(window.location.search);
+            const fromUrl = String(params.get('token') || '').trim();
+            const fromLocal = String(localStorage.getItem('digimentors_admin_token') || '').trim();
+            return fromUrl || fromLocal || '';
+        } catch {
+            return '';
+        }
+    });
+
+    useEffect(() => {
+        try {
+            if (adminToken) localStorage.setItem('digimentors_admin_token', adminToken);
+        } catch { /* ignore */ }
+    }, [adminToken]);
+
     // Data State
     const [stats, setStats] = useState(getSystemStats());
     const [users, setUsers] = useState(getAllUsers());
@@ -518,7 +535,9 @@ const AdminDashboard = () => {
             const base = API_BASE || '';
             try {
                 const [usersRes, testsRes, notifsRes, contactsRes, careersRes] = await Promise.all([
-                    fetch(`${base}/api/users`).catch(() => null),
+                    fetch(`${base}/api/users/admin${adminToken ? `?token=${encodeURIComponent(adminToken)}` : ''}`, {
+                        headers: adminToken ? { 'x-admin-token': adminToken } : {}
+                    }).catch(() => null),
                     fetch(`${base}/api/tests`).catch(() => null),
                     fetch(`${base}/api/notifications`).catch(() => null),
                     fetch(`${base}/api/contacts`).catch(() => null),
@@ -527,7 +546,8 @@ const AdminDashboard = () => {
 
                 // Users
                 if (usersRes && usersRes.ok) {
-                    const list = await usersRes.json();
+                    const payload = await usersRes.json();
+                    const list = Array.isArray(payload) ? payload : (Array.isArray(payload?.items) ? payload.items : []);
                     setUsers(list);
                 } else {
                     setUsers(getAllUsers());
@@ -600,7 +620,7 @@ const AdminDashboard = () => {
         fetchData();
         const interval = setInterval(fetchData, 5000);
         return () => clearInterval(interval);
-    }, []);
+    }, [adminToken]);
 
     // Handlers
     const handleConfigChange = (key, value) => {
