@@ -207,6 +207,26 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
+const SinglePageOnly = ({ children }) => {
+  const location = useLocation();
+  const user = JSON.parse(localStorage.getItem('digimentors_current_user') || 'null');
+
+  if (!user) return children;
+
+  const path = location.pathname || '';
+  const isAllowed =
+    path === '/test' ||
+    path === '/login' ||
+    path.startsWith('/attempt-test') ||
+    path.startsWith('/admin');
+
+  if (!isAllowed) {
+    return <Navigate to="/test" replace />;
+  }
+
+  return children;
+};
+
 // Admin Protected Route Component
 const ProtectedAdminRoute = ({ children }) => {
   const user = JSON.parse(localStorage.getItem('digimentors_current_user') || 'null');
@@ -317,34 +337,36 @@ function App() {
       <VisitTracker />
       <GlobalPopup />
       <Layout>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/category/:category" element={<ExamCategory />} />
-          <Route path="/questions" element={<ProtectedRoute><QuestionBank /></ProtectedRoute>} />
-          <Route path="/practice/:exam/:subject" element={<ProtectedRoute><Practice /></ProtectedRoute>} />
-          <Route path="/test" element={<ProtectedRoute><StudentDashboard /></ProtectedRoute>} />
-          <Route path="/test-generator" element={<ProtectedRoute><TestGenerator /></ProtectedRoute>} />
-          <Route path="/blog" element={<Blog />} />
-          <Route path="/analysis" element={<ProtectedRoute><LiveAnalysis /></ProtectedRoute>} />
-          <Route path="/test-history" element={<ProtectedRoute><StudentTestHistory /></ProtectedRoute>} />
-          <Route path="/study-material" element={<StudyMaterial />} />
-          <Route path="/attempt-test/:testId" element={<ProtectedRoute><TestPlayer /></ProtectedRoute>} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/admin" element={<ProtectedAdminRoute><AdminDashboard /></ProtectedAdminRoute>} />
-          <Route path="/leaderboard" element={<Leaderboard />} />
-          <Route path="/mentorship" element={<Mentorship />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/careers" element={<Careers />} />
-          <Route path="/teacher-registration" element={<TeacherRegistration />} />
-          <Route path="/test-series" element={<ProtectedRoute><TestSeries /></ProtectedRoute>} />
+        <SinglePageOnly>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/category/:category" element={<ExamCategory />} />
+            <Route path="/questions" element={<ProtectedRoute><QuestionBank /></ProtectedRoute>} />
+            <Route path="/practice/:exam/:subject" element={<ProtectedRoute><Practice /></ProtectedRoute>} />
+            <Route path="/test" element={<ProtectedRoute><StudentDashboard /></ProtectedRoute>} />
+            <Route path="/test-generator" element={<ProtectedRoute><TestGenerator /></ProtectedRoute>} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/analysis" element={<ProtectedRoute><LiveAnalysis /></ProtectedRoute>} />
+            <Route path="/test-history" element={<ProtectedRoute><StudentTestHistory /></ProtectedRoute>} />
+            <Route path="/study-material" element={<StudyMaterial />} />
+            <Route path="/attempt-test/:testId" element={<ProtectedRoute><TestPlayer /></ProtectedRoute>} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/admin" element={<ProtectedAdminRoute><AdminDashboard /></ProtectedAdminRoute>} />
+            <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="/mentorship" element={<Mentorship />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/careers" element={<Careers />} />
+            <Route path="/teacher-registration" element={<TeacherRegistration />} />
+            <Route path="/test-series" element={<ProtectedRoute><TestSeries /></ProtectedRoute>} />
 
-          <Route path="/courses" element={<Courses />} />
-          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-          <Route path="/terms-of-service" element={<TermsOfService />} />
-          <Route path="/classes" element={<Classes />} />
-          <Route path="/class/:classNumber" element={<ClassDetail />} />
-        </Routes>
+            <Route path="/courses" element={<Courses />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/terms-of-service" element={<TermsOfService />} />
+            <Route path="/classes" element={<Classes />} />
+            <Route path="/class/:classNumber" element={<ClassDetail />} />
+          </Routes>
+        </SinglePageOnly>
       </Layout>
     </Router>
   );

@@ -5,6 +5,7 @@ import { Menu, X, ChevronDown, GraduationCap, Phone, User, LayoutDashboard, LogO
 import { Link, useLocation } from 'react-router-dom';
 
 const Navbar = () => {
+    const MotionNav = motion.nav;
     const [scrolled, setScrolled] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
     const [user, setUser] = useState(null);
@@ -79,14 +80,25 @@ const Navbar = () => {
         }
     ];
 
-    const menusToRender = menus;
+    const resolveGoal = (u) => {
+        const raw = String(u?.educationDetails?.targetExam || '').toUpperCase();
+        if (raw.includes('NEET') || raw.includes('MEDICAL')) return 'NEET';
+        if (raw.includes('JEE') || raw.includes('ENGINEERING')) return 'JEE';
+        if (raw.includes('FOUNDATION')) return 'Foundation';
+        return '';
+    };
+
+    const userGoal = resolveGoal(user);
+    const menusToRender = user
+        ? menus.filter((m) => m.label === userGoal)
+        : menus;
     const [openDropdown, setOpenDropdown] = useState(null);
 
 
 
     return (
         <>
-            <motion.nav
+            <MotionNav
                 initial={{ y: -100 }}
                 animate={{ y: 0 }}
                 transition={{ duration: 0.5 }}
@@ -265,7 +277,7 @@ const Navbar = () => {
                         </motion.div>
                     )}
                 </AnimatePresence>
-            </motion.nav>
+            </MotionNav>
             <style>{`
                 @media (max-width: 900px) {
                     .desktop-menu, .desktop-actions { display: none !important; }

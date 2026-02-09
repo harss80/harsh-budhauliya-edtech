@@ -6,10 +6,97 @@ import {
     Video, BookOpen, Star, ChevronRight, X
 } from 'lucide-react';
 
+const CourseModal = ({ course, onClose }) => {
+    if (!course) return null;
+    return (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }} onClick={onClose}>
+            <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                style={{ background: '#18181b', width: '100%', maxWidth: '900px', maxHeight: '90vh', overflowY: 'auto', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.1)', position: 'relative' }}
+            >
+                <button onClick={onClose} style={{ position: 'absolute', top: '24px', right: '24px', background: 'rgba(0,0,0,0.5)', border: 'none', color: 'white', borderRadius: '50%', padding: '8px', cursor: 'pointer', zIndex: 10 }}>
+                    <X size={24} />
+                </button>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0' }} className="modal-grid">
+                    {/* Left: Image & Key Info */}
+                    <div style={{ position: 'relative', minHeight: '300px' }}>
+                        <img src={course.image} alt={course.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, #18181b 0%, transparent 60%)' }} />
+                        <div style={{ position: 'absolute', bottom: '32px', left: '32px', right: '32px' }}>
+                            <div style={{ display: 'inline-block', background: course.color, padding: '6px 14px', borderRadius: '100px', fontSize: '0.8rem', fontWeight: '800', marginBottom: '12px', textTransform: 'uppercase' }}>{course.cat}</div>
+                            <h2 style={{ fontSize: '2.5rem', fontWeight: '800', lineHeight: 1.1, marginBottom: '8px' }}>{course.title}</h2>
+                            <div style={{ display: 'flex', gap: '16px', fontSize: '0.95rem', color: '#d4d4d8' }}>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Timer size={16} /> Starts {course.date}</span>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><CheckCircle2 size={16} /> Valid: {course.validity}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Right: Details & CTA */}
+                    <div style={{ padding: '40px', display: 'flex', flexDirection: 'column' }}>
+                        <div style={{ marginBottom: '2rem' }}>
+                            <h3 style={{ fontSize: '1.2rem', fontWeight: '700', marginBottom: '1rem', color: 'white' }}>Description</h3>
+                            <p style={{ color: '#a1a1aa', lineHeight: 1.6 }}>{course.description}</p>
+                        </div>
+
+                        <div style={{ marginBottom: 'auto' }}>
+                            <h3 style={{ fontSize: '1.2rem', fontWeight: '700', marginBottom: '1rem', color: 'white' }}>Key Features</h3>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                {course.features.map((f, i) => (
+                                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: '#d4d4d8' }}>
+                                        <CheckCircle2 size={14} color={course.color} /> {f}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div style={{ marginTop: '2.5rem', paddingTop: '2rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'end', marginBottom: '1.5rem' }}>
+                                <div>
+                                    <div style={{ fontSize: '0.9rem', color: '#a1a1aa' }}>Total Price</div>
+                                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px' }}>
+                                        <span style={{ fontSize: '2rem', fontWeight: '800' }}>₹{course.price}</span>
+                                        <span style={{ fontSize: '1.1rem', color: '#71717a', textDecoration: 'line-through' }}>₹{course.originalPrice}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button className="btn-reset" style={{ width: '100%', padding: '18px', background: course.color, color: 'white', borderRadius: '12px', fontWeight: '800', fontSize: '1.1rem', letterSpacing: '0.02em' }}>
+                                Enroll Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <style>{`
+                    @media (max-width: 768px) {
+                        .modal-grid { grid-template-columns: 1fr !important; }
+                    }
+                `}</style>
+            </motion.div>
+        </div>
+    );
+};
+
 const Courses = () => {
     const [activeCategory, setActiveCategory] = useState('All');
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCourse, setSelectedCourse] = useState(null);
+
+    const resolveGoal = (u) => {
+        const raw = String(u?.educationDetails?.targetExam || '').toUpperCase();
+        if (raw.includes('NEET') || raw.includes('MEDICAL')) return 'NEET';
+        if (raw.includes('JEE') || raw.includes('ENGINEERING')) return 'JEE';
+        if (raw.includes('FOUNDATION')) return 'Foundation';
+        return '';
+    };
+
+    const currentUser = (() => {
+        try { return JSON.parse(localStorage.getItem('digimentors_current_user') || 'null'); } catch { return null; }
+    })();
+    const userGoal = resolveGoal(currentUser);
 
     // --- Course Data (Reused & Expanded) ---
     const allCourses = [
@@ -118,88 +205,15 @@ const Courses = () => {
         }
     ];
 
-    const filteredCourses = allCourses.filter(course => {
+    const baseCourses = userGoal ? allCourses.filter((c) => c.cat === userGoal) : allCourses;
+
+    const filteredCourses = baseCourses.filter(course => {
         const matchesCategory = activeCategory === 'All' || course.cat === activeCategory;
         const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase());
         return matchesCategory && matchesSearch;
     });
 
-    const categories = ['All', 'JEE', 'NEET', 'Foundation', 'Test Series'];
-
-    // --- Modal Component ---
-    const CourseModal = ({ course, onClose }) => {
-        if (!course) return null;
-        return (
-            <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }} onClick={onClose}>
-                <motion.div
-                    initial={{ scale: 0.95, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.95, opacity: 0 }}
-                    onClick={(e) => e.stopPropagation()}
-                    style={{ background: '#18181b', width: '100%', maxWidth: '900px', maxHeight: '90vh', overflowY: 'auto', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.1)', position: 'relative' }}
-                >
-                    <button onClick={onClose} style={{ position: 'absolute', top: '24px', right: '24px', background: 'rgba(0,0,0,0.5)', border: 'none', color: 'white', borderRadius: '50%', padding: '8px', cursor: 'pointer', zIndex: 10 }}>
-                        <X size={24} />
-                    </button>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0' }} className="modal-grid">
-                        {/* Left: Image & Key Info */}
-                        <div style={{ position: 'relative', minHeight: '300px' }}>
-                            <img src={course.image} alt={course.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, #18181b 0%, transparent 60%)' }} />
-                            <div style={{ position: 'absolute', bottom: '32px', left: '32px', right: '32px' }}>
-                                <div style={{ display: 'inline-block', background: course.color, padding: '6px 14px', borderRadius: '100px', fontSize: '0.8rem', fontWeight: '800', marginBottom: '12px', textTransform: 'uppercase' }}>{course.cat}</div>
-                                <h2 style={{ fontSize: '2.5rem', fontWeight: '800', lineHeight: 1.1, marginBottom: '8px' }}>{course.title}</h2>
-                                <div style={{ display: 'flex', gap: '16px', fontSize: '0.95rem', color: '#d4d4d8' }}>
-                                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Timer size={16} /> Starts {course.date}</span>
-                                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><CheckCircle2 size={16} /> Valid: {course.validity}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Right: Details & CTA */}
-                        <div style={{ padding: '40px', display: 'flex', flexDirection: 'column' }}>
-                            <div style={{ marginBottom: '2rem' }}>
-                                <h3 style={{ fontSize: '1.2rem', fontWeight: '700', marginBottom: '1rem', color: 'white' }}>Description</h3>
-                                <p style={{ color: '#a1a1aa', lineHeight: 1.6 }}>{course.description}</p>
-                            </div>
-
-                            <div style={{ marginBottom: 'auto' }}>
-                                <h3 style={{ fontSize: '1.2rem', fontWeight: '700', marginBottom: '1rem', color: 'white' }}>Key Features</h3>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                                    {course.features.map((f, i) => (
-                                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: '#d4d4d8' }}>
-                                            <CheckCircle2 size={14} color={course.color} /> {f}
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div style={{ marginTop: '2.5rem', paddingTop: '2rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'end', marginBottom: '1.5rem' }}>
-                                    <div>
-                                        <div style={{ fontSize: '0.9rem', color: '#a1a1aa' }}>Total Price</div>
-                                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px' }}>
-                                            <span style={{ fontSize: '2rem', fontWeight: '800' }}>₹{course.price}</span>
-                                            <span style={{ fontSize: '1.1rem', color: '#71717a', textDecoration: 'line-through' }}>₹{course.originalPrice}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <button className="btn-reset" style={{ width: '100%', padding: '18px', background: course.color, color: 'white', borderRadius: '12px', fontWeight: '800', fontSize: '1.1rem', letterSpacing: '0.02em' }}>
-                                    Enroll Now
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </motion.div>
-                <style>{`
-                    @media (max-width: 768px) {
-                        .modal-grid { grid-template-columns: 1fr !important; }
-                    }
-                `}</style>
-            </div>
-        );
-    };
+    const categories = userGoal ? ['All', userGoal] : ['All', 'JEE', 'NEET', 'Foundation', 'Test Series'];
 
     return (
         <div style={{ background: '#050505', minHeight: '100vh', fontFamily: '"Inter", sans-serif', color: 'white', paddingTop: '80px', paddingBottom: '80px' }}>
