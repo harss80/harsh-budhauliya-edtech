@@ -80,18 +80,7 @@ const Navbar = () => {
         }
     ];
 
-    const resolveGoal = (u) => {
-        const raw = String(u?.educationDetails?.targetExam || '').toUpperCase();
-        if (raw.includes('NEET') || raw.includes('MEDICAL')) return 'NEET';
-        if (raw.includes('JEE') || raw.includes('ENGINEERING')) return 'JEE';
-        if (raw.includes('FOUNDATION')) return 'Foundation';
-        return '';
-    };
-
-    const userGoal = resolveGoal(user);
-    const menusToRender = user
-        ? menus.filter((m) => m.label === userGoal)
-        : menus;
+    const menusToRender = menus;
     const [openDropdown, setOpenDropdown] = useState(null);
 
 

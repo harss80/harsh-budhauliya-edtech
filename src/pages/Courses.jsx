@@ -85,19 +85,6 @@ const Courses = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCourse, setSelectedCourse] = useState(null);
 
-    const resolveGoal = (u) => {
-        const raw = String(u?.educationDetails?.targetExam || '').toUpperCase();
-        if (raw.includes('NEET') || raw.includes('MEDICAL')) return 'NEET';
-        if (raw.includes('JEE') || raw.includes('ENGINEERING')) return 'JEE';
-        if (raw.includes('FOUNDATION')) return 'Foundation';
-        return '';
-    };
-
-    const currentUser = (() => {
-        try { return JSON.parse(localStorage.getItem('digimentors_current_user') || 'null'); } catch { return null; }
-    })();
-    const userGoal = resolveGoal(currentUser);
-
     // --- Course Data (Reused & Expanded) ---
     const allCourses = [
         // JEE
@@ -205,15 +192,13 @@ const Courses = () => {
         }
     ];
 
-    const baseCourses = userGoal ? allCourses.filter((c) => c.cat === userGoal) : allCourses;
-
-    const filteredCourses = baseCourses.filter(course => {
+    const filteredCourses = allCourses.filter(course => {
         const matchesCategory = activeCategory === 'All' || course.cat === activeCategory;
         const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase());
         return matchesCategory && matchesSearch;
     });
 
-    const categories = userGoal ? ['All', userGoal] : ['All', 'JEE', 'NEET', 'Foundation', 'Test Series'];
+    const categories = ['All', 'JEE', 'NEET', 'Foundation', 'Test Series'];
 
     return (
         <div style={{ background: '#050505', minHeight: '100vh', fontFamily: '"Inter", sans-serif', color: 'white', paddingTop: '80px', paddingBottom: '80px' }}>
